@@ -45,7 +45,7 @@
 
 
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref,onMounted } from "vue";
 import { useRouter } from "vue-router"; //导入路由
 import api from "@/api/loginApi";
 import md5 from "md5";
@@ -181,6 +181,24 @@ const submitForm = (formEl) => {
     }
   });
 };
+
+onMounted(() => {
+  var res = menuData;
+  if (res) {
+    let curUserInfo = res.userInfo;
+    let curFuncList = res.funcInfo;
+    let curDeptList = res.deptList;
+    let curPostList = res.postList;
+    if (curUserInfo && curFuncList.length > 0) {
+      sessionStorage.setItem("curUserInfo", JSON.stringify(curUserInfo));
+      sessionStorage.setItem("curFuncList", JSON.stringify(curFuncList));
+      sessionStorage.setItem("curDeptList", JSON.stringify(curDeptList));
+      sessionStorage.setItem("curPostList", JSON.stringify(curPostList));
+      //跳转
+      router.push("/main");
+    }
+  }
+});
 </script>
 <style  scoped>
 .loginBg {

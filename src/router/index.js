@@ -2,6 +2,7 @@ import {
     createRouter,
     createWebHashHistory
 } from 'vue-router'
+import { menuData } from "@/jslib/menuData.js";
 // import store from '../store/index'
 // import dealWithRoute from "./dealWithRoute";
 const routes = [{
@@ -145,7 +146,23 @@ const router = createRouter({
     })
     //路由拦截
 router.beforeEach((to, from, next) => {
-    //console.log("to,from:", to, from);
+    var res = menuData;
+    if (res) {
+        let curUserInfo = res.userInfo;
+        let curFuncList = res.funcInfo;
+        let curDeptList = res.deptList;
+        let curPostList = res.postList;
+        if (curUserInfo && curFuncList.length > 0) {
+            sessionStorage.setItem("curUserInfo", JSON.stringify(curUserInfo));
+            sessionStorage.setItem("curFuncList", JSON.stringify(curFuncList));
+            sessionStorage.setItem("curDeptList", JSON.stringify(curDeptList));
+            sessionStorage.setItem("curPostList", JSON.stringify(curPostList));
+            //跳转
+            //router.push("/main");
+        }
+    }
+
+    //console.log("to,from:", to, from); 
     var curUserInfo = sessionStorage.getItem("curUserInfo");
     if (!curUserInfo || curUserInfo == "null") {
         if (to.path !== "/login") {
