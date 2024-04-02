@@ -187,7 +187,7 @@ onMounted(() => {
 });
 </script>
 
-<style >
+<style scoped>
 .userUl {
   color: #333;
 }
@@ -216,5 +216,49 @@ onMounted(() => {
 
 .drawerItem .el-form-item__label {
   color: #fff;
+}
+
+#module .el-container .el-menu-item,
+#module .el-container .el-sub-menu__title {
+    border-bottom: 1px solid #bbb;
+    height: 50px;
+    font-size: 12px;
+    color: #fff;
+}
+
+#module .el-container .el-sub-menu__title span {
+    font-size: 14px;
+    /* color: #000; */
+    /* color: #fff; */
+}
+
+#module .el-container .el-menu-item:hover,
+#module .el-container .el-sub-menu .el-sub-menu__title:hover {
+    /* color: #000;
+    background: #bbb; */
+    /* background: #0079ec; */
+    color: #0079ec;
+    background-color: #fff;
+}
+
+#module .el-menu-item.is-active
+/* #module .el-sub-menu.is-active */
+
+{
+    /* color: #fff;
+    background: #888; */
+    /* background: #0079ec; */
+    color: #fff;
+    background-color: #0079ec;
+}
+
+#module .el-sub-menu .el-icon.expand {
+    font-size: 24px;
+}
+
+#module .el-container .el-sub-menu.is-active.is-opened,
+#module .el-container .el-sub-menu.is-active.is-opened .el-sub-menu__title {
+    color: #fff;
+    background: #000;
 }
 </style>

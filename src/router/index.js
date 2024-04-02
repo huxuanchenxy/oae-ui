@@ -26,7 +26,9 @@ const routes = [{
         redirect: '/main', //重定向
         component: () =>
             import ('../views/home/Index.vue'),
-        children: [{
+        children: 
+            [
+            {
                 path: '/main', //  
                 name: 'main',
                 meta: {
@@ -46,7 +48,34 @@ const routes = [{
                     group: '/inter'
                 },
                 component: () =>
-                    import ('@/views/home/inter/main/index.vue')
+                    import ('@/views/home/inter/main/index.vue'),
+                children:
+                [
+                    {
+                        path: 'event', //  
+                        name: 'event',
+                        component: () =>
+                            import ('@/views/home/inter/event/index.vue')
+                    },
+                    {
+                        path: 'vari', //  
+                        name: 'vari',
+                        component: () =>
+                            import ('@/views/home/inter/vari/index.vue')
+                    },
+                    {
+                        path: 'invari', //  
+                        name: 'invari',
+                        component: () =>
+                            import ('@/views/home/inter/invari/index.vue')
+                    },
+                    {
+                        path: 'tmpvari', //  
+                        name: 'tmpvari',
+                        component: () =>
+                            import ('@/views/home/inter/tmpvari/index.vue')
+                    }
+                ]
             },
         ]
     },

@@ -1,17 +1,22 @@
 <template>
-  <div>
-    <el-button type="primary" @click="addEventInput">增加一个输入事件</el-button>
+  <div class="inter">
+    <!-- <el-button type="primary" @click="addEventInput">增加一个输入事件</el-button>
     <el-button type="primary" @click="addEventOutput">增加一个输出事件</el-button>
     <el-button type="primary" @click="addParamInput">增加一个输入参数</el-button>
     <el-button type="primary" @click="addParamOutput">增加一个输出参数</el-button>
-    <el-button type="primary" @click="init">重置</el-button>
+    <el-button type="primary" @click="init">重置</el-button> -->
+    <div id="mountNode"></div>
+    <EventVari/>
   </div>
-  <div id="mountNode"></div>
+  <div>
+
+  </div>
 </template>
 
 <script setup>
 import {  onMounted } from 'vue'
 import G6 from "@antv/g6";
+import EventVari from "@/components/event_vari/index.vue";
 let blockSide=10;
 let graph;
 let sourceAnchorIdx, targetAnchorIdx;
