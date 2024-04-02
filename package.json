@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@antv/g6": "^4.8.24",
         "animate.css": "^4.1.1",
         "axios": "^1.4.0",
         "default-passive-events": "^2.0.0",
@@ -16,10 +17,10 @@
         "element-plus": "^2.3.4",
         "md5": "^2.3.0",
         "moment": "^2.29.4",
+        "sass": "^1.68.0",
         "vue": "^3.2.45",
         "vue-router": "^4.1.6",
-        "vuex": "^4.1.0",
-        "sass": "^1.68.0"
+        "vuex": "^4.1.0"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^4.0.0",

@@ -36,8 +36,18 @@ const routes = [{
                 },
                 component: () =>
                     import ('../views/home/main/Main.vue')
-            }
-
+            },
+            {
+                path: '/inter', //  
+                name: '接口',
+                meta: {
+                    id: "inter",
+                    title: '接口',
+                    group: '/inter'
+                },
+                component: () =>
+                    import ('@/views/home/inter/index.vue')
+            },
         ]
     },
     {

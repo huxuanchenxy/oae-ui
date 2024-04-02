@@ -63,6 +63,13 @@ listOneFuncList?.push({
   funcUrl: "/main",
   flag: House,
 });
+listOneFuncList?.push({
+  funcId: "13232217443472",
+  funcOrderNum: 0.48,
+  funcShowName: "接口",
+  funcName: "接口",
+  funcUrl: "/inter",
+});
 //console.log(" menu:listOneFuncList", listOneFuncList);
 const handleOpen = (key) => {
   changeIcon(key, RemoveFilled);
