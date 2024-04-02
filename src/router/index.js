@@ -46,7 +46,7 @@ const routes = [{
                     group: '/inter'
                 },
                 component: () =>
-                    import ('@/views/home/inter/index.vue')
+                    import ('@/views/home/inter/main/index.vue')
             },
         ]
     },
