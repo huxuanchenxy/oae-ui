@@ -3,8 +3,7 @@ import {
     createWebHashHistory
 } from 'vue-router'
 import { menuData } from "@/jslib/menuData.js";
-// import store from '../store/index'
-// import dealWithRoute from "./dealWithRoute";
+
 const routes = [{
         path: '/',
         redirect: '/main' //重定向

@@ -42,8 +42,11 @@ const listOneFuncList = curFuncList?.filter((obj) => {
 
 listOneFuncList?.map((entity) => {
   entity.flag = RemoveFilled; //CirclePlusFilled;
-  //console.log("value.push", entity.funcUrl);
-  defaultOpeneds.value.push(entity.funcUrl);
+  console.log("entity.funcName == ", entity.funcName);
+  if (entity.funcName == "项目测试") {
+    console.log("value.push", entity.funcUrl);
+    defaultOpeneds.value.push(entity.funcUrl);
+  }
   entity.child = curFuncList.filter((obj) => {
     return (
       obj.funcParentId == entity.funcId && obj.funcLevel == 2 && obj.isShowMenu
@@ -51,7 +54,20 @@ listOneFuncList?.map((entity) => {
   });
   entity.child.map((o) => {
     //console.log("o.icon:::", o.icon);
+    console.log("--o--", o.funcName, o);
     o.flag = Menu;
+    if (o.funcName == "自定义模块") {
+      o.child = curFuncList.filter((obj) => {
+        if (obj.funcParentId == "zdymk") {
+          console.log("obj.funcParentId", obj.funcParentId);
+          defaultOpeneds.value.push(obj.funcUrl);
+          obj.flag = Menu;
+        }
+        return (
+          obj.funcParentId == o.funcId && obj.funcLevel == 3 && obj.isShowMenu
+        );
+      });
+    }
   });
   //console.log("----entiy child----", entity);
 });
@@ -96,4 +112,48 @@ const getActive = (a, b) => {
 };
 </script>
 
-<style></style>
+<style>
+#module #leftMenu.aside {
+  color: #000;
+  height: 100%;
+}
+
+#module #leftMenu.aside .el-menu {
+  height: calc(100vh-60px);
+  border-right: none;
+  color: #000;
+  background-color: #fff;
+}
+#module .el-container #leftMenu .el-menu-item,
+#module .el-container .el-sub-menu__title {
+  border-bottom: 1px solid #bbb;
+  height: 35px;
+  font-size: 12px;
+}
+
+#module .el-container #leftMenu .el-sub-menu__title span {
+  font-size: 14px;
+}
+
+#module .el-container #leftMenu .el-menu-item:hover,
+#module .el-container .el-sub-menu .el-sub-menu__title:hover {
+  color: #0079ec;
+  background-color: #fff;
+}
+
+#module .el-container #leftMenu .el-menu-item.is-active
+/* #module .el-sub-menu.is-active */ {
+  color: #fff;
+  background-color: #0079ec;
+}
+
+#module .el-container #leftMenu .el-sub-menu .el-icon.expand {
+  font-size: 24px;
+}
+
+#module .el-container .el-sub-menu.is-active.is-opened,
+#module .el-container .el-sub-menu.is-active.is-opened .el-sub-menu__title {
+  color: #000;
+  background: #fff;
+}
+</style>

@@ -6,9 +6,7 @@
         <div class="center"></div>
         <div class="right">
           <div style="width: 474px"></div>
-          <!-- <el-avatar style="margin-top: 5px; cursor: pointer"
-            src="http://localhost:5285/Avatar/20230628133816_f2da217d-6486-4db7-a205-522bd7e9dcc9.jpg" /> -->
-
+   
           <el-tooltip placement="bottom" effect="light" :offset="-3">
             <template #content>
               <ul class="userUl">
@@ -35,7 +33,7 @@
         </div>
       </el-header>
       <el-container>
-        <NavMenu :isCollapse="!isCollapse" />
+        <NavMenu id="leftMenu" :isCollapse="!isCollapse" />
         <el-main>
           <div class="top">
             <div class="expand" @click="clickExpand">

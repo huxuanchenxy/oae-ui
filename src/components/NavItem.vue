@@ -30,6 +30,9 @@
 </template>
 
 <script setup>
+
+
+
 const { item, basePath } = defineProps({
   item: {
     type: Object,
