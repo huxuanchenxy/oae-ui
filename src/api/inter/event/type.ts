@@ -1,9 +1,9 @@
 interface Eve {
     no:number,
     name:string,
-    event:string,
+    relateEve:string,
     arrLen:number,
-    eventType:string,
+    eveType:string,
     initVal:number,
-    commit:string
+    remark:string
   }

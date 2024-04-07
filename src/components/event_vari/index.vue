@@ -1,7 +1,7 @@
 <template>
     <div class="event_vari" >
         <div class="menu">
-        <el-menu :default-active="$route.path" active-text-color="#ffd04b">
+        <el-menu :default-active="$route.path">
             <el-menu-item
             index="/inter/event"
             @click="changeActive('/inter/event')"
@@ -53,8 +53,4 @@
             flex: 8;
         }
     }
-    #module .el-container .el-menu-item {
-        color:black;
-    }
-    
 </style>
