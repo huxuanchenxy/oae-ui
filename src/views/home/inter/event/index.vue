@@ -145,7 +145,7 @@
         cache.local.setJSON('inputEventArr',inputEventList.value)
     }
     const updateEveInput=(data:EveInputForm)=>{
-        inputEventList.value.splice(data.no,0,{...data})
+        inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
         cache.local.setJSON('inputEventArr',inputEventList.value)
     };
