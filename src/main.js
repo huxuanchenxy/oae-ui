@@ -13,13 +13,14 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-
+import store from './store';
 const app = createApp(App)
-app
-//.use(animated)
-    .use(ElementPlus, {
+app.use(ElementPlus, {
     locale: zhCn,
-}).use(router).mount('#app')
+});
+app.use(router);
+app.use(store);
+app.mount('#app')
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }

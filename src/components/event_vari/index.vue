@@ -41,10 +41,10 @@
 
 <style lang="scss" scoped>
     .event_vari {
-        border: 1px solid red;
+        border: 1px solid black;
         display: flex;
         .menu {
-            flex: 2;
+            flex: 0.2;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -57,9 +57,4 @@
         color:black;
     }
     
-    #module .el-container .el-menu-item:hover,
-    #module .el-container .el-sub-menu .el-sub-menu__title:hover {
-        color: #0079ec;
-        background-color: #fff;
-    }
 </style>
