@@ -4,13 +4,14 @@
             输入
             <div class="table_out">
                 <div>
-                    <div class="icon"><el-icon><Plus @click="handleAdd()"/></el-icon></div>
-                    <div class="icon"><el-icon><Close /></el-icon></div>
-                    <div class="icon"><el-icon><EditPen /></el-icon></div>
-                    <div class="icon"><el-icon><Setting /></el-icon></div>
+                    <div class="icon"><el-button type="primary" plain icon="Plus" @click="handleAdd"></el-button></div>
+                    <div class="icon"><el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()"></el-button></div>
+                    <div class="icon"><el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()"></el-button></div>
+                    <div class="icon"><el-button type="success" plain icon="Setting"></el-button></div>
                 </div>
                 <div class="table_in">
-                    <el-table :data="inputEventArr" style="width: 100%" height="200">
+                    <el-table :data="inputEventList" style="width: 100%" height="200"  @selection-change="handleSelectionChange">
+                        <el-table-column type="selection" width="55"  />
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="name"/>
                         <el-table-column label="关联事件" prop="relateEve"/>
@@ -51,12 +52,20 @@
 </template>
 
 <script setup lang="ts">
-    import type { Eve} from '@/api/inter/event/type';
-    import { ref,reactive,getCurrentInstance,onMounted } from "vue";
+    import type { EveInputForm,EveInputQuery} from '@/api/inter/event/type';
+    import { ref,reactive,getCurrentInstance,onMounted ,toRefs} from "vue";
     import  cache  from "@/plugins/cache.ts";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+    const ids = ref<Array<number | string>>([]);
+    const single = ref(true);
+    const multiple = ref(true);
+    const handleSelectionChange = (selection: EveInputForm[]) => {
+        ids.value = selection.map(item => item.no);
+        single.value = selection.length != 1;
+        multiple.value = !selection.length;
+    }
     //初始值
-    const initEveInputFormData:Eve = {
+    const initEveInputFormData:EveInputForm = {
         no:undefined,
         name:'',
         relateEve:'',
@@ -65,8 +74,20 @@
         initVal:0,
         remark:''
     }
+    const eveInputData = reactive<PageData<EveInputForm, EveInputQuery>>({
+        eveInputForm: { ...initEveInputFormData },
+        queryParams: {
+            // pageNum: 1,
+            // pageSize: 10,
+        },
+        eveInputRules: {
+            name: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
+        },
+    });
+    //内部属性不是响应式，需要用toRefs把属性也变成响应式
+    const { queryParams, eveInputForm, eveInputRules } = toRefs(eveInputData);
     //输入事件列表
-    let inputEventArr=ref<Eve>([]);
+    const inputEventList = ref<EveInputForm[]>([]);
     
     const dialog = reactive<DialogOption>({
         visible: false,
@@ -75,19 +96,27 @@
     //增加/编辑输入事件对话框
     const eveInputFormRef = ref<ElFormInstance>();
     //增加/编辑输入事件对话框双向绑定对象
-    let eveInputForm=reactive({ ...initEveInputFormData });
-    let eveInputRules=reactive({
-        name: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
-    });
+    // let eveInputForm=reactive({ ...initEveInputFormData });
+    // let eveInputRules=reactive({
+    //     name: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
+    // });
     /** 新增按钮操作 */
     const handleAdd = () => {
         reset();
         dialog.visible = true;
         dialog.title = "添加输入事件";
     }
+    const handleUpdate = (row?: EveInputForm) => {
+        reset();
+        const no = row?.no||ids.value[0];
+        const res = inputEventList.value[no-1];
+        Object.assign(eveInputForm.value, res);
+        dialog.visible = true;
+        dialog.title = "修改字典类型";
+    }
     /** 表单重置 */
     const reset = () => {
-        eveInputForm.value = { ...initEveInputFormData };
+        eveInputForm.value={ ...initEveInputFormData };
         eveInputFormRef.value?.resetFields();
     }
     /** 取消按钮 */
@@ -99,27 +128,34 @@
     const submitEveInputForm = () => {
         eveInputFormRef.value?.validate((valid: boolean) => {
             if (valid) {
-                // updateType(form.value) : await addType(form.value);
+                eveInputForm.value.no?updateEveInput(eveInputForm.value):addEveInput(eveInputForm.value);
                 // proxy?.$modal.msgSuccess("操作成功");
-                if(!inputEventArr.value){
-                    inputEventArr.value=new Array();
-                }
-                inputEventArr.value.push({...eveInputForm});
-                console.log(inputEventArr.value)
-                //保存到localstorage里
-                cache.local.setJSON('inputEventArr',inputEventArr.value)
                 dialog.visible = false;
                 // getList();
             }
         });
     }
+    const addEveInput=(data:EveInputForm)=>{
+        if(!inputEventList.value){
+            inputEventList.value=new Array();
+        }
+        data.no=(inputEventList.value.length+1);
+        inputEventList.value.push({...data});
+        //保存到localstorage里
+        cache.local.setJSON('inputEventArr',inputEventList.value)
+    }
+    const updateEveInput=(data:EveInputForm)=>{
+        inputEventList.value.splice(data.no,0,{...data})
+        //保存到localstorage里
+        cache.local.setJSON('inputEventArr',inputEventList.value)
+    };
     onMounted(() => {
         getEveInputList();
     })
     //加载输入事件数据
     const getEveInputList = () => {
-        inputEventArr.value=cache.local.getJSON('inputEventArr');
-        console.log(inputEventArr.value);
+        inputEventList.value=cache.local.getJSON('inputEventArr');
+        console.log(inputEventList.value);
     }
 </script>
 

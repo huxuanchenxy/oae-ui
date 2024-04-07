@@ -1,4 +1,4 @@
-interface Eve {
+  export interface EveInputForm {
     no:number,
     name:string,
     relateEve:string,
@@ -7,3 +7,8 @@ interface Eve {
     initVal:number,
     remark:string
   }
+  
+  export interface DictTypeQuery extends EveInputQuery {
+    name: string;
+  }
+  
