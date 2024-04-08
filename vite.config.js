@@ -1,14 +1,11 @@
-import {
-    defineConfig
-} from 'vite'
-import vue from '@vitejs/plugin-vue'
+import {  loadEnv, defineConfig } from 'vite';
+import createPlugins from './vite/plugins';
 import path from 'path'
-import Components from 'unplugin-vue-components/vite'
-import {
-    ElementPlusResolver
-} from 'unplugin-vue-components/resolvers'
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode, command }) => {
+    const env = loadEnv(mode, process.cwd());
+    return {
+    base: env.VITE_APP_CONTEXT_PATH,
     server: {
         open: true,
         port: 5100,
@@ -20,12 +17,7 @@ export default defineConfig({
         },
 
     },
-    plugins: [
-        vue(),
-        Components({
-            resolvers: [ElementPlusResolver()],
-        }),
-    ],
+    plugins: createPlugins(env, command === 'build'),
     // 预编译
     optimizeDeps: {
         include: [
@@ -87,4 +79,5 @@ export default defineConfig({
             'element-plus/es/components/tab-pane/style/css'
         ]
     }
-})
+  };
+});

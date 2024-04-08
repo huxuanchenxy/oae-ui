@@ -159,7 +159,7 @@
     }
     const handleDelete = async (row?: EveInputForm) => {
         const deleteNos = row?.no||nos.value;
-        // proxy?.$modal.confirm('是否确认删除序号为"' + nos + '"的数据项？');
+        proxy?.$modal.confirm('是否确认删除序号为"' + nos + '"的数据项？');
         let newList=inputEventList.value.filter(x=>!deleteNos.includes(x.no));
         for (let i=0; i< newList.length; i++){
             newList[i].no=i+1;
