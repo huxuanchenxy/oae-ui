@@ -18,7 +18,7 @@ import plugins from './plugins/index'; // plugins
 // 预设动画
 import animate from './animate';
 // svg图标
-// import 'virtual:svg-icons-register';
+import 'virtual:svg-icons-register';
 import ElementIcons from '@/plugins/svgicon';
 const app = createApp(App);
 app.config.globalProperties.animate = animate;
