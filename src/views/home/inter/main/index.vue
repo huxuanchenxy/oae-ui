@@ -242,7 +242,6 @@ G6.registerNode('myShape', {
     let paramOutputNum=cfg.paramOutput?cfg.paramOutput.length:0;//输出参数数量
     let anchorPointsArr=[];
     let paramStart=partNum-eventMaxNum*2;
-    console.log(paramStart)
     for(let i=0;i<eventInputNum;i++){
       //分子为2n+1，再加0.5是为了居中
       anchorPointsArr.push([0,(2*i+1.5)/partNum])

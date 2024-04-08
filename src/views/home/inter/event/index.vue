@@ -55,12 +55,13 @@
     import type { EveInputForm,EveInputQuery} from '@/api/inter/event/type';
     import { ref,reactive,getCurrentInstance,onMounted ,toRefs} from "vue";
     import  cache  from "@/plugins/cache.ts";
+    const inputEventArrCacheKey="inputEventArr";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-    const ids = ref<Array<number | string>>([]);
+    const nos = ref<Array<number | string>>([]);
     const single = ref(true);
     const multiple = ref(true);
     const handleSelectionChange = (selection: EveInputForm[]) => {
-        ids.value = selection.map(item => item.no);
+        nos.value = selection.map(item => item.no);
         single.value = selection.length != 1;
         multiple.value = !selection.length;
     }
@@ -108,7 +109,7 @@
     }
     const handleUpdate = (row?: EveInputForm) => {
         reset();
-        const no = row?.no||ids.value[0];
+        const no = row?.no||nos.value[0];
         const res = inputEventList.value[no-1];
         Object.assign(eveInputForm.value, res);
         dialog.visible = true;
@@ -135,27 +136,38 @@
             }
         });
     }
-    const addEveInput=(data:EveInputForm)=>{
+    const addEveInput=(data:EveInputForm)=>{ 
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
         data.no=(inputEventList.value.length+1);
         inputEventList.value.push({...data});
         //保存到localstorage里
-        cache.local.setJSON('inputEventArr',inputEventList.value)
+        cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
     }
     const updateEveInput=(data:EveInputForm)=>{
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        cache.local.setJSON('inputEventArr',inputEventList.value)
+        cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
     };
     onMounted(() => {
         getEveInputList();
     })
-    //加载输入事件数据
+    //加载输入事件数据 
     const getEveInputList = () => {
-        inputEventList.value=cache.local.getJSON('inputEventArr');
-        console.log(inputEventList.value);
+        inputEventList.value=cache.local.getJSON(inputEventArrCacheKey);
+    }
+    const handleDelete = async (row?: EveInputForm) => {
+        const deleteNos = row?.no||nos.value;
+        // proxy?.$modal.confirm('是否确认删除序号为"' + nos + '"的数据项？');
+        let newList=inputEventList.value.filter(x=>!deleteNos.includes(x.no));
+        for (let i=0; i< newList.length; i++){
+            newList[i].no=i+1;
+        }
+        inputEventList.value=[];
+        Object.assign(inputEventList.value,newList);
+        cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
+        // proxy?.$modal.msgSuccess("删除成功");
     }
 </script>
 

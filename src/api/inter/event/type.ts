@@ -8,7 +8,7 @@
     remark:string
   }
   
-  export interface DictTypeQuery extends EveInputQuery {
+  export interface EveInputQuery extends PageQuery {
     name: string;
   }
   
