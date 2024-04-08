@@ -53,7 +53,6 @@
 
 <script setup lang="ts">
     import type { EveInputForm,EveInputQuery} from '@/api/inter/event/type';
-    import { ref,reactive,getCurrentInstance,onMounted ,toRefs} from "vue";
     import  cache  from "@/plugins/cache.ts";
     const inputEventArrCacheKey="inputEventArr";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
