@@ -125,8 +125,10 @@ html {
 
 #module .routerView {
     height: calc(100vh-110px);
-    animation-name: fadeInLeft;
+    animation-name: sidebarLogoFade;
+    /* fadeInLeft; */
     animation-duration: 0.74s;
+    margin: 8px;
 }
 
 
@@ -146,7 +148,7 @@ html {
     padding: 0;
     height: 50px;
     /*  background-color: #0079ec; */
-    background: #454a5b linear-gradient(345deg, rgba(0, 255, 95, .5), #0079ec)
+    background: #666 linear-gradient(345deg, rgba(13, 14, 14, 0.5), #fff)
 }
 
 #module .el-container .el-header .logo {
