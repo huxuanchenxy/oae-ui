@@ -1,6 +1,5 @@
-import {
-    createApp
-} from 'vue'
+import { createApp } from 'vue';
+import 'uno.css';
 import '@/assets/css/style.css'
 import '@/assets/iconfont/iconfont.css';
 import '@/assets/iconfont/iconfont.js';
@@ -13,13 +12,26 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import sotre from './store/indexVuex.js'
-const app = createApp(App)
-app
-//.use(animated)
-    .use(ElementPlus, {
+import store from './store';
+import sotreVuex from './store/indexVuex.js'
+// 注册插件
+import plugins from './plugins/index'; // plugins
+// 预设动画
+import animate from './animate';
+// svg图标
+import 'virtual:svg-icons-register';
+import ElementIcons from '@/plugins/svgicon';
+const app = createApp(App);
+app.config.globalProperties.animate = animate;
+app.use(ElementPlus, {
     locale: zhCn,
-}).use(router).use(sotre).mount('#app')
+});
+app.use(ElementIcons);
+app.use(router);
+app.use(store);
+app.use(sotreVuex);
+app.use(plugins);
+app.mount('#app')
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }

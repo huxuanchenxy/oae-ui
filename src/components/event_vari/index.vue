@@ -1,7 +1,7 @@
 <template>
     <div class="event_vari" >
         <div class="menu">
-        <el-menu :default-active="$route.path" active-text-color="#ffd04b">
+        <el-menu :default-active="$route.path">
             <el-menu-item
             index="/inter/event"
             @click="changeActive('/inter/event')"
@@ -41,10 +41,10 @@
 
 <style lang="scss" scoped>
     .event_vari {
-        border: 1px solid red;
+        border: 1px solid black;
         display: flex;
         .menu {
-            flex: 2;
+            flex: 0.2;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -52,14 +52,5 @@
         .content {
             flex: 8;
         }
-    }
-    #module .el-container .el-menu-item {
-        color:black;
-    }
-    
-    #module .el-container .el-menu-item:hover,
-    #module .el-container .el-sub-menu .el-sub-menu__title:hover {
-        color: #0079ec;
-        background-color: #fff;
     }
 </style>
