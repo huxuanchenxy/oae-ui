@@ -52,6 +52,7 @@
 </template>
 
 <script setup lang="ts">
+    import useEveInputStore from '@/store/modules/eveInput'
     import type { EveInputForm,EveInputQuery} from '@/api/inter/event/type';
     import  cache  from "@/plugins/cache.ts";
     const inputEventArrCacheKey="inputEventArr";
@@ -143,6 +144,7 @@
         inputEventList.value.push({...data});
         //保存到localstorage里
         cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
+        useEveInputStore().setEveInputList("test",inputEventList.value );
     }
     const updateEveInput=(data:EveInputForm)=>{
         inputEventList.value.splice(data.no-1,1,{...data})

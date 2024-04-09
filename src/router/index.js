@@ -47,32 +47,32 @@ const routes = [{
                     group: '/inter'
                 },
                 component: () =>
-                    import ('@/views/home/inter/main/index.vue'),
+                    import ('@/views/inter/main/index.vue'),
                 children:
                 [
                     {
                         path: 'event', //  
                         name: 'event',
                         component: () =>
-                            import ('@/views/home/inter/event/index.vue')
+                            import ('@/views/inter/event/index.vue')
                     },
                     {
                         path: 'vari', //  
                         name: 'vari',
                         component: () =>
-                            import ('@/views/home/inter/vari/index.vue')
+                            import ('@/views/inter/vari/index.vue')
                     },
                     {
                         path: 'invari', //  
                         name: 'invari',
                         component: () =>
-                            import ('@/views/home/inter/invari/index.vue')
+                            import ('@/views/inter/invari/index.vue')
                     },
                     {
                         path: 'tmpvari', //  
                         name: 'tmpvari',
                         component: () =>
-                            import ('@/views/home/inter/tmpvari/index.vue')
+                            import ('@/views/inter/tmpvari/index.vue')
                     }
                 ]
             },
