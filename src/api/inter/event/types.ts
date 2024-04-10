@@ -2,6 +2,7 @@
     no:number,
     name:string,
     relateEve:string,
+    relateEveName:string,
     arrLen:number,
     eveType:string,
     initVal:number,
@@ -15,9 +16,13 @@
     no:number,
     name:string,
     relateEve:string,
+    relateEveName:string,
     arrLen:number,
     eveType:string,
     initVal:number,
     remark:string
   }
-  
+  export interface Eve{
+    id:number,
+    name:string
+  }

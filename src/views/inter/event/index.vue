@@ -14,7 +14,7 @@
                         <el-table-column type="selection" width="55"  />
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="name"/>
-                        <el-table-column label="关联事件" prop="relateEve"/>
+                        <el-table-column label="关联事件" prop="relateEveName"/>
                         <el-table-column label="数组长度" prop="arrLen"/>
                         <el-table-column label="类型" prop="eveType">
                             <template #default="scope">
@@ -42,8 +42,13 @@
                     <el-input v-model="eveInputForm.name" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="关联事件" prop="relateEve">
-                    <el-select v-model="eveInputForm.relateEve" placeholder="请输入关联事件">
-                        <el-option v-for="eve in relateEveList" :key="eve.value" :label="eve.label" :value="eve.value"></el-option>
+                    <el-select v-model="eveInputForm.relateEve" placeholder="请选择关联事件">
+                        <el-option
+                        v-for="item in relateEveList"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id"
+                        ></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="数组长度" prop="arrLen">
@@ -75,16 +80,16 @@
     import useEveInputStore from '@/store/modules/eveInput'
     import type { EveInputForm,EveInputQuery,EveInputVO} from '@/api/inter/event/type';
     import  cache  from "@/plugins/cache.ts";
+    import api from "@/api/inter/event";
+    import { Eve } from "@/api/inter/event/types";
+import { log } from 'console';
     const inputEventArrCacheKey="inputEventArr";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
     const multiple = ref(true);
-    let relateEveList=[
-        {value:'1',label:'事件1'},
-        {value:'2',label:'事件2'}
-    ];
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { eveType } = toRefs<any>(proxy?.useDict("eveType"));
+    const relateEveList = ref<Eve[]>([]);
     const handleSelectionChange = (selection: EveInputVO[]) => {
         nos.value = selection.map(item => item.no);
         single.value = selection.length != 1;
@@ -131,6 +136,8 @@
         reset();
         dialog.visible = true;
         dialog.title = "添加输入事件";
+        relateEveList.value=api.getRelateEveList();
+
     }
     const handleUpdate = (row?: EveInputVO) => {
         reset();
@@ -138,7 +145,7 @@
         const res = inputEventList.value[no-1];
         Object.assign(eveInputForm.value, res);
         dialog.visible = true;
-        dialog.title = "修改字典类型";
+        dialog.title = "修改输入事件";
     }
     /** 表单重置 */
     const reset = () => {
@@ -164,6 +171,11 @@
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
+        //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
+        const selectedLabel = relateEveList.value.find(
+            (ele) => ele.id === data.relateEve
+        )?.name;
+        data.relateEveName=selectedLabel;
         data.no=(inputEventList.value.length+1);
         inputEventList.value.push({...data});
         //保存到localstorage里
