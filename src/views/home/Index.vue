@@ -1,43 +1,46 @@
 <template>
   <div id="module">
     <el-container>
-      <el-header>
-        <div class="logo"></div>
-        <div class="center"></div>
-        <div class="right">
-          <div style="width: 474px"></div>
-   
-          <el-tooltip placement="bottom" effect="light" :offset="-3">
-            <template #content>
-              <ul class="userUl">
-                <li @click="pCenterVisible = true">个人中心</li>
-                <li @click="resetPwd">修改密码</li>
-                <li>
-                  <router-link to="/main">首页</router-link>
-                </li>
-                <li @click="goBack()">注销</li>
-              </ul>
-            </template>
-            <div style="float: left; margin: 6px 15px 0 0">
-              <el-avatar
-                style="float: left; cursor: pointer"
-                :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)"
-              />
-              <div style="float: left; color: #fff; margin: 10px 0 0 10px">
-                {{ curUserInfo.userName }}
-              </div>
-            </div>
-          </el-tooltip>
-
-          <!-- <el-button style="margin-top: 9px" class="exit" type="primary">注销</el-button> -->
-        </div>
-      </el-header>
+      <NavMenu id="leftMenu" :isCollapse="!isCollapse" />
       <el-container>
-        <NavMenu id="leftMenu" :isCollapse="!isCollapse" />
+        <el-header>
+          <!-- <div class="logo"></div> -->
+          <div class="center">
+            <Tags></Tags>
+          </div>
+          <div class="right">
+            <div style="width: 100px"></div>
+
+            <el-tooltip placement="bottom" effect="light" :offset="-3">
+              <template #content>
+                <ul class="userUl">
+                  <li @click="pCenterVisible = true">个人中心</li>
+                  <li @click="resetPwd">修改密码</li>
+                  <li>
+                    <router-link to="/main">首页</router-link>
+                  </li>
+                  <li @click="goBack()">注销</li>
+                </ul>
+              </template>
+              <div style="float: left; margin: 6px 15px 0 0">
+                <el-avatar
+                  style="float: left; cursor: pointer"
+                  :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)"
+                />
+                <div style="float: left; color: #fff; margin: 10px 0 0 10px">
+                  {{ curUserInfo.userName }}
+                </div>
+              </div>
+            </el-tooltip>
+
+            <!-- <el-button style="margin-top: 9px" class="exit" type="primary">注销</el-button> -->
+          </div>
+        </el-header>
+
         <el-main>
-          <div class="top">
+          <!-- <div class="top">
             <div class="expand" @click="clickExpand">
-              <!-- 点击展开收起导航和切换对应图标 -->
+              
               <el-icon v-show="isCollapse">
                 <Fold />
               </el-icon>
@@ -48,11 +51,10 @@
             <div class="topBreadcrumb">
               <Breadcrumb />
             </div>
-          </div>
-          <!-- <transition enter-active-class="animate__animated animate__fadeInUp"
-            leave-active-class="animate__animated animate__fadeInDown"> -->
+          </div> -->
+
           <router-view class="routerView" />
-          <!-- </transition> -->
+
           <pwdChangeDialog
             v-model:pwdChangeDialogVisible="pwdChangeDialogVisible"
           ></pwdChangeDialog>
@@ -69,13 +71,13 @@
             >
               <!-- <el-avatar :size="147" :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" /> -->
 
-              <el-image
+              <!-- <el-image
                 :preview-src-list="[ImageUrlFilter(curUserInfo.avatarLinkUrl)]"
                 :preview-teleported="true"
                 style="width: 147px; vertical-align: middle"
                 :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)"
                 class="avatar"
-              />
+              /> -->
             </div>
             <div style="margin-left: 5px">
               <el-form
@@ -114,8 +116,9 @@
 </template>
 
 <script setup>
+import Tags from "@/components/Tags.vue";
 import NavMenu from "@/components/NavMenu.vue"; //导航
-import Breadcrumb from "@/components/Breadcrumb.vue"; //引入组件
+//import Breadcrumb from "@/components/Breadcrumb.vue"; //引入组件
 import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
 import { useRouter } from "vue-router"; //导入路由
 //import { Fold, Expand } from "@element-plus/icons-vue";
@@ -159,10 +162,10 @@ const postListStr = ref("");
 onMounted(() => {
   // location.reload();
   // router.push("/rolelist");
-  if (window.location.href.indexOf("#reloaded") == -1) {
-    window.location.href = window.location.href + "#reloaded";
-    window.location.reload();
-  }
+  // if (window.location.href.indexOf("#reloaded") == -1) {
+  //   window.location.href = window.location.href + "#reloaded";
+  //   window.location.reload();
+  // }
   const curDeptList = JSON.parse(sessionStorage.getItem("curDeptList"));
   if (curDeptList && curDeptList.length > 0) {
     let deptStr = "";
@@ -185,7 +188,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style >
 .userUl {
   color: #333;
 }
@@ -214,49 +217,5 @@ onMounted(() => {
 
 .drawerItem .el-form-item__label {
   color: #fff;
-}
-
-#module .el-container .el-menu-item,
-#module .el-container .el-sub-menu__title {
-    border-bottom: 1px solid #bbb;
-    height: 50px;
-    font-size: 12px;
-    color: #fff;
-}
-
-#module .el-container .el-sub-menu__title span {
-    font-size: 14px;
-    /* color: #000; */
-    /* color: #fff; */
-}
-
-#module .el-container .el-menu-item:hover,
-#module .el-container .el-sub-menu .el-sub-menu__title:hover {
-    /* color: #000;
-    background: #bbb; */
-    /* background: #0079ec; */
-    color: #0079ec;
-    background-color: #fff;
-}
-
-#module .el-menu-item.is-active
-/* #module .el-sub-menu.is-active */
-
-{
-    /* color: #fff;
-    background: #888; */
-    /* background: #0079ec; */
-    color: #fff;
-    background-color: #0079ec;
-}
-
-#module .el-sub-menu .el-icon.expand {
-    font-size: 24px;
-}
-
-#module .el-container .el-sub-menu.is-active.is-opened,
-#module .el-container .el-sub-menu.is-active.is-opened .el-sub-menu__title {
-    color: #fff;
-    background: #000;
 }
 </style>

@@ -1,10 +1,24 @@
 <template>
-  <el-aside class="aside" width="collapse">
+  <el-aside class="aside">
+    <!-- width="collapse" -->
+    <div
+      style="
+        text-align: center;
+        height: 48px;
+        line-height: 48px;
+        border: 1px solid #bbb;
+        border-right: none;
+        border-top: none;
+      "
+    >
+      Logo待定
+    </div>
+    <!--  -->
     <el-menu
-      router
-      :default-active="getActive(route.path, route.meta.group)"
       :collapse="props.isCollapse"
       :default-openeds="defaultOpeneds"
+      router
+      :default-active="getActive(route.path, route.meta.group)"
       @open="handleOpen"
       @close="handleClose"
     >
@@ -22,6 +36,7 @@
 import { ref } from "vue";
 import { useRoute } from "vue-router"; //导入路由
 import NavItem from "./NavItem.vue"; //子组件
+import { funcList } from "@/jslib/common.js";
 import {
   Menu,
   CirclePlusFilled,
@@ -35,50 +50,58 @@ const props = defineProps({
 });
 const route = useRoute();
 const curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
-//console.log("full--funcList", curFuncList);
+
+ 
 const listOneFuncList = curFuncList?.filter((obj) => {
   return obj.funcLevel == 1 && obj.isShowMenu;
 });
-
-listOneFuncList?.map((entity) => {
-  entity.flag = RemoveFilled; //CirclePlusFilled;
-  console.log("entity.funcName == ", entity.funcName);
-  if (entity.funcName == "项目测试") {
-    console.log("value.push", entity.funcUrl);
-    defaultOpeneds.value.push(entity.funcUrl);
-  }
-  entity.child = curFuncList.filter((obj) => {
-    return (
-      obj.funcParentId == entity.funcId && obj.funcLevel == 2 && obj.isShowMenu
+ 
+const processMenuData = (list) => {
+  
+  list.forEach((l) => {
+    let curLevel = l.funcLevel + 1;
+    if (l.funcParentId) {
+      l.funcUrl = `${l.funcUrl}/${l.funcParentId}/${l.funcId}`;
+    }
+    let isExistFlag = curFuncList.some(
+      (t) =>
+        t.funcParentId == l.funcId && t.isShowMenu && t.funcLevel == curLevel
     );
-  });
-  entity.child.map((o) => {
-    //console.log("o.icon:::", o.icon);
-    console.log("--o--", o.funcName, o);
-    o.flag = Menu;
-    if (o.funcName == "自定义模块") {
-      o.child = curFuncList.filter((obj) => {
-        if (obj.funcParentId == "zdymk") {
-          console.log("obj.funcParentId", obj.funcParentId);
-          defaultOpeneds.value.push(obj.funcUrl);
-          obj.flag = Menu;
-        }
+    if (isExistFlag) {
+      //list?.map((entity) => {
+      //entity.flag = RemoveFilled;
+      defaultOpeneds.value.push(l.funcUrl);
+      //});
+      let childList = curFuncList.filter((obj) => {
         return (
-          obj.funcParentId == o.funcId && obj.funcLevel == 3 && obj.isShowMenu
+          obj.funcParentId == l.funcId &&
+          obj.funcLevel == l.funcLevel + 1 &&
+          obj.isShowMenu
         );
       });
+      if (childList) {
+        l.child = childList;
+        processMenuData(childList);
+      }
+    } else {
+      l.flag = Menu;
+      //if (l.funcParentId) {
+      //l.funcUrl = `${l.funcUrl}/${l.funcParentId}`;
+      //`${l.funcUrl}?pid=${l.funcParentId}`;
+      //}
     }
   });
-  //console.log("----entiy child----", entity);
-});
-listOneFuncList?.push({
-  funcId: "13232217443471",
-  funcOrderNum: 0.47,
-  funcShowName: "首页",
-  funcName: "首页",
-  funcUrl: "/main",
-  flag: House,
-});
+};
+processMenuData(listOneFuncList);
+
+// listOneFuncList?.push({
+//   funcId: "1323275243471",
+//   funcOrderNum: 0.28,
+//   funcShowName: "首页",
+//   funcName: "首页",
+//   funcUrl: "/main",
+//   flag: House,
+// });
 listOneFuncList?.push({
   funcId: "13232217443472",
   funcOrderNum: 0.48,
@@ -86,36 +109,39 @@ listOneFuncList?.push({
   funcName: "接口",
   funcUrl: "/inter",
 });
-//console.log(" menu:listOneFuncList", listOneFuncList);
+
 const handleOpen = (key) => {
-  changeIcon(key, RemoveFilled);
-  //console.log("handleOpen", key);
+  changeIcon(listOneFuncList, key, RemoveFilled);
 };
 const handleClose = (key) => {
-  changeIcon(key, CirclePlusFilled);
-  //console.log("handleClose", key);
+  changeIcon(listOneFuncList, key, CirclePlusFilled);
 };
-const changeIcon = (key, iconType) => {
+
+const changeIcon = (list, key, iconType) => {
   if (key != "/main") {
-    let selectObj = listOneFuncList.filter((o) => {
-      return o.funcUrl == key;
-    });
-    if (selectObj) {
-      selectObj[0].flag = iconType;
+    for (var i = 0; i < list.length; i++) {
+      var obj = list[i];
+      if (obj.funcUrl == key) {
+        obj.flag = iconType;
+        break;
+      } else if (obj.child && obj.child.length > 0) {
+        changeIcon(obj.child, key, iconType);
+      }
     }
   }
 };
 
 const getActive = (a, b) => {
   //console.log("a,b", a, b);
-  return b;
+  return a;
 };
 </script>
 
-<style>
+<style scope>
 #module #leftMenu.aside {
   color: #000;
   height: 100%;
+  width: 180px;
 }
 
 #module #leftMenu.aside .el-menu {
@@ -148,7 +174,8 @@ const getActive = (a, b) => {
 }
 
 #module .el-container #leftMenu .el-sub-menu .el-icon.expand {
-  font-size: 24px;
+  font-size: 16px;
+  color: #666;
 }
 
 #module .el-container .el-sub-menu.is-active.is-opened,
