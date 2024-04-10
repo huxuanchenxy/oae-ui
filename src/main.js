@@ -20,8 +20,10 @@ import animate from './animate';
 // svg图标
 import 'virtual:svg-icons-register';
 import ElementIcons from '@/plugins/svgicon';
+import { useDict } from '@/utils/dict';
 const app = createApp(App);
 app.config.globalProperties.animate = animate;
+app.config.globalProperties.useDict = useDict;
 app.use(ElementPlus, {
     locale: zhCn,
 });
