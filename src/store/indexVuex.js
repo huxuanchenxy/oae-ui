@@ -29,7 +29,7 @@ const store = createStore({
             let moduleList = []; //ref([]);  
             //console.log("param:::", param)
             const curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"))
-                //    JSON.parse(JSON.stringify(funcList))
+                //JSON.parse(JSON.stringify(funcList))
 
             let objFunc = curFuncList.find((obj) => obj.funcId == param.id);
             let parentId = param.pid;

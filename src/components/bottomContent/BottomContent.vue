@@ -59,7 +59,7 @@ const removeTab = (targetName) => {
   editableTabs.value = tabs.filter((tab) => tab.name !== targetName);
 };
 onMounted(() => {
-  console.log("bottomContent onMounted");
+  //console.log("bottomContent onMounted");
 });
 </script>
 
