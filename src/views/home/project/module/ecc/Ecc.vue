@@ -3,12 +3,13 @@
     ECC
     <h1>url参数 pid:{{ pid }}</h1>
     <h1>url参数 id:{{ id }}</h1>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router"; 
+import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 const store = useStore();
 const route = useRoute();

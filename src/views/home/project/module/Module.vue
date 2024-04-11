@@ -1,26 +1,29 @@
 <template>
   <div>
-    <TagsModule :key="path"></TagsModule>
-    <h1>Module</h1>
-    <router-view class="routerView" />
+    <TagsModule></TagsModule>
+    <div class="routerHeight">
+      <router-view class="routerView"></router-view>
+    </div>
+    <BottomContent></BottomContent>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+
+
 import TagsModule from "@/components/TagsModule.vue";
-import { useRouter, useRoute } from "vue-router";
-const route = useRoute();
-const router = useRouter();
-let path = ref("");
-path.value = route.path;
-console.log("path.value", path.value);
+
+import BottomContent from "@/components/bottomContent/BottomContent.vue";
+
+
 onMounted(() => {
-  //console.log("abcde");
+  
 });
-
-
 </script>
 
-<style lang="scss" scoped>
+<style  scoped>
+.routerHeight {
+  overflow: auto;
+  height: calc(100vh - 345px);
+}
 </style>

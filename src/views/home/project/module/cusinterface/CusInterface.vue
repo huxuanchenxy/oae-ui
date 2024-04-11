@@ -6,8 +6,6 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 const store = useStore();
 const route = useRoute();
@@ -16,6 +14,7 @@ let id = ref("");
 onMounted(() => {
   pid.value = route.params.pid;
   id.value = route.params.id;
+  //console.log("interface***", pid.value, id.value);
   store.commit("ChangeTagModuleStatus", route.path);
 });
 </script>

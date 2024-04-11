@@ -11,7 +11,15 @@
         border-top: none;
       "
     >
-      Logo待定
+      <!-- <el-image
+        style=""
+        :src="require('@/assets/img/logo-shdq.png')"
+      /> -->
+      <img
+        style="width: 100px; margin: 12px 0 0 -25px"
+        src="../assets/img/logo-shdq.png"
+        alt=""
+      />
     </div>
     <!--  -->
     <el-menu
@@ -51,13 +59,11 @@ const props = defineProps({
 const route = useRoute();
 const curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
 
- 
 const listOneFuncList = curFuncList?.filter((obj) => {
   return obj.funcLevel == 1 && obj.isShowMenu;
 });
- 
+
 const processMenuData = (list) => {
-  
   list.forEach((l) => {
     let curLevel = l.funcLevel + 1;
     if (l.funcParentId) {
@@ -68,10 +74,7 @@ const processMenuData = (list) => {
         t.funcParentId == l.funcId && t.isShowMenu && t.funcLevel == curLevel
     );
     if (isExistFlag) {
-      //list?.map((entity) => {
-      //entity.flag = RemoveFilled;
       defaultOpeneds.value.push(l.funcUrl);
-      //});
       let childList = curFuncList.filter((obj) => {
         return (
           obj.funcParentId == l.funcId &&
@@ -85,23 +88,11 @@ const processMenuData = (list) => {
       }
     } else {
       l.flag = Menu;
-      //if (l.funcParentId) {
-      //l.funcUrl = `${l.funcUrl}/${l.funcParentId}`;
-      //`${l.funcUrl}?pid=${l.funcParentId}`;
-      //}
     }
   });
 };
 processMenuData(listOneFuncList);
 
-// listOneFuncList?.push({
-//   funcId: "1323275243471",
-//   funcOrderNum: 0.28,
-//   funcShowName: "首页",
-//   funcName: "首页",
-//   funcUrl: "/main",
-//   flag: House,
-// });
 listOneFuncList?.push({
   funcId: "13232217443472",
   funcOrderNum: 0.48,
