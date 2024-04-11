@@ -33,7 +33,6 @@ const store = useStore();
 const list = ref([]);
 const pid = ref([""]);
 onMounted(() => {
-  //console.log("onmouted erereerer");
   pid.value = route.params.pid;
   let id = route.params.id;
   store.commit("GetTagModule", { pid: pid.value, id, path: route.path });
@@ -47,6 +46,7 @@ watch(
     var pathArrays = newPaths.split("/");
     if (pathArrays.length == 4) {
       let cPid = pathArrays[2];
+      //console.log("pathArrays:", pathArrays, cPid, pid.value);
       if (cPid != pid.value) {
         pid.value = cPid;
         store.commit("GetTagModule", {

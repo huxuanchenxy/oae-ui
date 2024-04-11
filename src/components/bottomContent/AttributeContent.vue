@@ -12,7 +12,7 @@ watch(
   () => router.currentRoute.value,
   (newValue) => {
     var newPaths = newValue.fullPath;
-    console.log("newPaths", newPaths);
+    //console.log("newPaths", newPaths);
   }
 );
 </script>

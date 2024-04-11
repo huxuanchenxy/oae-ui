@@ -4,12 +4,12 @@
     <el-icon v-if="!item.icon">
       <component :is="item.flag"></component>
     </el-icon>
-    <span
+    <!-- <span
       v-else
       class="iconfont"
       v-html="item.icon"
       style="font-weight: bold; display: inline-block; margin-right: 7px"
-    ></span>
+    ></span> -->
     <span>{{ item.funcName }}</span>
   </el-menu-item>
   <!-- 有子级 -->
@@ -57,7 +57,7 @@ const handleSelect = (e) => {
     let cObj = funcList.find((obj) => obj.funcUrl == path);
     let model = { id: cObj.funcId, path, name: cObj.funcName, effect: "dark" };
     store.commit("AddTag", model);
-    console.log("path",path)
+    console.log("path", path);
     router.push({ path: path });
   } else {
     let pId = pathArray[2];
