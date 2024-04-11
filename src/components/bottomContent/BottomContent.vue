@@ -9,7 +9,7 @@
         :closable="i != 0"
       >
         <AttributeContent v-show="item.index == 0"></AttributeContent>
-        <EventVariContent v-show="item.index == 1"></EventVariContent>
+        <EventVari v-show="item.index == 1"></EventVari>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -18,7 +18,7 @@
 <script setup>
 import { ref } from "vue";
 import AttributeContent from "@/components/bottomContent/AttributeContent.vue";
-import EventVariContent from "@/components/bottomContent/EventVariContent.vue";
+import EventVari from "@/components/event_vari/index.vue";
 
 const editableTabsValue = ref("0");
 const editableTabs = ref([

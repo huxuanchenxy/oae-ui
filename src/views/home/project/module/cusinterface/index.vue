@@ -15,8 +15,6 @@
 <script setup>
 import {  onMounted } from 'vue'
 import G6 from "@antv/g6";
-const route = useRoute()
-const moduleName=route.params.pid;
 let blockSide=10;
 let graph;
 let sourceAnchorIdx, targetAnchorIdx;

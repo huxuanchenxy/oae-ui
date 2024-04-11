@@ -14,7 +14,6 @@
 <script setup lang="ts">
     import EventComp from "@/components/event_vari/event/index.vue";
     const tabPosition = ref('left')
-    const {moduleName}=defineProps(['moduleName'])
     onMounted(() => {
     })
 </script>

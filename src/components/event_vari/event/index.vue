@@ -82,7 +82,8 @@
     import  cache  from "@/plugins/cache.ts";
     import api from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
-import { log } from 'console';
+    const route = useRoute()
+    const moduleName=route.params.pid;
     const inputEventArrCacheKey="inputEventArr";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
