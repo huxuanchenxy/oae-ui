@@ -36,6 +36,7 @@ const handleClose = (tag) => {
   console.log("tag:::", tag.effect, index);
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
   if (tag.effect == "dark") {
+    if (index == 0) index= 1;
     var tagPrev = dynamicTags.value[index - 1];
     var path = tagPrev.path;
     tagPrev.effect = "dark";

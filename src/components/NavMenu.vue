@@ -26,7 +26,7 @@
       :collapse="props.isCollapse"
       :default-openeds="defaultOpeneds"
       router
-      :default-active="getActive(route.path, route.meta.group)"
+      :default-active="route.path"
       @open="handleOpen"
       @close="handleClose"
     >
@@ -102,10 +102,11 @@ listOneFuncList?.push({
 });
 
 const handleOpen = (key) => {
-  changeIcon(listOneFuncList, key, RemoveFilled);
+  return false;
+  //changeIcon(listOneFuncList, key, RemoveFilled);
 };
 const handleClose = (key) => {
-  changeIcon(listOneFuncList, key, CirclePlusFilled);
+  //changeIcon(listOneFuncList, key, CirclePlusFilled);
 };
 
 const changeIcon = (list, key, iconType) => {
