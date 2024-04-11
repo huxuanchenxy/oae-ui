@@ -6,7 +6,6 @@
     <el-button type="primary" @click="addParamOutput">增加一个输出参数</el-button>
     <el-button type="primary" @click="init">重置</el-button> -->
     <div id="mountNode"></div>
-    <EventVari :moduleName="moduleName"/>
   </div>
   <div>
 
@@ -16,7 +15,6 @@
 <script setup>
 import {  onMounted } from 'vue'
 import G6 from "@antv/g6";
-import EventVari from "@/components/event_vari/index.vue";
 const route = useRoute()
 const moduleName=route.params.pid;
 let blockSide=10;

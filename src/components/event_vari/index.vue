@@ -21,7 +21,6 @@
 
 <style lang="scss" scoped>
     .event_vari {
-        border: 1px solid black;
         display: flex;
         .demo-tabs > .el-tabs__content {
             padding: 32px;

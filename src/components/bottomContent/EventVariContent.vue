@@ -1,10 +1,13 @@
 <template>
-  <div>事件及变量</div>
+  <div>
+    <EventVari :moduleName="moduleName"/>
+  </div>
 </template>
 
 <script setup>
+import EventVari from "@/components/event_vari/index.vue";
 onMounted(() => {
-  console.log("事件及变量")
+
 });
 </script>
 
