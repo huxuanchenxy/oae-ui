@@ -54,9 +54,9 @@
         "unplugin-icons": "0.15.1",
         "unplugin-vue-components": "0.23.0",
         "unplugin-vue-setup-extend-plus": "0.4.9",
-        "vite": "4.3.1",
+        "vite": "^4.5.3",
         "vite-plugin-compression": "0.5.1",
-        "vite-plugin-svg-icons": "2.0.1",
+        "vite-plugin-svg-icons": "^0.1.0",
         "vitest": "^0.29.7",
         "vue-eslint-parser": "9.1.0",
         "vue-tsc": "0.35.0"
