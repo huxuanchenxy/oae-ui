@@ -11,14 +11,22 @@
         border-top: none;
       "
     >
-      Logo待定
+      <!-- <el-image
+        style=""
+        :src="require('@/assets/img/logo-shdq.png')"
+      /> -->
+      <img
+        style="width: 100px; margin: 12px 0 0 -25px"
+        src="../assets/img/logo-shdq.png"
+        alt=""
+      />
     </div>
     <!--  -->
     <el-menu
       :collapse="props.isCollapse"
       :default-openeds="defaultOpeneds"
       router
-      :default-active="getActive(route.path, route.meta.group)"
+      :default-active="route.path"
       @open="handleOpen"
       @close="handleClose"
     >
@@ -51,13 +59,11 @@ const props = defineProps({
 const route = useRoute();
 const curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
 
- 
 const listOneFuncList = curFuncList?.filter((obj) => {
   return obj.funcLevel == 1 && obj.isShowMenu;
 });
- 
+
 const processMenuData = (list) => {
-  
   list.forEach((l) => {
     let curLevel = l.funcLevel + 1;
     if (l.funcParentId) {
@@ -68,10 +74,7 @@ const processMenuData = (list) => {
         t.funcParentId == l.funcId && t.isShowMenu && t.funcLevel == curLevel
     );
     if (isExistFlag) {
-      //list?.map((entity) => {
-      //entity.flag = RemoveFilled;
       defaultOpeneds.value.push(l.funcUrl);
-      //});
       let childList = curFuncList.filter((obj) => {
         return (
           obj.funcParentId == l.funcId &&
@@ -85,14 +88,11 @@ const processMenuData = (list) => {
       }
     } else {
       l.flag = Menu;
-      //if (l.funcParentId) {
-      //l.funcUrl = `${l.funcUrl}/${l.funcParentId}`;
-      //`${l.funcUrl}?pid=${l.funcParentId}`;
-      //}
     }
   });
 };
 processMenuData(listOneFuncList);
+
 
 // listOneFuncList?.push({
 //   funcId: "1323275243471",
@@ -104,10 +104,11 @@ processMenuData(listOneFuncList);
 // });
 
 const handleOpen = (key) => {
-  changeIcon(listOneFuncList, key, RemoveFilled);
+  return false;
+  //changeIcon(listOneFuncList, key, RemoveFilled);
 };
 const handleClose = (key) => {
-  changeIcon(listOneFuncList, key, CirclePlusFilled);
+  //changeIcon(listOneFuncList, key, CirclePlusFilled);
 };
 
 const changeIcon = (list, key, iconType) => {

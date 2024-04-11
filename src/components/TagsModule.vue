@@ -42,8 +42,7 @@ onMounted(() => {
 watch(
   () => router.currentRoute.value,
   (newValue) => {
-    newValue.value;
-    //console.log("newValue", route.path, pid.value);
+    //newValue.value;
     var newPaths = newValue.fullPath;
     var pathArrays = newPaths.split("/");
     if (pathArrays.length == 4) {
@@ -58,7 +57,6 @@ watch(
         list.value = store.state.TagModuleArrs;
       }
     }
-    //console.log("pathArrays", pathArrays);
   }
 );
 </script>

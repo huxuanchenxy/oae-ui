@@ -13,7 +13,9 @@
       size="large"
     >
       <el-link :underline="false"
-        ><span :class="tag.effect =='dark'?'tagName':''">{{ tag.name }}</span></el-link
+        ><span :class="tag.effect == 'dark' ? 'tagName' : ''">{{
+          tag.name
+        }}</span></el-link
       >
     </el-tag>
   </div>
@@ -34,6 +36,7 @@ const handleClose = (tag) => {
   console.log("tag:::", tag.effect, index);
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
   if (tag.effect == "dark") {
+    if (index == 0) index= 1;
     var tagPrev = dynamicTags.value[index - 1];
     var path = tagPrev.path;
     tagPrev.effect = "dark";
@@ -76,18 +79,25 @@ onMounted(() => {
     let id = objFunc.funcId;
     let name = objFunc.funcName;
     let addPath = objFunc.funcUrl;
-
     if (objFunc?.funcLevel > 2) {
       if (pathArrays.length == 4) {
         //let cId = pathArrays[3];
-        let pId = pathArrays[2];
-        let parentObj = curFuncList.find((l) => l.funcId == pId);
-        let urlPath = `${parentObj.funcUrl}/${parentObj.funcParentId}/${parentObj.funcId}`;
-        console.log(pId, urlPath);
+        let pId = "";
+        let urlPath = "";
+        if (objFunc.funcLevel == 3) {
+          urlPath = path;
+        } else if (objFunc.funcLevel == 4) {
+          pId = pathArrays[2];
+          let parentObj = curFuncList.find((l) => l.funcId == pId);
+          urlPath = `${parentObj.funcUrl}/${parentObj.funcParentId}/${parentObj.funcId}`;
+          //console.log(pId, urlPath);
+          name = parentObj.funcName;
+          id = pId;
+        }
         let model = {
-          id: pId,
+          id,
           path: urlPath,
-          name: parentObj.funcName,
+          name,
           effect: "dark",
         };
         store.commit("AddTag", model);

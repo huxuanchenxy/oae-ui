@@ -19,7 +19,7 @@ import plugins from './plugins/index'; // plugins
 // 预设动画
 import animate from './animate';
 // svg图标
-import 'virtual:svg-icons-register';
+// import 'virtual:svg-icons-register';
 import ElementIcons from '@/plugins/svgicon';
 import { useDict } from '@/utils/dict';
 const app = createApp(App);

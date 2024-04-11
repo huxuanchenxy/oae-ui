@@ -1,8 +1,10 @@
 <template>
   <div>
-    <TagsModule :key="path"></TagsModule>
-    <h1>Module</h1>
-    <router-view class="routerView" />
+    <TagsModule></TagsModule>
+    <div class="routerHeight">
+      <router-view class="routerView"></router-view>
+    </div>
+    <BottomContent></BottomContent>
   </div>
 </template>
 
@@ -19,5 +21,9 @@ onMounted(() => {
 
 </script>
 
-<style lang="scss" scoped>
+<style  scoped>
+.routerHeight {
+  overflow: auto;
+  height: calc(100vh - 345px);
+}
 </style>
