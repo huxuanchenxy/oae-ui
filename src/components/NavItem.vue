@@ -57,6 +57,7 @@ const handleSelect = (e) => {
     let cObj = funcList.find((obj) => obj.funcUrl == path);
     let model = { id: cObj.funcId, path, name: cObj.funcName, effect: "dark" };
     store.commit("AddTag", model);
+    console.log("path",path)
     router.push({ path: path });
   } else {
     let pId = pathArray[2];

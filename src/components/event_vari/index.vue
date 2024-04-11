@@ -1,56 +1,38 @@
 <template>
     <div class="event_vari" >
-        <div class="menu">
-        <el-menu :default-active="$route.path">
-            <el-menu-item
-            index="/inter/event"
-            @click="changeActive('/inter/event')"
-            >
-            <span>事件</span>
-            </el-menu-item>
-            <el-menu-item index="/inter/vari" @click="changeActive('/inter/vari')">
-            <span>变量</span>
-            </el-menu-item>
-            <el-menu-item index="/inter/invari" @click="changeActive('/inter/invari')">
-            <span>内部变量</span>
-            </el-menu-item>
-            <el-menu-item index="/inter/tmpvari" @click="changeActive('/inter/tmpvari')">
-            <span>临时变量</span>
-            </el-menu-item>
-        </el-menu>
-        </div>
-        <!-- 右侧内容展示区域:路由组件展示位置 -->
-        <div class="content">
-        <!-- 子组件展示结构地方 -->
-        <router-view></router-view>
-        </div>
+        <el-tabs :tab-position="tabPosition" style="height: 200px" class="demo-tabs">
+            <el-tab-pane label="事件">
+                <EventComp/>
+            </el-tab-pane>
+            <el-tab-pane label="变量">Config</el-tab-pane>
+            <el-tab-pane label="内部变量">Role</el-tab-pane>
+            <el-tab-pane label="临时变量">Task</el-tab-pane>
+        </el-tabs>
     </div>
 </template>
 
 <script setup lang="ts">
-    import { useRouter } from "vue-router";
-    //获取路由器
-    let $router = useRouter();
-    //获取当前路由的信息
-    const changeActive = (path: string) => {
-    //跳转到对应二级路由
-    // $router.push({ path, query: { hoscode: $route.query.hoscode } });
-        $router.push({ path});
-    };
+    import EventComp from "@/components/event_vari/event/index.vue";
+    const tabPosition = ref('left')
+    const {moduleName}=defineProps(['moduleName'])
+    onMounted(() => {
+    })
 </script>
 
 <style lang="scss" scoped>
     .event_vari {
         border: 1px solid black;
         display: flex;
-        .menu {
-            flex: 0.2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .demo-tabs > .el-tabs__content {
+            padding: 32px;
+            color: #6b778c;
+            font-size: 32px;
+            font-weight: 600;
         }
-        .content {
-            flex: 8;
+
+        .el-tabs--right .el-tabs__content,
+        .el-tabs--left .el-tabs__content {
+            height: 100%;
         }
     }
 </style>

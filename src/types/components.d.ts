@@ -32,9 +32,14 @@ declare module '@vue/runtime-core' {
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
+    ElTabPane: typeof import('element-plus/es')['ElTabPane']
+    ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    Event: typeof import('./../components/event_vari/event/index.vue')['default']
     Event_vari: typeof import('./../components/event_vari/index.vue')['default']
+    Invari: typeof import('./../components/event_vari/invari/index.vue')['default']
+    Main: typeof import('./../components/event_vari/main/index.vue')['default']
     NavItem: typeof import('./../components/NavItem.vue')['default']
     NavMenu: typeof import('./../components/NavMenu.vue')['default']
     PwdChange: typeof import('./../components/dialog/PwdChange.vue')['default']
@@ -42,5 +47,7 @@ declare module '@vue/runtime-core' {
     RouterView: typeof import('vue-router')['RouterView']
     Tags: typeof import('./../components/Tags.vue')['default']
     TagsModule: typeof import('./../components/TagsModule.vue')['default']
+    Tmpvari: typeof import('./../components/event_vari/tmpvari/index.vue')['default']
+    Vari: typeof import('./../components/event_vari/vari/index.vue')['default']
   }
 }

@@ -66,7 +66,7 @@ const routes = [{
 
                             },
                             component: () =>
-                                import ('../views/home/project/module/cusinterface/Cusinterface.vue')
+                                import ('../views/home/project/module/cusinterface/index.vue')
                         },
                         {
                             "path": "/suanfa/:pid/:id",
@@ -92,43 +92,6 @@ const routes = [{
                         }
                     ]
                 }]
-            },
-
-            {
-                path: '/inter', //  
-                name: '接口',
-                meta: {
-                    id: "inter",
-                    title: '接口',
-                    group: '/inter'
-                },
-                component: () =>
-                    import ('@/views/inter/main/index.vue'),
-                children: [{
-                        path: 'event', //  
-                        name: 'event',
-                        component: () =>
-                            import ('@/views/inter/event/index.vue')
-                    },
-                    {
-                        path: 'vari', //  
-                        name: 'vari',
-                        component: () =>
-                            import ('@/views/inter/vari/index.vue')
-                    },
-                    {
-                        path: 'invari', //  
-                        name: 'invari',
-                        component: () =>
-                            import ('@/views/inter/invari/index.vue')
-                    },
-                    {
-                        path: 'tmpvari', //  
-                        name: 'tmpvari',
-                        component: () =>
-                            import ('@/views/inter/tmpvari/index.vue')
-                    }
-                ]
             },
         ]
     },
