@@ -14,9 +14,13 @@
                         <el-table-column type="selection" width="55"  />
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="name"/>
-                        <el-table-column label="关联事件" prop="relateEve"/>
+                        <el-table-column label="关联事件" prop="relateEveName"/>
                         <el-table-column label="数组长度" prop="arrLen"/>
-                        <el-table-column label="类型" prop="eveType"/>
+                        <el-table-column label="类型" prop="eveType">
+                            <template #default="scope">
+                                <dict-tag :options="eveType" :value="scope.row.eveType" />
+                            </template>
+                        </el-table-column>
                         <el-table-column label="初始值" prop="initVal"/>
                         <el-table-column label="注释" prop="remark"/>
                     </el-table>
@@ -37,6 +41,27 @@
                 <el-form-item label="名称" prop="name">
                     <el-input v-model="eveInputForm.name" placeholder="请输入名称" />
                 </el-form-item>
+                <el-form-item label="关联事件" prop="relateEve">
+                    <el-select v-model="eveInputForm.relateEve" placeholder="请选择关联事件">
+                        <el-option
+                        v-for="item in relateEveList"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id"
+                        ></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="数组长度" prop="arrLen">
+                    <el-input v-model="eveInputForm.arrLen" placeholder="请输入数组长度" />
+                </el-form-item>
+                <el-form-item label="类型" prop="eveType">
+                    <el-select v-model="eveInputForm.eveType" placeholder="请输入类型">
+                        <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="初始值" prop="initVal">
+                    <el-input v-model="eveInputForm.initVal" placeholder="请输入初始值" />
+                </el-form-item>
                 <el-form-item label="备注" prop="remark">
                     <el-input v-model="eveInputForm.remark" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
@@ -51,16 +76,21 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup name="Event" lang="ts">
     import useEveInputStore from '@/store/modules/eveInput'
-    import type { EveInputForm,EveInputQuery} from '@/api/inter/event/type';
+    import type { EveInputForm,EveInputQuery,EveInputVO} from '@/api/inter/event/type';
     import  cache  from "@/plugins/cache.ts";
+    import api from "@/api/inter/event";
+    import { Eve } from "@/api/inter/event/types";
+import { log } from 'console';
     const inputEventArrCacheKey="inputEventArr";
-    const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
     const multiple = ref(true);
-    const handleSelectionChange = (selection: EveInputForm[]) => {
+    const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+    const { eveType } = toRefs<any>(proxy?.useDict("eveType"));
+    const relateEveList = ref<Eve[]>([]);
+    const handleSelectionChange = (selection: EveInputVO[]) => {
         nos.value = selection.map(item => item.no);
         single.value = selection.length != 1;
         multiple.value = !selection.length;
@@ -106,14 +136,16 @@
         reset();
         dialog.visible = true;
         dialog.title = "添加输入事件";
+        relateEveList.value=api.getRelateEveList();
+
     }
-    const handleUpdate = (row?: EveInputForm) => {
+    const handleUpdate = (row?: EveInputVO) => {
         reset();
         const no = row?.no||nos.value[0];
         const res = inputEventList.value[no-1];
         Object.assign(eveInputForm.value, res);
         dialog.visible = true;
-        dialog.title = "修改字典类型";
+        dialog.title = "修改输入事件";
     }
     /** 表单重置 */
     const reset = () => {
@@ -130,9 +162,8 @@
         eveInputFormRef.value?.validate((valid: boolean) => {
             if (valid) {
                 eveInputForm.value.no?updateEveInput(eveInputForm.value):addEveInput(eveInputForm.value);
-                // proxy?.$modal.msgSuccess("操作成功");
+                proxy?.$modal.msgSuccess("操作成功");
                 dialog.visible = false;
-                // getList();
             }
         });
     }
@@ -140,6 +171,11 @@
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
+        //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
+        const selectedLabel = relateEveList.value.find(
+            (ele) => ele.id === data.relateEve
+        )?.name;
+        data.relateEveName=selectedLabel;
         data.no=(inputEventList.value.length+1);
         inputEventList.value.push({...data});
         //保存到localstorage里
@@ -158,12 +194,9 @@
     const getEveInputList = () => {
         inputEventList.value=cache.local.getJSON(inputEventArrCacheKey);
     }
-    const handleDelete = async (row?: EveInputForm) => {
+    const handleDelete = async (row?: EveInputVO) => {
         const deleteNos = row?.no||nos.value;
-        let flag=proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
-        if(!flag){
-            return;
-        }
+        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
         let newList=inputEventList.value.filter(x=>!deleteNos.includes(x.no));
         for (let i=0; i< newList.length; i++){
             newList[i].no=i+1;
@@ -171,7 +204,7 @@
         inputEventList.value=[];
         Object.assign(inputEventList.value,newList);
         cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
-        // proxy?.$modal.msgSuccess("删除成功");
+        proxy?.$modal.msgSuccess("删除成功");
     }
 </script>
 
