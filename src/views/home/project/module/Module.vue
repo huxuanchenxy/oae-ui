@@ -10,15 +10,13 @@
 
 <script setup>
 import TagsModule from "@/components/TagsModule.vue";
-const route = useRoute();
-const router = useRouter();
-let path = ref("");
-path.value = route.path;
+// const route = useRoute();
+// const router = useRouter();
+// let path = ref("");
+// path.value = route.path;
 onMounted(() => {
   //console.log("abcde");
 });
-
-
 </script>
 
 <style  scoped>

@@ -35,9 +35,10 @@
 //   House,
 // } from "@element-plus/icons-vue";
 
-import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+//import { useRouter } from "vue-router";
+//import { useStore } from "vuex";
 //import { funcList } from "@/jslib/common.js";
+import { pagetagsStore } from "@/store/pageTags.js";
 const { item, basePath } = defineProps({
   item: {
     type: Object,
@@ -46,8 +47,10 @@ const { item, basePath } = defineProps({
     type: String,
   },
 });
-const store = useStore();
+//const store = useStore();
 const router = useRouter();
+
+const tagsStore = pagetagsStore();
 //const curRouteObj = useRoute();
 const handleSelect = (e) => {
   let path = e.index;
@@ -56,8 +59,10 @@ const handleSelect = (e) => {
   if (pathArray.length == 2) {
     let cObj = funcList.find((obj) => obj.funcUrl == path);
     let model = { id: cObj.funcId, path, name: cObj.funcName, effect: "dark" };
-    store.commit("AddTag", model);
-    console.log("path", path);
+    //store.commit("AddTag", model);
+    console.log("tarsStore:", tagsStore);
+    tagsStore.AddTag(model);
+    //console.log("path", path);
     router.push({ path: path });
   } else {
     let pId = pathArray[2];
@@ -73,7 +78,8 @@ const handleSelect = (e) => {
         effect: "dark",
       };
       //console.log("addtag--222", model);
-      store.commit("AddTag", model);
+      //store.commit("AddTag", model);
+      tagsStore.AddTag(model);
       router.push({ path: path });
     }
   }
@@ -87,7 +93,8 @@ const threeLevelClick = (obj) => {
       effect: "dark",
     };
 
-    store.commit("AddTag", model);
+    //store.commit("AddTag", model);
+    tagsStore.AddTag(model);
     // let childFuncList = funcList.filter((l) => l.funcParentId == obj.funcId);
     // if (childFuncList.length > 0) {
     //   let childPath = `${childFuncList[0].funcUrl}/${obj.funcId}/${childFuncList[0].funcId}`;

@@ -23,20 +23,22 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useStore } from "vuex";
+//import { useStore } from "vuex";
 import { useRouter, useRoute } from "vue-router";
 //import { funcList } from "@/jslib/common.js";
+import { pagetagsStore } from "@/store/pageTags.js";
+const tagsStore = pagetagsStore();
 const router = useRouter();
-const store = useStore();
+//const store = useStore();
 const curRouteObj = useRoute();
-const dynamicTags = ref(store.state.TagArrs);
-
+//const dynamicTags = ref(store.state.TagArrs);
+const dynamicTags = ref(tagsStore.TagArrs);
 const handleClose = (tag) => {
   var index = dynamicTags.value.indexOf(tag);
   console.log("tag:::", tag.effect, index);
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
   if (tag.effect == "dark") {
-    if (index == 0) index= 1;
+    if (index == 0) index = 1;
     var tagPrev = dynamicTags.value[index - 1];
     var path = tagPrev.path;
     tagPrev.effect = "dark";
@@ -68,20 +70,18 @@ const goToPath = (path) => {
 onMounted(() => {
   //console.log("onMounted tags");
   //页面初始化时，vuex没有值，则这里使用默认的路由当做第一个tag页
-  if (store.state.TagArrs.length == 0) {
+  //if (store.state.TagArrs.length == 0) {
+  if (tagsStore.TagArrs.length == 0) {
     var path = curRouteObj.path;
-    //console.log("path--", path);
     var pathArrays = path.split("/");
     var funcUrl = "/" + pathArrays[1];
     let curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
-
     var objFunc = curFuncList.find((obj) => obj.funcUrl == funcUrl);
     let id = objFunc.funcId;
     let name = objFunc.funcName;
     let addPath = objFunc.funcUrl;
     if (objFunc?.funcLevel > 2) {
       if (pathArrays.length == 4) {
-        //let cId = pathArrays[3];
         let pId = "";
         let urlPath = "";
         if (objFunc.funcLevel == 3) {
@@ -90,7 +90,6 @@ onMounted(() => {
           pId = pathArrays[2];
           let parentObj = curFuncList.find((l) => l.funcId == pId);
           urlPath = `${parentObj.funcUrl}/${parentObj.funcParentId}/${parentObj.funcId}`;
-          //console.log(pId, urlPath);
           name = parentObj.funcName;
           id = pId;
         }
@@ -100,7 +99,8 @@ onMounted(() => {
           name,
           effect: "dark",
         };
-        store.commit("AddTag", model);
+        //store.commit("AddTag", model);
+        tagsStore.AddTag(model);
       }
     } else {
       let info = {
@@ -109,7 +109,8 @@ onMounted(() => {
         name: name,
         effect: "dark",
       };
-      store.commit("AddTag", info);
+      //store.commit("AddTag", info);
+      tagsStore.AddTag(info);
     }
   }
 });
