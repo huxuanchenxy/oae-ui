@@ -2,8 +2,7 @@
     key:string,
     no:number,
     text:string,
-    relateEve:string,
-    relateEveName:string,
+    relatedEvents:Array<{ id: string; name: string }>;
     arrayLength:number,
     type:string,
     initVals:number,
@@ -17,8 +16,7 @@
     key:string,
     no:number,
     text:string,
-    relateEve:string,
-    relateEveName:string,
+    relatedEvents:Array<{ id: string; name: string }>;
     arrayLength:number,
     type:string,
     initVals:number,

@@ -41,8 +41,8 @@
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
-                <el-form-item label="关联事件" prop="relateEve">
-                    <el-select v-model="eveInputForm.relateEve" multiple placeholder="请选择关联事件">
+                <el-form-item label="关联事件" prop="relatedEvents">
+                    <el-select v-model="eveInputForm.relatedEvents" multiple placeholder="请选择关联事件">
                         <el-option
                         v-for="item in relateEveList"
                         :key="item.id"
@@ -78,7 +78,6 @@
 
 <script setup name="Event" lang="ts">
     import type { EveInputForm,EveInputQuery,EveInputVO} from '@/api/inter/event/type';
-    import  cache  from "@/plugins/cache.ts";
     import api from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
     import interInputUtil from "@/utils/cache/interInput";
@@ -103,7 +102,7 @@
         no:undefined,
         key:'',
         text:'',
-        relateEve:'',
+        relatedEvents:[],
         arrayLength:10,
         type:'',
         initVals:0,
@@ -120,7 +119,7 @@
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
-    const { queryParams, eveInputForm, eveInputRules } = toRefs(eveInputData);
+    const {  eveInputForm, eveInputRules } = toRefs(eveInputData);
     //输入事件列表
     const inputEventList = ref<EveInputForm[]>([]);
     
@@ -167,7 +166,7 @@
                 eveInputForm.value.no?updateEveInput(eveInputForm.value):addEveInput(eveInputForm.value);
                 proxy?.$modal.msgSuccess("操作成功");
                 dialog.visible = false;
-            }
+            }  
         });
     }
     const addEveInput=(data:EveInputForm)=>{ 
@@ -176,11 +175,20 @@
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
+        let dataRelatedEvents=data.relatedEvents;
+        let eventsVo:Eve=[];
+        dataRelatedEvents.forEach(element => {
+            eventsVo.push({id:element,name:""})
+        });
+        
+        eventsVo.forEach(relateEve => {
+            relateEveList.value.forEach( dict=> {
+                if(dict.id==relateEve.id){
+                    relateEve.name=dict.name;
+                }
+            });
+        });
         //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
-        const selectedLabel = relateEveList.value.find(
-            (ele) => ele.id === data.relateEve
-        )?.name;
-        data.relateEveName=selectedLabel;
         data.no=(inputEventList.value.length+1);
         data.key=key;
         inputEventList.value.push({...data});
@@ -188,8 +196,22 @@
         interInputUtil.changeInputEvents(project,module,inputEventList.value);
     }
     const updateEveInput=(data:EveInputForm)=>{
+        let dataRelatedEvents=data.relatedEvents;
+        let eventsVo:Eve=[];
+        dataRelatedEvents.forEach(element => {
+            eventsVo.push({id:element,name:""})
+        });
+        
+        eventsVo.forEach(relateEve => {
+            relateEveList.value.forEach( dict=> {
+                if(dict.id==relateEve.id){
+                    relateEve.name=dict.name;
+                }
+            });
+        });
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
+        console.log(inputEventList.value)
         interInputUtil.changeInputEvents(project,module,inputEventList.value);
     };
     onMounted(() => {
@@ -198,6 +220,9 @@
     //加载输入事件数据 
     const getEveInputList = () => {
         inputEventList.value=interInputUtil.getInputEvents(project,module);
+        inputEventList.value.forEach(element => {
+            
+        });
     }
     const handleDelete = async (row?: EveInputVO) => {
         const deleteNos = row?.no||nos.value;
