@@ -192,7 +192,8 @@ onMounted(() => {
 			"raw_key": "",
 			"text": "INIT",
 			"comment": "",
-			"type": "EVENT"
+			"type": "EVENT",
+      "relatedEvents":[{id:2,name:'事件2'},{id:3,name:'事件3'},]
 		}],
 		"output_events": [{
 			"key": "cd5a4d2e-d47b-44f4-996c-5f66dfe5d508",

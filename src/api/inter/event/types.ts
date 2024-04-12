@@ -20,7 +20,8 @@
     arrayLength:number,
     type:string,
     initVals:number,
-    comment:string
+    comment:string,
+    relateEveName:string
   }
   export interface Eve{
     id:number,

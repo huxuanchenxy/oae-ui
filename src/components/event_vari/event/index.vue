@@ -171,6 +171,7 @@
     }
     const addEveInput=(data:EveInputForm)=>{ 
         uuidv4(); 
+        let relateEveName="";
         let key = uuidv4()
         if(!inputEventList.value){
             inputEventList.value=new Array();
@@ -180,14 +181,17 @@
         dataRelatedEvents.forEach(element => {
             eventsVo.push({id:element,name:""})
         });
-        
         eventsVo.forEach(relateEve => {
             relateEveList.value.forEach( dict=> {
                 if(dict.id==relateEve.id){
                     relateEve.name=dict.name;
+                    relateEveName+=dict.name+",";
                 }
             });
         });
+        data.relatedEvents=eventsVo;
+        relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        data.relateEveName=relateEveName;
         //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
         data.no=(inputEventList.value.length+1);
         data.key=key;
@@ -196,6 +200,7 @@
         interInputUtil.changeInputEvents(project,module,inputEventList.value);
     }
     const updateEveInput=(data:EveInputForm)=>{
+        let relateEveName="";
         let dataRelatedEvents=data.relatedEvents;
         let eventsVo:Eve=[];
         dataRelatedEvents.forEach(element => {
@@ -206,12 +211,15 @@
             relateEveList.value.forEach( dict=> {
                 if(dict.id==relateEve.id){
                     relateEve.name=dict.name;
+                    relateEveName+=dict.name+",";
                 }
             });
         });
+        data.relatedEvents=eventsVo;
+        relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        data.relateEveName=relateEveName;
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        console.log(inputEventList.value)
         interInputUtil.changeInputEvents(project,module,inputEventList.value);
     };
     onMounted(() => {
@@ -220,8 +228,16 @@
     //加载输入事件数据 
     const getEveInputList = () => {
         inputEventList.value=interInputUtil.getInputEvents(project,module);
-        inputEventList.value.forEach(element => {
-            
+        inputEventList.value.forEach(data => {
+            let relateEveName="";
+            let relatedEvents=data.relatedEvents
+            if(relatedEvents){
+                relatedEvents.forEach(eve => {
+                    relateEveName+=eve.name+",";
+                });
+                relateEveName=relateEveName.substring(0,relateEveName.length-1);
+                data.relateEveName=relateEveName;
+            }
         });
     }
     const handleDelete = async (row?: EveInputVO) => {
