@@ -37,6 +37,8 @@ declare module '@vue/runtime-core' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     Event: typeof import('./../components/event_vari/event/index.vue')['default']
     Event_vari: typeof import('./../components/event_vari/index.vue')['default']
+    Eventvari: typeof import('./../components/antv/eventvari/index.vue')['default']
+    G6: typeof import('./../components/g6/index.vue')['default']
     Invari: typeof import('./../components/event_vari/invari/index.vue')['default']
     Main: typeof import('./../components/event_vari/main/index.vue')['default']
     NavItem: typeof import('./../components/NavItem.vue')['default']
