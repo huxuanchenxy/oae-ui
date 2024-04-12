@@ -10,19 +10,19 @@
                     <div class="icon"><el-button type="success" plain icon="Setting"></el-button></div>
                 </div>
                 <div class="table_in">
-                    <el-table :data="inputEventList" style="width: 100%" height="200"  @selection-change="handleSelectionChange">
+                    <el-table :data="inputEventList" style="width: 100%" height="150"  @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="55"  />
                         <el-table-column label="序号"  prop="no"/>
-                        <el-table-column label="名称"  prop="name"/>
+                        <el-table-column label="名称"  prop="text"/>
                         <el-table-column label="关联事件" prop="relateEveName"/>
-                        <el-table-column label="数组长度" prop="arrLen"/>
-                        <el-table-column label="类型" prop="eveType">
+                        <el-table-column label="数组长度" prop="arrayLength"/>
+                        <el-table-column label="类型" prop="type">
                             <template #default="scope">
-                                <dict-tag :options="eveType" :value="scope.row.eveType" />
+                                <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="初始值" prop="initVal"/>
-                        <el-table-column label="注释" prop="remark"/>
+                        <el-table-column label="初始值" prop="initVals"/>
+                        <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
             </div>
@@ -38,8 +38,8 @@
         <!-- 添加或修改参数配置对话框 -->
         <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body>
             <el-form ref="eveInputFormRef" :model="eveInputForm" :rules="eveInputRules" label-width="80px">
-                <el-form-item label="名称" prop="name">
-                    <el-input v-model="eveInputForm.name" placeholder="请输入名称" />
+                <el-form-item label="名称" prop="text">
+                    <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="关联事件" prop="relateEve">
                     <el-select v-model="eveInputForm.relateEve" placeholder="请选择关联事件">
@@ -51,19 +51,19 @@
                         ></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="数组长度" prop="arrLen">
-                    <el-input v-model="eveInputForm.arrLen" placeholder="请输入数组长度" />
+                <el-form-item label="数组长度" prop="arrayLength">
+                    <el-input v-model="eveInputForm.arrayLength" placeholder="请输入数组长度" />
                 </el-form-item>
-                <el-form-item label="类型" prop="eveType">
-                    <el-select v-model="eveInputForm.eveType" placeholder="请输入类型">
+                <el-form-item label="类型" prop="type">
+                    <el-select v-model="eveInputForm.type" placeholder="请输入类型">
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="初始值" prop="initVal">
-                    <el-input v-model="eveInputForm.initVal" placeholder="请输入初始值" />
+                <el-form-item label="初始值" prop="initVals">
+                    <el-input v-model="eveInputForm.initVals" placeholder="请输入初始值" />
                 </el-form-item>
-                <el-form-item label="备注" prop="remark">
-                    <el-input v-model="eveInputForm.remark" type="textarea" placeholder="请输入内容"/>
+                <el-form-item label="备注" prop="comment">
+                    <el-input v-model="eveInputForm.comment" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -77,13 +77,14 @@
 </template>
 
 <script setup name="Event" lang="ts">
-    import useEveInputStore from '@/store/modules/eveInput'
     import type { EveInputForm,EveInputQuery,EveInputVO} from '@/api/inter/event/type';
     import  cache  from "@/plugins/cache.ts";
     import api from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
+    import interInputUtil from "@/utils/cache/interInput";
     const route = useRoute()
-    const moduleName=route.params.pid;
+    const module=route.params.pid;
+    const project="project1";
     const inputEventArrCacheKey="inputEventArr";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
@@ -99,12 +100,13 @@
     //初始值
     const initEveInputFormData:EveInputForm = {
         no:undefined,
-        name:'',
+        key:'',
+        text:'',
         relateEve:'',
-        arrLen:10,
-        eveType:'',
-        initVal:0,
-        remark:''
+        arrayLength:10,
+        type:'',
+        initVals:0,
+        comment:''
     }
     const eveInputData = reactive<PageData<EveInputForm, EveInputQuery>>({
         eveInputForm: { ...initEveInputFormData },
@@ -138,7 +140,6 @@
         dialog.visible = true;
         dialog.title = "添加输入事件";
         relateEveList.value=api.getRelateEveList();
-
     }
     const handleUpdate = (row?: EveInputVO) => {
         reset();
@@ -180,20 +181,19 @@
         data.no=(inputEventList.value.length+1);
         inputEventList.value.push({...data});
         //保存到localstorage里
-        cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
-        useEveInputStore().setEveInputList("test",inputEventList.value );
+        interInputUtil.changeInputEvents(project,module,inputEventList.value);
     }
     const updateEveInput=(data:EveInputForm)=>{
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
+        interInputUtil.changeInputEvents(project,module,inputEventList.value);
     };
     onMounted(() => {
         getEveInputList();
     })
     //加载输入事件数据 
     const getEveInputList = () => {
-        inputEventList.value=cache.local.getJSON(inputEventArrCacheKey);
+        inputEventList.value=interInputUtil.getInputEvents(project,module);
     }
     const handleDelete = async (row?: EveInputVO) => {
         const deleteNos = row?.no||nos.value;
@@ -204,7 +204,7 @@
         }
         inputEventList.value=[];
         Object.assign(inputEventList.value,newList);
-        cache.local.setJSON(inputEventArrCacheKey,inputEventList.value)
+        interInputUtil.changeInputEvents(project,module,inputEventList.value);
         proxy?.$modal.msgSuccess("删除成功");
     }
 </script>
@@ -217,9 +217,8 @@
             flex:0.5;
             margin-right: 20px;
             .table_out{
-                border: 1px solid #ccc;
                 margin-top:10px;
-                height: 200px;
+                height: 100%;
                 display: flex;
                 .icon{
                     width:30;

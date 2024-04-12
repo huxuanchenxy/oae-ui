@@ -1,26 +1,28 @@
   export interface EveInputForm {
+    key:string,
     no:number,
-    name:string,
+    text:string,
     relateEve:string,
     relateEveName:string,
-    arrLen:number,
-    eveType:string,
-    initVal:number,
-    remark:string
+    arrayLength:number,
+    type:string,
+    initVals:number,
+    comment:string
   }
   
   export interface EveInputQuery extends PageQuery {
     name: string;
   }
   export interface EveInputVO extends BaseEntity {
+    key:string,
     no:number,
-    name:string,
+    text:string,
     relateEve:string,
     relateEveName:string,
-    arrLen:number,
-    eveType:string,
-    initVal:number,
-    remark:string
+    arrayLength:number,
+    type:string,
+    initVals:number,
+    comment:string
   }
   export interface Eve{
     id:number,
