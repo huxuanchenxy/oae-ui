@@ -65,7 +65,7 @@ onMounted(() => {
 
 <style >
 .divBottom {
-  width: 98%;
+  width: 99%;
   height: 250px;
   border: 1px solid #409eff;
   background: #fff;

@@ -11,8 +11,9 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import { useStore } from "vuex";
+// import { onMounted } from "vue";
+// import { useStore } from "vuex";
+import { pagetagsStore } from "@/store/pageTags.js";
 import G6 from "@antv/g6";
 let blockSide = 10;
 let graph;
@@ -489,11 +490,13 @@ function addParamOutput() {
   graph.render();
 }
 
-const store = useStore();
+const tagsStore = pagetagsStore();
+//const store = useStore();
 const router = useRouter();
 const route = useRoute();
 const initLoad = () => {
-  store.commit("ChangeTagModuleStatus", route.path);
+  //store.commit("ChangeTagModuleStatus", route.path);
+  tagsStore.ChangeTagModuleStatus(route.path);
 };
 onMounted(() => {
   initLoad();
