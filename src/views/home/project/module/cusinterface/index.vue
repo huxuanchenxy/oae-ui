@@ -15,6 +15,7 @@
 // import { useStore } from "vuex";
 import { pagetagsStore } from "@/store/pageTags.js";
 import G6 from "@antv/g6";
+import interInputUtil from "@/utils/cache/interInput";
 let blockSide = 10;
 let graph;
 let sourceAnchorIdx, targetAnchorIdx;
@@ -499,6 +500,8 @@ const initLoad = () => {
   tagsStore.ChangeTagModuleStatus(route.path);
 };
 onMounted(() => {
+  let data=interInputUtil.getInputEvents(project,module);
+  console.log(data)
   initLoad();
   initNode();
 });

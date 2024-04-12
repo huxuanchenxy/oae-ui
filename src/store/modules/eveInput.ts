@@ -27,7 +27,7 @@ export const useEveInputStore = defineStore('eveInput', () => {
     };
   
     /**
-     * 设置字典
+     * 设置
      * @param _key 字典key
      * @param _value 字典value
      */
@@ -41,7 +41,7 @@ export const useEveInputStore = defineStore('eveInput', () => {
     };
   
     /**
-     * 删除字典
+     * 删除
      * @param _key
      */
     const removeDict = (_key: string): boolean => {
@@ -60,7 +60,7 @@ export const useEveInputStore = defineStore('eveInput', () => {
     };
   
     /**
-     * 清空字典
+     * 清空
      */
     const cleanEveInputList = (): void => {
       eveInputList.value = [];
