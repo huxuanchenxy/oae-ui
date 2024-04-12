@@ -11,7 +11,7 @@
                 </div>
                 <div class="table_in">
                     <el-table :data="inputEventList" style="width: 100%" height="150"  @selection-change="handleSelectionChange">
-                        <el-table-column type="selection" width="55"  />
+                        <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="text"/>
                         <el-table-column label="关联事件" prop="relateEveName"/>
@@ -42,7 +42,7 @@
                     <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="关联事件" prop="relateEve">
-                    <el-select v-model="eveInputForm.relateEve" placeholder="请选择关联事件">
+                    <el-select v-model="eveInputForm.relateEve" multiple placeholder="请选择关联事件">
                         <el-option
                         v-for="item in relateEveList"
                         :key="item.id"
@@ -82,6 +82,7 @@
     import api from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
     import interInputUtil from "@/utils/cache/interInput";
+    import { v4 as uuidv4 } from 'uuid';
     const route = useRoute()
     const module=route.params.pid;
     const project="project1";
@@ -170,6 +171,8 @@
         });
     }
     const addEveInput=(data:EveInputForm)=>{ 
+        uuidv4(); 
+        let key = uuidv4()
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
@@ -179,6 +182,7 @@
         )?.name;
         data.relateEveName=selectedLabel;
         data.no=(inputEventList.value.length+1);
+        data.key=key;
         inputEventList.value.push({...data});
         //保存到localstorage里
         interInputUtil.changeInputEvents(project,module,inputEventList.value);
