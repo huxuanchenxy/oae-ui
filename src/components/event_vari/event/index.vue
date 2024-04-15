@@ -141,7 +141,6 @@
         dialog.visible = true;
         dialog.title = "添加输入事件";
         relateEveList.value=api.getRelateEveList();
-        console.log("relateEveList.value",relateEveList.value)
     }
     const handleUpdate = (row?: EveInputVO) => {
         reset();
@@ -261,6 +260,8 @@
         Object.assign(inputEventList.value,newList);
         interInputUtil.changeInputEvents(project,module,inputEventList.value);
         proxy?.$modal.msgSuccess("删除成功");
+        eveInputStore.flag=true;
+        eveInputStore.flag=false;
     }
 </script>
 

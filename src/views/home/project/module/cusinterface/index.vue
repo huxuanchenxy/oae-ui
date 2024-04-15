@@ -38,18 +38,21 @@ let graphData = {
 };
 onMounted(() => {
   initLoad();
+  graphData.nodes[0].eventInput=getCurrentData();
+  if(eventVariAntvChild.value){
+    eventVariAntvChild.value.reRender(graphData);
+  }
+});
+const getCurrentData=()=>{
   let data=interInputUtil.getInputEvents(project,module);
   let nameList=[];
   data.forEach(element => {
     nameList.push(element.text);
   });
-  graphData.nodes[0].eventInput=nameList;
-  if(eventVariAntvChild.value){
-    eventVariAntvChild.value.reRender(graphData);
-  }
-});
+  return nameList;
+}
 eveInputStore.$subscribe((mutate,state)=>{
-  console.log(mutate,state)
+  graphData.nodes[0].eventInput=getCurrentData();
   if(eventVariAntvChild.value){
     eventVariAntvChild.value.reRender(graphData);
   }
