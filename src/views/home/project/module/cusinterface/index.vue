@@ -7,9 +7,11 @@
 <script setup lang="ts">
 import { pagetagsStore } from "@/store/pageTags.js";
 import  eventVariAntv  from "@/components/antv/eventvari/index.vue";
-import interInputUtil from "@/utils/cache/inter";
+import interUtil from "@/utils/cache/inter";
 import useEveInputStore from "@/store/modules/eveInput.ts";
+import useEveOutputStore from "@/store/modules/eveOutput.ts";
 const eveInputStore=useEveInputStore();
+const eveOutputStore=useEveOutputStore();
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
@@ -38,13 +40,22 @@ let graphData = {
 };
 onMounted(() => {
   initLoad();
-  graphData.nodes[0].eventInput=getCurrentData();
+  graphData.nodes[0].eventInput=getCurrentDataInput();
+  graphData.nodes[0].eventOutput=getCurrentDataOutput();
   if(eventVariAntvChild.value){
     eventVariAntvChild.value.reRender(graphData);
   }
 });
-const getCurrentData=()=>{
-  let data=interInputUtil.getInputEvents(project,module);
+const getCurrentDataInput=()=>{
+  let data=interUtil.getInputEvents(project,module);
+  let nameList=[];
+  data.forEach(element => {
+    nameList.push(element.text);
+  });
+  return nameList;
+}
+const getCurrentDataOutput=()=>{
+  let data=interUtil.getOutputEvents(project,module);
   let nameList=[];
   data.forEach(element => {
     nameList.push(element.text);
@@ -52,7 +63,13 @@ const getCurrentData=()=>{
   return nameList;
 }
 eveInputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].eventInput=getCurrentData();
+  graphData.nodes[0].eventInput=getCurrentDataInput();
+  if(eventVariAntvChild.value){
+    eventVariAntvChild.value.reRender(graphData);
+  }
+})
+eveOutputStore.$subscribe((mutate,state)=>{
+  graphData.nodes[0].eventOutput=getCurrentDataOutput();
   if(eventVariAntvChild.value){
     eventVariAntvChild.value.reRender(graphData);
   }

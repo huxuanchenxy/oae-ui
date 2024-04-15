@@ -11,9 +11,6 @@
   </template>
   
   <script setup>
-  // import { onMounted } from "vue";
-  // import { useStore } from "vuex";
-  import { pagetagsStore } from "@/store/pageTags.js";
   import G6 from "@antv/g6";
   let blockSide = 10;
   let graph;
