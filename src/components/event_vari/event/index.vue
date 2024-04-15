@@ -80,7 +80,7 @@
     import type { EveInputForm,EveInputQuery,EveInputVO} from '@/api/inter/event/type';
     import api from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
-    import interInputUtil from "@/utils/cache/interInput";
+    import interInputUtil from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     const route = useRoute()
     const module=route.params.pid;
