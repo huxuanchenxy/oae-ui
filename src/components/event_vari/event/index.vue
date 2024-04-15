@@ -41,8 +41,8 @@
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
-                <el-form-item label="关联事件" prop="relatedEvents">
-                    <el-select v-model="eveInputForm.relatedEvents" multiple placeholder="请选择关联事件">
+                <el-form-item label="关联事件">
+                    <el-select v-model="eveInputForm.relatedEventIds" multiple placeholder="请选择关联事件">
                         <el-option
                         v-for="item in relateEveList"
                         :key="item.id"
@@ -82,10 +82,11 @@
     import { Eve } from "@/api/inter/event/types";
     import interInputUtil from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
+    import useEveInputStore from "@/store/modules/eveInput.ts";
+    const eveInputStore=useEveInputStore();
     const route = useRoute()
     const module=route.params.pid;
     const project="project1";
-    const inputEventArrCacheKey="inputEventArr";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
     const multiple = ref(true);
@@ -140,11 +141,18 @@
         dialog.visible = true;
         dialog.title = "添加输入事件";
         relateEveList.value=api.getRelateEveList();
+        console.log("relateEveList.value",relateEveList.value)
     }
     const handleUpdate = (row?: EveInputVO) => {
         reset();
         const no = row?.no||nos.value[0];
         const res = inputEventList.value[no-1];
+        let relatedEventIds=[];
+        res.relatedEvents?.forEach(element => {
+            relatedEventIds.push(element.id);
+        });
+        relateEveList.value=api.getRelateEveList();
+        eveInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveInputForm.value, res);
         dialog.visible = true;
         dialog.title = "修改输入事件";
@@ -166,6 +174,8 @@
                 eveInputForm.value.no?updateEveInput(eveInputForm.value):addEveInput(eveInputForm.value);
                 proxy?.$modal.msgSuccess("操作成功");
                 dialog.visible = false;
+                eveInputStore.flag=true;
+                eveInputStore.flag=false;
             }  
         });
     }
@@ -176,7 +186,7 @@
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
-        let dataRelatedEvents=data.relatedEvents;
+        let dataRelatedEvents=data.relatedEventIds;
         let eventsVo:Eve=[];
         dataRelatedEvents.forEach(element => {
             eventsVo.push({id:element,name:""})
@@ -201,7 +211,7 @@
     }
     const updateEveInput=(data:EveInputForm)=>{
         let relateEveName="";
-        let dataRelatedEvents=data.relatedEvents;
+        let dataRelatedEvents=data.relatedEventIds;
         let eventsVo:Eve=[];
         dataRelatedEvents.forEach(element => {
             eventsVo.push({id:element,name:""})

@@ -474,10 +474,6 @@
     graph.render();
   }
   
-  const tagsStore = pagetagsStore();
-  //const store = useStore();
-  const router = useRouter();
-  const route = useRoute();
   function reRender(data){
     graph.data(data);
     graph.render();
@@ -490,12 +486,7 @@
         x: 150,
         y: 200,
         type: "myShape",
-        color: "red",
-        eventInput: ["EventReq1"],
-        eventOutput: ["EOut1", "EOut2", "EOut3", "EOut4"],
-        paramInput: ["ParamReq1", "ParamReq2", "ParamReq3", "ParamReq4"],
-        paramOutput: ["ParOut1", "ParOut2"],
-        centerText: "Test.BFB1\nv0.1",
+        color: "red"
       },
     ],
   };

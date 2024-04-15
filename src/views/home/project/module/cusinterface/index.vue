@@ -8,8 +8,9 @@
 import { pagetagsStore } from "@/store/pageTags.js";
 import  eventVariAntv  from "@/components/antv/eventvari/index.vue";
 import interInputUtil from "@/utils/cache/inter";
+import useEveInputStore from "@/store/modules/eveInput.ts";
+const eveInputStore=useEveInputStore();
 const tagsStore = pagetagsStore();
-//const store = useStore();
 const router = useRouter();
 const route = useRoute();
 const module=route.params.pid;
@@ -47,15 +48,20 @@ onMounted(() => {
     eventVariAntvChild.value.reRender(graphData);
   }
 });
-const convertToAntvData=(data)=>{
-
-}
+eveInputStore.$subscribe((mutate,state)=>{
+  console.log(mutate,state)
+  if(eventVariAntvChild.value){
+    eventVariAntvChild.value.reRender(graphData);
+  }
+})
 watch(
   () => router.currentRoute.value,
   (newValue) => {
     initLoad();
   }
 );
+
+
 </script>
 
 <style lang="scss" scoped>
