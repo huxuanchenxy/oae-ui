@@ -6,7 +6,7 @@ import '@/assets/iconfont/iconfont.js';
 import 'animate.css'
 import App from './App.vue'
 import router from './router'
-import 'default-passive-events'
+// import 'default-passive-events'
 //import 'element-plus/theme-chalk/el-loading.css'; 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
