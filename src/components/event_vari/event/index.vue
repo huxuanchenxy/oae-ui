@@ -504,7 +504,7 @@
                 height: 100%;
                 display: flex;
                 .icon{
-                    width:30;
+                    width:30px;
                     height:30px;
                 }
             }

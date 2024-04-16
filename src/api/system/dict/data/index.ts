@@ -9,7 +9,7 @@ import { DictDataForm, DictDataQuery, DictDataVO } from './types';
   //   method: 'get'
   // });
   let rlt;
-  if(dictType=='eveType'){
+  if(dictType=='variType'){
     rlt={
       code: 200,
       msg: "操作成功",
@@ -106,7 +106,19 @@ import { DictDataForm, DictDataQuery, DictDataVO } from './types';
           }
       ]
     }
-  }
+  }else if(dictType=='eveType'){
+          rlt={
+              code: 200,
+              msg: "操作成功",
+              data: [
+                  {
+                      dictCode: 1,
+                      dictLabel: "EVENT",
+                      dictValue: "EVENT"
+                  }
+              ]
+          }
+      }
   return rlt;
 }
 

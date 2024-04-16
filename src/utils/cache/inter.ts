@@ -14,7 +14,7 @@ const getJson=(project,module)=>{
     );
     return rlt;
 }
-//----输入工具开始
+//----事件输入工具开始
 export const changeInputEvents=(project,module,data)=>{
     let rlt=getJson(project,module);
     rlt.interface.input_events=data;
@@ -33,8 +33,8 @@ export const getInputEvents=(project,module)=>{
     });
     return inputEvents;
 }
-//----输入工具结束
-//----输出工具开始
+//----事件输入工具结束
+//----事件输出工具开始
 export const changeOutputEvents=(project,module,data)=>{
     let rlt=getJson(project,module);
     rlt.interface.output_events=data;
@@ -53,10 +53,54 @@ export const getOutputEvents=(project,module)=>{
     });
     return outputEvents;
 }
-//----输出工具结束
+//----事件输出工具结束
+//----变量输入工具开始
+export const changeInputVaris=(project,module,data)=>{
+    let rlt=getJson(project,module);
+    rlt.interface.inputs=data;
+    oldJson.push(rlt);
+    cache.local.setJSON(cacheKey,oldJson);
+}
+export const getInputVaris=(project,module)=>{
+    let rlt=getJson(project,module);
+    let inputVaris= rlt.interface.inputs;
+    inputVaris.forEach(inputVari => {
+        let no=1;
+        if(!inputVari.no){
+            inputVari.no=no;
+            no++;
+        }
+    });
+    return inputVaris;
+}
+//----变量输入工具结束
+//----变量输出工具开始
+export const changeOutputVaris=(project,module,data)=>{
+    let rlt=getJson(project,module);
+    rlt.interface.outputs=data;
+    oldJson.push(rlt);
+    cache.local.setJSON(cacheKey,oldJson);
+}
+export const getOutputVaris=(project,module)=>{
+    let rlt=getJson(project,module);
+    let outputVaris= rlt.interface.outputs;
+    outputVaris.forEach(outputVari => {
+        let no=1;
+        if(!outputVari.no){
+            outputVari.no=no;
+            no++;
+        }
+    });
+    return outputVaris;
+}
+//----变量输出工具结束
 export default {
     changeInputEvents,
     getInputEvents,
     changeOutputEvents,
-    getOutputEvents
+    getOutputEvents,
+    changeInputVaris,
+    getInputVaris,
+    changeOutputVaris,
+    getOutputVaris
 };
