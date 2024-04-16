@@ -27,7 +27,7 @@ export const getInputEvents=(project,module)=>{
     let inputEvents;
     let rlt=getJson(project,module);
     if(rlt){
-        let inputEvents= rlt.interface.input_events;
+        inputEvents= rlt.interface.input_events;
         inputEvents.forEach(inputEvent => {
             let no=1;
             if(!inputEvent.no){
