@@ -10,12 +10,17 @@
 // import { useRoute } from "vue-router";
 // import { useStore } from "vuex";
 import { pagetagsStore } from "@/store/pageTags.js";
+import * as monaco from 'monaco-editor'
 const tagsStore = pagetagsStore();
 //const store = useStore();
 const router = useRouter();
 const route = useRoute();
 let pid = ref("");
 let id = ref("");
+
+const editor = ref();
+let monacoEditor = ref();
+
 const initLoad = () => {
   pid.value = route.params.pid;
   id.value = route.params.id;
@@ -38,7 +43,6 @@ function initEditor () {
 onMounted(() => {
   initLoad();
   initEditor();
-
 });
 
 watch(
