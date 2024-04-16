@@ -14,14 +14,12 @@
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="text"/>
-                        <el-table-column label="关联事件" prop="relateEveName"/>
-                        <el-table-column label="数组长度" prop="arrayLength"/>
                         <el-table-column label="类型" prop="type">
                             <template #default="scope">
                                 <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="初始值" prop="initVals"/>
+                        <el-table-column label="关联事件" width="180"  prop="relateEveName"/>
                         <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
@@ -41,14 +39,12 @@
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="text"/>
-                        <el-table-column label="关联事件" prop="relateEveName"/>
-                        <el-table-column label="数组长度" prop="arrayLength"/>
                         <el-table-column label="类型" prop="type">
                             <template #default="scope">
                                 <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="初始值" prop="initVals"/>
+                        <el-table-column label="关联事件" prop="relateEveName" width="55" />
                         <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
@@ -60,6 +56,11 @@
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
+                <el-form-item label="类型" prop="type">
+                    <el-select v-model="eveInputForm.type" placeholder="请输入类型">
+                        <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+                    </el-select>
+                </el-form-item>
                 <el-form-item label="关联事件">
                     <el-select v-model="eveInputForm.relatedEventIds" multiple placeholder="请选择关联事件">
                         <el-option
@@ -70,18 +71,7 @@
                         ></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="数组长度" prop="arrayLength">
-                    <el-input v-model="eveInputForm.arrayLength" placeholder="请输入数组长度" />
-                </el-form-item>
-                <el-form-item label="类型" prop="type">
-                    <el-select v-model="eveInputForm.type" placeholder="请输入类型">
-                        <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="初始值" prop="initVals">
-                    <el-input v-model="eveInputForm.initVals" placeholder="请输入初始值" />
-                </el-form-item>
-                <el-form-item label="备注" prop="comment">
+                <el-form-item label="注释" prop="comment">
                     <el-input v-model="eveInputForm.comment" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
             </el-form>
@@ -98,6 +88,11 @@
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="eveOutputForm.text" placeholder="请输入名称" />
                 </el-form-item>
+                <el-form-item label="类型" prop="type">
+                    <el-select v-model="eveOutputForm.type" placeholder="请输入类型">
+                        <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+                    </el-select>
+                </el-form-item>
                 <el-form-item label="关联事件">
                     <el-select v-model="eveOutputForm.relatedEventIds" multiple placeholder="请选择关联事件">
                         <el-option
@@ -108,18 +103,7 @@
                         ></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="数组长度" prop="arrayLength">
-                    <el-input v-model="eveOutputForm.arrayLength" placeholder="请输入数组长度" />
-                </el-form-item>
-                <el-form-item label="类型" prop="type">
-                    <el-select v-model="eveOutputForm.type" placeholder="请输入类型">
-                        <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="初始值" prop="initVals">
-                    <el-input v-model="eveOutputForm.initVals" placeholder="请输入初始值" />
-                </el-form-item>
-                <el-form-item label="备注" prop="comment">
+                <el-form-item label="注释" prop="comment">
                     <el-input v-model="eveOutputForm.comment" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
             </el-form>
@@ -176,9 +160,7 @@
         key:'',
         text:'',
         relatedEvents:[],
-        arrayLength:10,
         type:'',
-        initVals:0,
         comment:''
     }
     const eveInputData = reactive<PageData<EveInputForm, EveInputQuery>>({
@@ -301,11 +283,11 @@
     //加载输入事件数据 
     const getEveInputList = () => {
         inputEventList.value=interUtil.getInputEvents(project,module);
-        inputEventList.value.forEach(data => {
+        inputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
             if(relatedEvents){
-                relatedEvents.forEach(eve => {
+                relatedEvents?.forEach(eve => {
                     relateEveName+=eve.name+",";
                 });
                 relateEveName=relateEveName.substring(0,relateEveName.length-1);
@@ -335,9 +317,7 @@
         key:'',
         text:'',
         relatedEvents:[],
-        arrayLength:10,
         type:'',
-        initVals:0,
         comment:''
     }
     const eveOutputData = reactive<PageData<EveOutputForm, EveOutputQuery>>({
@@ -459,7 +439,7 @@
     //加载输出事件数据 
     const getEveOutputList = () => {
         outputEventList.value=interUtil.getOutputEvents(project,module);
-        outputEventList.value.forEach(data => {
+        outputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
             if(relatedEvents){
@@ -496,6 +476,7 @@
     .event{
         display: flex;
         margin-left:20px;
+        justify-content: space-between;
         .left{
             flex:0.5;
             margin-right: 20px;
@@ -504,7 +485,7 @@
                 height: 100%;
                 display: flex;
                 .icon{
-                    width:30;
+                    width:30px;
                     height:30px;
                 }
             }

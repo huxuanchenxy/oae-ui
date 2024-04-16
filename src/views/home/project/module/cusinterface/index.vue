@@ -10,8 +10,12 @@ import  eventVariAntv  from "@/components/antv/eventvari/index.vue";
 import interUtil from "@/utils/cache/inter";
 import useEveInputStore from "@/store/modules/eveInput.ts";
 import useEveOutputStore from "@/store/modules/eveOutput.ts";
+import useVariInputStore from "@/store/modules/variInput.ts";
+import useVariOutputStore from "@/store/modules/variOutput.ts";
 const eveInputStore=useEveInputStore();
 const eveOutputStore=useEveOutputStore();
+const variInputStore=useVariInputStore();
+const variOutputStore=useVariOutputStore();
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
@@ -40,36 +44,66 @@ let graphData = {
 };
 onMounted(() => {
   initLoad();
-  graphData.nodes[0].eventInput=getCurrentDataInput();
-  graphData.nodes[0].eventOutput=getCurrentDataOutput();
+  graphData.nodes[0].eventInput=getCurrentDataEventInput();
+  graphData.nodes[0].eventOutput=getCurrentDataEventOutput();
+  graphData.nodes[0].paramInput=getCurrentDataVariInput();
+  graphData.nodes[0].paramOutput=getCurrentDataVariOutput();
   if(eventVariAntvChild.value){
     eventVariAntvChild.value.reRender(graphData);
   }
 });
-const getCurrentDataInput=()=>{
+const getCurrentDataEventInput=()=>{
   let data=interUtil.getInputEvents(project,module);
   let nameList=[];
-  data.forEach(element => {
+  data?.forEach(element => {
     nameList.push(element.text);
   });
   return nameList;
 }
-const getCurrentDataOutput=()=>{
+const getCurrentDataEventOutput=()=>{
   let data=interUtil.getOutputEvents(project,module);
   let nameList=[];
-  data.forEach(element => {
+  data?.forEach(element => {
+    nameList.push(element.text);
+  });
+  return nameList;
+}
+const getCurrentDataVariInput=()=>{
+  let data=interUtil.getInputVaris(project,module);
+  let nameList=[];
+  data?.forEach(element => {
+    nameList.push(element.text);
+  });
+  return nameList;
+}
+const getCurrentDataVariOutput=()=>{
+  let data=interUtil.getOutputVaris(project,module);
+  let nameList=[];
+  data?.forEach(element => {
     nameList.push(element.text);
   });
   return nameList;
 }
 eveInputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].eventInput=getCurrentDataInput();
+  graphData.nodes[0].eventInput=getCurrentDataEventInput();
   if(eventVariAntvChild.value){
     eventVariAntvChild.value.reRender(graphData);
   }
 })
 eveOutputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].eventOutput=getCurrentDataOutput();
+  graphData.nodes[0].eventOutput=getCurrentDataEventOutput();
+  if(eventVariAntvChild.value){
+    eventVariAntvChild.value.reRender(graphData);
+  }
+})
+variInputStore.$subscribe((mutate,state)=>{
+  graphData.nodes[0].paramInput=getCurrentDataVariInput();
+  if(eventVariAntvChild.value){
+    eventVariAntvChild.value.reRender(graphData);
+  }
+})
+variOutputStore.$subscribe((mutate,state)=>{
+  graphData.nodes[0].paramOutput=getCurrentDataVariOutput();
   if(eventVariAntvChild.value){
     eventVariAntvChild.value.reRender(graphData);
   }

@@ -1,10 +1,12 @@
 <template>
     <div class="event_vari" >
-        <el-tabs :tab-position="tabPosition" style="height: 200px" class="demo-tabs">
+        <el-tabs :tab-position="tabPosition" style="height: 200px" class="tabs">
             <el-tab-pane label="事件">
                 <EventComp/>
             </el-tab-pane>
-            <el-tab-pane label="变量">Config</el-tab-pane>
+            <el-tab-pane label="变量">
+                <VariComp/>
+            </el-tab-pane>
             <el-tab-pane label="内部变量">Role</el-tab-pane>
             <el-tab-pane label="临时变量">Task</el-tab-pane>
         </el-tabs>
@@ -13,6 +15,7 @@
 
 <script setup lang="ts">
     import EventComp from "@/components/event_vari/event/index.vue";
+    import VariComp from "@/components/event_vari/vari/index.vue";
     const tabPosition = ref('left')
     onMounted(() => {
     })
@@ -21,8 +24,10 @@
 <style lang="scss" scoped>
     .event_vari {
         display: flex;
-        .demo-tabs > .el-tabs__content {
-            padding: 32px;
+        .tabs{
+            width: 100%;
+        }
+        .tabs > .el-tabs__content {
             color: #6b778c;
             font-size: 32px;
             font-weight: 600;
