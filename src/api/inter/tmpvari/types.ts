@@ -1,4 +1,4 @@
-  export interface InVariForm {
+  export interface TempVariForm {
     key:string,
     no:number,
     text:string,
@@ -8,10 +8,10 @@
     comment:string
   }
   
-  export interface InVariQuery extends PageQuery {
+  export interface TempVariQuery extends PageQuery {
     name: string;
   }
-  export interface InVariVO extends BaseEntity {
+  export interface TempVariVO extends BaseEntity {
     key:string,
     no:number,
     text:string,
