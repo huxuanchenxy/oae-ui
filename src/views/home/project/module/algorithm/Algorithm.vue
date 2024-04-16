@@ -1,5 +1,8 @@
 <template>
-  <div>算法222</div>
+  <div class="editor-container">
+    <!-- 将编辑器容器绑定到 ref -->
+    <div id="editor" ref="editor"></div>
+  </div>
 </template>
 
 <script setup>
@@ -19,8 +22,23 @@ const initLoad = () => {
   //store.commit("ChangeTagModuleStatus", route.path);
   tagsStore.ChangeTagModuleStatus( route.path)
 };
+function initEditor () {
+  // 创建 Monaco Editor 实例
+  monacoEditor = monaco.editor.create(editor.value, {
+    // 设置初始代码值
+    value: '',
+    // 设置语言为自定义语言
+    language: 'st',
+    theme: 'hc-black' //官方自带三种主题vs, hc-black, or vs-dark
+  })
+  monacoEditor.focus();
+  console.log(monacoEditor.getValue())
+}
+
 onMounted(() => {
   initLoad();
+  initEditor();
+
 });
 
 watch(
@@ -32,4 +50,14 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+.editor-container {
+  width: 100%;
+  height: 100%;
+  // padding: 15px;
+  background: #ffffff;
+}
+#editor {
+  width: 100%;
+  height: 100%;
+}
 </style>

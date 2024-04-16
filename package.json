@@ -17,6 +17,8 @@
         "default-passive-events": "^2.0.0",
         "element-plus": "2.2.27",
         "moment": "^2.30.1",
+        "monaco-editor": "^0.47.0",
+        "monaco-editor-webpack-plugin": "^7.1.0",
         "pinia": "2.0.22",
         "screenfull": "6.0.0",
         "uuid": "^9.0.1",
