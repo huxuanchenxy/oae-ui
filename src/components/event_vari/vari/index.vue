@@ -14,7 +14,7 @@
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="text"/>
-                        <el-table-column label="关联事件" prop="relateEveName"/>
+                        <el-table-column label="关联事件" width="150"  prop="relateEveName"/>
                         <el-table-column label="数组长度" prop="arrayLength"/>
                         <el-table-column label="类型" prop="type">
                             <template #default="scope">
@@ -41,7 +41,7 @@
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"  prop="text"/>
-                        <el-table-column label="关联事件" prop="relateEveName"/>
+                        <el-table-column label="关联事件"  width="150"  prop="relateEveName"/>
                         <el-table-column label="数组长度" prop="arrayLength"/>
                         <el-table-column label="类型" prop="type">
                             <template #default="scope">

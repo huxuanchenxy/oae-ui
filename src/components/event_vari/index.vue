@@ -1,6 +1,6 @@
 <template>
     <div class="event_vari" >
-        <el-tabs :tab-position="tabPosition" style="height: 200px" class="demo-tabs">
+        <el-tabs :tab-position="tabPosition" style="height: 200px" class="tabs">
             <el-tab-pane label="事件">
                 <EventComp/>
             </el-tab-pane>
@@ -24,8 +24,10 @@
 <style lang="scss" scoped>
     .event_vari {
         display: flex;
-        .demo-tabs > .el-tabs__content {
-            padding: 32px;
+        .tabs{
+            width: 100%;
+        }
+        .tabs > .el-tabs__content {
             color: #6b778c;
             font-size: 32px;
             font-weight: 600;

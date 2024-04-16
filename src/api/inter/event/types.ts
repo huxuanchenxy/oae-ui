@@ -4,9 +4,7 @@
     no:number,
     text:string,
     relatedEvents:Array<{ id: string; name: string }>;
-    arrayLength:number,
     type:string,
-    initVals:number,
     comment:string
   }
   
@@ -18,9 +16,7 @@
     no:number,
     text:string,
     relatedEvents:Array<{ id: string; name: string }>;
-    arrayLength:number,
     type:string,
-    initVals:number,
     comment:string,
     relateEveName:string
   }
@@ -31,9 +27,7 @@
     no:number,
     text:string,
     relatedEvents:Array<{ id: string; name: string }>;
-    arrayLength:number,
     type:string,
-    initVals:number,
     comment:string
   }
   
@@ -45,9 +39,7 @@
     no:number,
     text:string,
     relatedEvents:Array<{ id: string; name: string }>;
-    arrayLength:number,
     type:string,
-    initVals:number,
     comment:string,
     relateEveName:string
   }
