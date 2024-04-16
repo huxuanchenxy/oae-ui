@@ -6,18 +6,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
-import { useStore } from "vuex";
-
-// 引入 Monaco Editor
-// import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import * as monaco from 'monaco-editor'
-// 创建对编辑器的引用
-const editor = ref();
-let monacoEditor = ref()
-
-const store = useStore();
+// import { ref, onMounted } from "vue";
+// import { useRoute } from "vue-router";
+// import { useStore } from "vuex";
+import { pagetagsStore } from "@/store/pageTags.js";
+const tagsStore = pagetagsStore();
+//const store = useStore();
 const router = useRouter();
 const route = useRoute();
 let pid = ref("");
@@ -25,7 +19,8 @@ let id = ref("");
 const initLoad = () => {
   pid.value = route.params.pid;
   id.value = route.params.id;
-  store.commit("ChangeTagModuleStatus", route.path);
+  //store.commit("ChangeTagModuleStatus", route.path);
+  tagsStore.ChangeTagModuleStatus( route.path)
 };
 function initEditor () {
   // 创建 Monaco Editor 实例

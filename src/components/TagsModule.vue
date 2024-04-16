@@ -20,23 +20,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { useStore } from "vuex";
-
+//import { ref, onMounted, watch } from "vue";
+//import { useRouter, useRoute } from "vue-router";
+//import { useStore } from "vuex";
+import { pagetagsStore } from "@/store/pageTags.js";
+const tagsStore = pagetagsStore();
 const goToPath = (path) => {
   router.push({ path });
 };
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
+//const store = useStore();
 const list = ref([]);
 const pid = ref([""]);
 onMounted(() => {
   pid.value = route.params.pid;
   let id = route.params.id;
-  store.commit("GetTagModule", { pid: pid.value, id, path: route.path });
-  list.value = store.state.TagModuleArrs;
+  //store.commit("GetTagModule", { pid: pid.value, id, path: route.path });
+  tagsStore.GetTagModule({ pid: pid.value, id, path: route.path });
+  list.value = tagsStore.TagModuleArrs; //store.state.TagModuleArrs;
 });
 watch(
   () => router.currentRoute.value,
@@ -49,12 +51,17 @@ watch(
       //console.log("pathArrays:", pathArrays, cPid, pid.value);
       if (cPid != pid.value) {
         pid.value = cPid;
-        store.commit("GetTagModule", {
+        // store.commit("GetTagModule", {
+        //   pid: pid.value,
+        //   id: pathArrays[3],
+        //   path: newPaths,
+        // });
+        tagsStore.GetTagModule({
           pid: pid.value,
           id: pathArrays[3],
           path: newPaths,
         });
-        list.value = store.state.TagModuleArrs;
+        list.value = tagsStore.TagModuleArrs; //store.state.TagModuleArrs;
       }
     }
   }
