@@ -283,11 +283,11 @@
     //加载输入事件数据 
     const getEveInputList = () => {
         inputEventList.value=interUtil.getInputEvents(project,module);
-        inputEventList.value.forEach(data => {
+        inputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
             if(relatedEvents){
-                relatedEvents.forEach(eve => {
+                relatedEvents?.forEach(eve => {
                     relateEveName+=eve.name+",";
                 });
                 relateEveName=relateEveName.substring(0,relateEveName.length-1);
@@ -439,7 +439,7 @@
     //加载输出事件数据 
     const getEveOutputList = () => {
         outputEventList.value=interUtil.getOutputEvents(project,module);
-        outputEventList.value.forEach(data => {
+        outputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
             if(relatedEvents){

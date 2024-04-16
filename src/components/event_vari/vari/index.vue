@@ -13,7 +13,7 @@
                     <el-table :data="inputVariList" style="width: 100%" height="150"  @selection-change="handleSelectionChangeInput">
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
-                        <el-table-column label="名称"  prop="text"/>
+                        <el-table-column label="名称"   width="100" prop="text"/>
                         <el-table-column label="关联事件" width="150"  prop="relateEveName"/>
                         <el-table-column label="数组长度" prop="arrayLength"/>
                         <el-table-column label="类型" prop="type">
@@ -40,7 +40,7 @@
                     <el-table :data="outputVariList" style="width: 100%" height="150"  @selection-change="handleSelectionChangeOutput">
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
-                        <el-table-column label="名称"  prop="text"/>
+                        <el-table-column label="名称" width="100"   prop="text"/>
                         <el-table-column label="关联事件"  width="150"  prop="relateEveName"/>
                         <el-table-column label="数组长度" prop="arrayLength"/>
                         <el-table-column label="类型" prop="type">
@@ -301,7 +301,7 @@
     //加载输入事件数据 
     const getVariInputList = () => {
         inputVariList.value=interUtil.getInputVaris(project,module);
-        inputVariList.value.forEach(data => {
+        inputVariList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
             if(relatedEvents){
@@ -459,7 +459,7 @@
     //加载输出事件数据 
     const getVariOutputList = () => {
         outputVariList.value=interUtil.getOutputVaris(project,module);
-        outputVariList.value.forEach(data => {
+        outputVariList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
             if(relatedEvents){

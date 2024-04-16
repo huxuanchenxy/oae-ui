@@ -55,7 +55,7 @@ onMounted(() => {
 const getCurrentDataEventInput=()=>{
   let data=interUtil.getInputEvents(project,module);
   let nameList=[];
-  data.forEach(element => {
+  data?.forEach(element => {
     nameList.push(element.text);
   });
   return nameList;
@@ -63,7 +63,7 @@ const getCurrentDataEventInput=()=>{
 const getCurrentDataEventOutput=()=>{
   let data=interUtil.getOutputEvents(project,module);
   let nameList=[];
-  data.forEach(element => {
+  data?.forEach(element => {
     nameList.push(element.text);
   });
   return nameList;
@@ -71,7 +71,7 @@ const getCurrentDataEventOutput=()=>{
 const getCurrentDataVariInput=()=>{
   let data=interUtil.getInputVaris(project,module);
   let nameList=[];
-  data.forEach(element => {
+  data?.forEach(element => {
     nameList.push(element.text);
   });
   return nameList;
@@ -79,7 +79,7 @@ const getCurrentDataVariInput=()=>{
 const getCurrentDataVariOutput=()=>{
   let data=interUtil.getOutputVaris(project,module);
   let nameList=[];
-  data.forEach(element => {
+  data?.forEach(element => {
     nameList.push(element.text);
   });
   return nameList;
