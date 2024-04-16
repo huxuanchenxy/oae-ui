@@ -7,7 +7,9 @@
             <el-tab-pane label="变量">
                 <VariComp/>
             </el-tab-pane>
-            <el-tab-pane label="内部变量">Role</el-tab-pane>
+            <el-tab-pane label="内部变量">
+              <InVariComp/>
+            </el-tab-pane>
             <el-tab-pane label="临时变量">Task</el-tab-pane>
         </el-tabs>
     </div>
@@ -16,6 +18,7 @@
 <script setup lang="ts">
     import EventComp from "@/components/event_vari/event/index.vue";
     import VariComp from "@/components/event_vari/vari/index.vue";
+    import InVariComp from "@/components/event_vari/invari/index.vue";
     const tabPosition = ref('left')
     onMounted(() => {
     })

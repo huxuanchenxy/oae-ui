@@ -317,6 +317,7 @@
   });
   
   function initNode(data) {
+    console.log(111,data)
     graph = new G6.Graph({
       container: "mountNode",
       width: 500,
@@ -472,21 +473,22 @@
   }
   
   function reRender(data){
+    console.log(111,data)
     graph.data(data);
     graph.render();
   }
   onMounted(() => {
     let data = {
     nodes: [
-      {
-        id: "node1",
-        x: 150,
-        y: 200,
-        type: "myShape",
-        color: "red"
-      },
-    ],
-  };
+        {
+          id: "node1",
+          x: 150,
+          y: 200,
+          type: "myShape",
+          color: "red"
+        },
+      ],
+    };
     initNode(data);
   });
   //暴露子组件重新渲染方法

@@ -114,6 +114,56 @@ export const getOutputVaris=(project,module)=>{
     return outputVaris;
 }
 //----变量输出工具结束
+//----内部变量工具开始
+export const changeInVaris=(project,module,data)=>{
+    let rlt=getJson(project,module);
+    if(rlt){
+        rlt.interface.internals=data;
+        oldJson.push(rlt);
+        cache.local.setJSON(cacheKey,oldJson);
+    }
+}
+export const getInVaris=(project,module)=>{
+    let rlt=getJson(project,module);
+    let varis;
+    if(rlt){
+        varis= rlt.interface.internals;
+        varis.forEach(vari => {
+            let no=1;
+            if(!vari.no){
+                vari.no=no;
+                no++;
+            }
+        });
+    }
+    return varis;
+}
+//----内部变量工具结束
+//----临时变量工具开始
+export const changeTempVaris=(project,module,data)=>{
+    let rlt=getJson(project,module);
+    if(rlt){
+        rlt.interface.temps=data;
+        oldJson.push(rlt);
+        cache.local.setJSON(cacheKey,oldJson);
+    }
+}
+export const getTempVaris=(project,module)=>{
+    let rlt=getJson(project,module);
+    let varis;
+    if(rlt){
+        varis= rlt.interface.temps;
+        varis.forEach(vari => {
+            let no=1;
+            if(!vari.no){
+                vari.no=no;
+                no++;
+            }
+        });
+    }
+    return varis;
+}
+//----临时变量工具结束
 export default {
     changeInputEvents,
     getInputEvents,
@@ -122,5 +172,9 @@ export default {
     changeInputVaris,
     getInputVaris,
     changeOutputVaris,
-    getOutputVaris
+    getOutputVaris,
+    changeInVaris,
+    getInVaris,
+    changeTempVaris,
+    getTempVaris
 };
