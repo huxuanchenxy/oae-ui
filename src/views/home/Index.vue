@@ -8,7 +8,7 @@
           <div class="center">
             <Tags></Tags>
           </div>
-          <div class="right">
+          <div class="right" style="display: none">
             <div style="width: 100px"></div>
 
             <el-tooltip placement="bottom" effect="light" :offset="-3">
@@ -23,10 +23,7 @@
                 </ul>
               </template>
               <div style="float: left; margin: 6px 15px 0 0">
-                <el-avatar
-                  style="float: left; cursor: pointer"
-
-                />
+                <el-avatar style="float: left; cursor: pointer" />
                 <!-- :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" -->
                 <div style="float: left; color: #fff; margin: 10px 0 0 10px">
                   {{ curUserInfo.userName }}
@@ -126,7 +123,7 @@ import { useRouter } from "vue-router"; //导入路由
 import { ref, reactive, onMounted, computed } from "vue";
 import { baseUrl } from "@/api/baseUrl";
 import cache from "@/plugins/cache.ts";
-import  {getInitData}  from "@/api/common/init.ts";
+import { getInitData } from "@/api/common/init.ts";
 const router = useRouter(); //实例化路由
 const pwdChangeDialogVisible = ref(false);
 const resetPwd = () => {
@@ -161,12 +158,12 @@ const clickExpand = () => {
 };
 const deptListStr = ref("");
 const postListStr = ref("");
-const cacheKey="json";
+const cacheKey = "json";
 //location.reload();
 onMounted(() => {
-  let jsonData=cache.local.getJSON(cacheKey);
-  if(!jsonData){
-    jsonData=getInitData();
+  let jsonData = cache.local.getJSON(cacheKey);
+  if (!jsonData) {
+    jsonData = getInitData();
   }
   cache.local.setJSON("json", jsonData); //后续从数据库中读取
   // location.reload();

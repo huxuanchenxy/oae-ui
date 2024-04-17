@@ -10,7 +10,6 @@ declare module '@vue/runtime-core' {
     AttributeContent: typeof import('./../components/bottomContent/AttributeContent.vue')['default']
     BottomContent: typeof import('./../components/bottomContent/BottomContent.vue')['default']
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
-    copy: typeof import('../components/event_vari/tempvari/index copy.vue')['default']
     DictTag: typeof import('./../components/DictTag/index.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -48,7 +47,6 @@ declare module '@vue/runtime-core' {
     Tags: typeof import('./../components/Tags.vue')['default']
     TagsModule: typeof import('./../components/TagsModule.vue')['default']
     Tempvari: typeof import('./../components/event_vari/tempvari/index.vue')['default']
-    Tmpvari: typeof import('../components/event_vari/tempvari/index.vue')['default']
     Vari: typeof import('./../components/event_vari/vari/index.vue')['default']
   }
 }
