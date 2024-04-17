@@ -44,7 +44,7 @@
                                 <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="关联事件" prop="relateEveName" width="55" />
+                        <el-table-column label="关联事件" prop="relateEveName" width="180" />
                         <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
@@ -119,7 +119,7 @@
 
 <script setup name="Event" lang="ts">
     import type { EveInputForm,EveInputQuery,EveInputVO,EveOutputForm,EveOutputQuery,EveOutputVO} from '@/api/inter/event/type';
-    import api from "@/api/inter/event";
+    import {getRelateEveList,getInputEvents,getOutputEvents} from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
     import interUtil from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
@@ -189,7 +189,7 @@
         resetInput();
         dialogInput.visible = true;
         dialogInput.title = "添加输入事件";
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateInput = (row?: EveInputVO) => {
         resetInput();
@@ -199,7 +199,7 @@
         res.relatedEvents?.forEach(element => {
             relatedEventIds.push(element.id);
         });
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         eveInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveInputForm.value, res);
         dialogInput.visible = true;
@@ -282,7 +282,7 @@
     };
     //加载输入事件数据 
     const getEveInputList = () => {
-        inputEventList.value=interUtil.getInputEvents(project,module);
+        inputEventList.value=getInputEvents(project,module);
         inputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
@@ -346,7 +346,7 @@
         resetOutput();
         dialogOutput.visible = true;
         dialogOutput.title = "添加输出事件";
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateOutput = (row?: EveOutputVO) => {
         resetOutput();
@@ -356,7 +356,7 @@
         res.relatedEvents?.forEach(element => {
             relatedEventIds.push(element.id);
         });
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         eveOutputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveOutputForm.value, res);
         dialogOutput.visible = true;
@@ -438,7 +438,7 @@
     };
     //加载输出事件数据 
     const getEveOutputList = () => {
-        outputEventList.value=interUtil.getOutputEvents(project,module);
+        outputEventList.value=getOutputEvents(project,module);
         outputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents

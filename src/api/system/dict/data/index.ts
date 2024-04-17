@@ -3,7 +3,7 @@ import { AxiosPromise } from 'axios';
 import { DictDataForm, DictDataQuery, DictDataVO } from './types';
 // 根据字典类型查询字典数据信息
 // export function getDicts(dictType: string): AxiosPromise<DictDataVO[]> {//不用后端先不用axios
-  export function getDicts(dictType: string): DictDataVO[] {
+export function getDicts(dictType: string): DictDataVO[] {
   // return request({
   //   url: '/system/dict/data/type/' + dictType,
   //   method: 'get'

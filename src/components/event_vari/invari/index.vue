@@ -60,6 +60,7 @@
 
 <script setup name="InVari" lang="ts">
     import type { InVariForm,InVariQuery,InVariVO} from '@/api/inter/invari/type';
+    import {getInVaris} from "@/api/inter/invari";
     import interUtil from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -160,7 +161,7 @@
     };
     //加载输入事件数据 
     const getInVariList = () => {
-        inVariList.value=interUtil.getInputVaris(project,module);
+        inVariList.value=getInVaris(project,module);
     }
     const handleDelete = async (row?: InVariVO) => {
         const deleteNos = row?.no||nos.value;

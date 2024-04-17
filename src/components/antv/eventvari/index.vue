@@ -317,7 +317,6 @@
   });
   
   function initNode(data) {
-    console.log(111,data)
     graph = new G6.Graph({
       container: "mountNode",
       width: 500,
@@ -473,7 +472,6 @@
   }
   
   function reRender(data){
-    console.log(111,data)
     graph.data(data);
     graph.render();
   }

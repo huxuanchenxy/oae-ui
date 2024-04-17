@@ -135,7 +135,8 @@
 
 <script setup name="Vari" lang="ts">
     import type { VariInputForm,VariInputQuery,VariInputVO,VariOutputForm,VariOutputQuery,VariOutputVO} from '@/api/inter/vari/type';
-    import eventApi from "@/api/inter/event";
+    import {getRelateEveList} from "@/api/inter/event";
+    import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
     import { Eve } from "@/api/inter/event/types";
     import interUtil from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
@@ -207,7 +208,7 @@
         resetInput();
         dialogInput.visible = true;
         dialogInput.title = "添加输入事件";
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateInput = (row?: VariInputVO) => {
         resetInput();
@@ -217,7 +218,7 @@
         res.relatedEvents?.forEach(element => {
           relatedEventIds.push(element.id);
         });
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         variInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(variInputForm.value, res);
         dialogInput.visible = true;
@@ -300,7 +301,7 @@
     };
     //加载输入事件数据 
     const getVariInputList = () => {
-        inputVariList.value=interUtil.getInputVaris(project,module);
+        inputVariList.value=getInputVaris(project,module);
         inputVariList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
@@ -366,7 +367,7 @@
         resetOutput();
         dialogOutput.visible = true;
         dialogOutput.title = "添加输出事件";
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateOutput = (row?: VariOutputVO) => {
         resetOutput();
@@ -376,7 +377,7 @@
         res.relatedEvents?.forEach(element => {
           relatedEventIds.push(element.id);
         });
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         variOutputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(variOutputForm.value, res);
         dialogOutput.visible = true;
@@ -458,7 +459,7 @@
     };
     //加载输出事件数据 
     const getVariOutputList = () => {
-        outputVariList.value=interUtil.getOutputVaris(project,module);
+        outputVariList.value=getOutputVaris(project,module);
         outputVariList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents

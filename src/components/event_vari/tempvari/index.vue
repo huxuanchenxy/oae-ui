@@ -62,6 +62,7 @@
     import type { TempVariForm,TempVariQuery,TempVariVO} from '@/api/inter/tempvari/type';
     import interUtil from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
+    import {getTempVaris} from "@/api/inter/tempvari";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
@@ -160,7 +161,7 @@
     };
     //加载输入事件数据 
     const getTempVariList = () => {
-        tempVariList.value=interUtil.getInputVaris(project,module);
+        tempVariList.value=getTempVaris(project,module);
     }
     const handleDelete = async (row?: TempVariVO) => {
         const deleteNos = row?.no||nos.value;
