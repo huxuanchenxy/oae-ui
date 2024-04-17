@@ -1,6 +1,6 @@
 import { Eve} from './types';
 import {getJson} from "@/utils/cache/inter";
-import {getInitData} from "../../common/init";
+import {getInitData} from "@/api/common/init";
 // export const getUser = (userId?: string | number): AxiosPromise<UserInfoVO> => {
 export const getRelateEveList = (no?: string | number): Eve[] => {
     // return request({

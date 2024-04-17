@@ -1,8 +1,11 @@
 import {getJson} from "@/utils/cache/inter";
-
+import {getInitData} from "@/api/common/init";
 export const getInputVaris=(project,module)=>{
     let rlt=getJson(project,module);
     let inputVaris;
+    if(!rlt){
+        rlt=getInitData(module)[0];
+    }
     if(rlt){
         inputVaris= rlt.interface.inputs;
         inputVaris.forEach(inputVari => {
@@ -18,6 +21,9 @@ export const getInputVaris=(project,module)=>{
 export const getOutputVaris=(project,module)=>{
     let rlt=getJson(project,module);
     let outputVaris;
+    if(!rlt){
+        rlt=getInitData(module)[0];
+    }
     if(rlt){
         outputVaris= rlt.interface.outputs;
         outputVaris.forEach(outputVari => {
