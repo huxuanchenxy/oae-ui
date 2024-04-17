@@ -60,7 +60,7 @@
 
 <script setup name="TempVari" lang="ts">
     import type { TempVariForm,TempVariQuery,TempVariVO} from '@/api/inter/tempvari/type';
-    import interUtil from "@/utils/cache/inter";
+    import {changeTempVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import {getTempVaris} from "@/api/inter/tempvari";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -152,12 +152,12 @@
         data.key=key;
         tempVariList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeTempVaris(project,module,tempVariList.value);
+        changeTempVaris(project,module,tempVariList.value);
     }
     const updateVariInput=(data:TempVariForm)=>{
         tempVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeTempVaris(project,module,tempVariList.value);
+        changeTempVaris(project,module,tempVariList.value);
     };
     //加载输入事件数据 
     const getTempVariList = () => {
@@ -172,7 +172,7 @@
         }
         tempVariList.value=[];
         Object.assign(tempVariList.value,newList);
-        interUtil.changeTempVaris(project,module,tempVariList.value);
+        changeTempVaris(project,module,tempVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
     }
     onMounted(() => {

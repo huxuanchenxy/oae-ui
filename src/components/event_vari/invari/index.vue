@@ -61,7 +61,7 @@
 <script setup name="InVari" lang="ts">
     import type { InVariForm,InVariQuery,InVariVO} from '@/api/inter/invari/type';
     import {getInVaris} from "@/api/inter/invari";
-    import interUtil from "@/utils/cache/inter";
+    import {changeInputVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
@@ -152,12 +152,12 @@
         data.key=key;
         inVariList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeInVaris(project,module,inVariList.value);
+        changeInVaris(project,module,inVariList.value);
     }
     const updateVariInput=(data:InVariForm)=>{
         inVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeInVaris(project,module,inVariList.value);
+        changeInVaris(project,module,inVariList.value);
     };
     //加载输入事件数据 
     const getInVariList = () => {
@@ -172,7 +172,7 @@
         }
         inVariList.value=[];
         Object.assign(inVariList.value,newList);
-        interUtil.changeInVaris(project,module,inVariList.value);
+        changeInVaris(project,module,inVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
     }
     onMounted(() => {

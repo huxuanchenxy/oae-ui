@@ -138,7 +138,7 @@
     import {getRelateEveList} from "@/api/inter/event";
     import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
     import { Eve } from "@/api/inter/event/types";
-    import interUtil from "@/utils/cache/inter";
+    import {changeInputVaris,changeOutputVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useVariInputStore from "@/store/modules/variInput.ts";
     import useVariOutputStore from "@/store/modules/variOutput.ts";
@@ -274,7 +274,7 @@
         data.key=key;
         inputVariList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeInputVaris(project,module,inputVariList.value);
+        changeInputVaris(project,module,inputVariList.value);
     }
     const updateVariInput=(data:VariInputForm)=>{
         let relateEveName="";
@@ -297,7 +297,7 @@
         data.relateEveName=relateEveName;
         inputVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeInputVaris(project,module,inputVariList.value);
+        changeInputVaris(project,module,inputVariList.value);
     };
     //加载输入事件数据 
     const getVariInputList = () => {
@@ -323,7 +323,7 @@
         }
         inputVariList.value=[];
         Object.assign(inputVariList.value,newList);
-        interUtil.changeInputVaris(project,module,inputVariList.value);
+        changeInputVaris(project,module,inputVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
         variInputStore.flag=true;
         variInputStore.flag=false;
@@ -433,7 +433,7 @@
         data.key=key;
         outputVariList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeOutputVaris(project,module,outputVariList.value);
+        changeOutputVaris(project,module,outputVariList.value);
     }
     const updateVariOutput=(data:VariOutputForm)=>{
         let relateEveName="";
@@ -455,7 +455,7 @@
         data.relateEveName=relateEveName;
         outputVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeOutputVaris(project,module,outputVariList.value);
+        changeOutputVaris(project,module,outputVariList.value);
     };
     //加载输出事件数据 
     const getVariOutputList = () => {
@@ -481,7 +481,7 @@
         }
         outputVariList.value=[];
         Object.assign(outputVariList.value,newList);
-        interUtil.changeOutputVaris(project,module,outputVariList.value);
+        changeOutputVaris(project,module,outputVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
         variOutputStore.flag=true;
         variOutputStore.flag=false;

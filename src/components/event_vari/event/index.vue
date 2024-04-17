@@ -121,7 +121,7 @@
     import type { EveInputForm,EveInputQuery,EveInputVO,EveOutputForm,EveOutputQuery,EveOutputVO} from '@/api/inter/event/type';
     import {getRelateEveList,getInputEvents,getOutputEvents} from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
-    import interUtil from "@/utils/cache/inter";
+    import {changeInputEvents,changeOutputEvents} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useEveInputStore from "@/store/modules/eveInput.ts";
     import useEveOutputStore from "@/store/modules/eveOutput.ts";
@@ -255,7 +255,7 @@
         data.key=key;
         inputEventList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeInputEvents(project,module,inputEventList.value);
+        changeInputEvents(project,module,inputEventList.value);
     }
     const updateEveInput=(data:EveInputForm)=>{
         let relateEveName="";
@@ -278,7 +278,7 @@
         data.relateEveName=relateEveName;
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeInputEvents(project,module,inputEventList.value);
+        changeInputEvents(project,module,inputEventList.value);
     };
     //加载输入事件数据 
     const getEveInputList = () => {
@@ -304,7 +304,7 @@
         }
         inputEventList.value=[];
         Object.assign(inputEventList.value,newList);
-        interUtil.changeInputEvents(project,module,inputEventList.value);
+        changeInputEvents(project,module,inputEventList.value);
         proxy?.$modal.msgSuccess("删除成功");
         eveInputStore.flag=true;
         eveInputStore.flag=false;
@@ -412,7 +412,7 @@
         data.key=key;
         outputEventList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeOutputEvents(project,module,outputEventList.value);
+        changeOutputEvents(project,module,outputEventList.value);
     }
     const updateEveOutput=(data:EveOutputForm)=>{
         let relateEveName="";
@@ -434,7 +434,7 @@
         data.relateEveName=relateEveName;
         outputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeOutputEvents(project,module,outputEventList.value);
+        changeOutputEvents(project,module,outputEventList.value);
     };
     //加载输出事件数据 
     const getEveOutputList = () => {
@@ -460,7 +460,7 @@
         }
         outputEventList.value=[];
         Object.assign(outputEventList.value,newList);
-        interUtil.changeOutputEvents(project,module,outputEventList.value);
+        changeOutputEvents(project,module,outputEventList.value);
         proxy?.$modal.msgSuccess("删除成功");
         eveOutputStore.flag=true;
         eveOutputStore.flag=false;

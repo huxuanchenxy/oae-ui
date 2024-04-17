@@ -107,14 +107,3 @@ export const changeTempVaris=(project,module,data)=>{
     console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
-
-//----临时变量工具结束
-export default {
-    getCurrentObj,
-    changeInputEvents,
-    changeOutputEvents,
-    changeInputVaris,
-    changeOutputVaris,
-    changeInVaris,
-    changeTempVaris
-};
