@@ -1,10 +1,10 @@
-import {getJson} from "@/utils/cache/inter";
+import {getCurrentObj} from "@/utils/cache/inter";
 import {getInitData} from "@/api/common/init";
 export const getInputVaris=(project,module)=>{
-    let rlt=getJson(project,module);
+    let rlt=getCurrentObj(project,module);
     let inputVaris;
     if(!rlt){
-        rlt=getInitData(module)[0];
+        rlt=getInitData(project,module)[0];
     }
     if(rlt){
         inputVaris= rlt.interface.inputs;
@@ -19,11 +19,8 @@ export const getInputVaris=(project,module)=>{
     return inputVaris;
 }
 export const getOutputVaris=(project,module)=>{
-    let rlt=getJson(project,module);
+    let rlt=getCurrentObj(project,module);
     let outputVaris;
-    if(!rlt){
-        rlt=getInitData(module)[0];
-    }
     if(rlt){
         outputVaris= rlt.interface.outputs;
         outputVaris.forEach(outputVari => {
