@@ -2,7 +2,7 @@
   <el-aside class="aside">
     <!-- width="collapse" -->
     <div
-        style="
+      style="
         text-align: center;
         height: 48px;
         line-height: 48px;
@@ -16,25 +16,25 @@
         :src="require('@/assets/img/logo-shdq.png')"
       /> -->
       <img
-          style="width: 100px; margin: 12px 0 0 -25px"
-          src="../assets/img/logo-shdq.png"
-          alt=""
+        style="width: 100px; margin: 12px 0 0 -25px"
+        src="../assets/img/logo-shdq.png"
+        alt=""
       />
     </div>
     <!--  -->
     <el-menu
-        :collapse="props.isCollapse"
-        :default-openeds="defaultOpeneds"
-        router
-        :default-active="route.path"
-        @open="handleOpen"
-        @close="handleClose"
+      :collapse="props.isCollapse"
+      :default-openeds="defaultOpeneds"
+      router
+      :default-active="route.path"
+      @open="handleOpen"
+      @close="handleClose"
     >
       <NavItem
-          v-for="v in listOneFuncList"
-          :key="v.funcId"
-          :item="v"
-          :basePath="v.funcUrl"
+        v-for="v in listOneFuncList"
+        :key="v.funcId"
+        :item="v"
+        :basePath="v.funcUrl"
       />
     </el-menu>
   </el-aside>
@@ -70,16 +70,16 @@ const processMenuData = (list) => {
       l.funcUrl = `${l.funcUrl}/${l.funcParentId}/${l.funcId}`;
     }
     let isExistFlag = curFuncList.some(
-        (t) =>
-            t.funcParentId == l.funcId && t.isShowMenu && t.funcLevel == curLevel
+      (t) =>
+        t.funcParentId == l.funcId && t.isShowMenu && t.funcLevel == curLevel
     );
     if (isExistFlag) {
       defaultOpeneds.value.push(l.funcUrl);
       let childList = curFuncList.filter((obj) => {
         return (
-            obj.funcParentId == l.funcId &&
-            obj.funcLevel == l.funcLevel + 1 &&
-            obj.isShowMenu
+          obj.funcParentId == l.funcId &&
+          obj.funcLevel == l.funcLevel + 1 &&
+          obj.isShowMenu
         );
       });
       if (childList) {
@@ -93,13 +93,13 @@ const processMenuData = (list) => {
 };
 processMenuData(listOneFuncList);
 
-listOneFuncList?.push({
-  funcId: "13232217443472",
-  funcOrderNum: 0.48,
-  funcShowName: "接口",
-  funcName: "接口",
-  funcUrl: "/inter",
-});
+// listOneFuncList?.push({
+//   funcId: "13232217443472",
+//   funcOrderNum: 0.48,
+//   funcShowName: "接口",
+//   funcName: "接口",
+//   funcUrl: "/inter",
+// });
 
 const handleOpen = (key) => {
   changeIcon(listOneFuncList, key, RemoveFilled);
