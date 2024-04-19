@@ -10,6 +10,7 @@
       >
         <AttributeContent v-show="item.index == 0"></AttributeContent>
         <EventVari v-show="item.index == 1"></EventVari>
+        <LogContent v-show="item.index == 2"></LogContent>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -18,6 +19,7 @@
 <script setup>
 import { ref } from "vue";
 import AttributeContent from "@/components/bottomContent/AttributeContent.vue";
+import LogContent from "@/components/bottomContent/LogContent.vue";
 import EventVari from "@/components/event_vari/index.vue";
 
 const editableTabsValue = ref("0");
@@ -29,6 +31,10 @@ const editableTabs = ref([
   {
     index: "1",
     title: "事件及变量",
+  },
+  {
+    index: "2",
+    title: "函数日志",
   },
 ]);
 //let tabIndex = 2;
