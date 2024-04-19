@@ -6,7 +6,8 @@
 </template>
 
 <script setup lang="ts">
-import G6, {Edge} from "@antv/g6";
+import G6 from "@antv/g6";
+import { v4 as uuidv4 } from 'uuid';
 import { pagetagsStore } from "@/store/pageTags.js";
 const tagsStore = pagetagsStore();
 const router = useRouter();
@@ -187,7 +188,10 @@ const initGraph=(data)=>{
             targetAnchorIdx = undefined;
             return true;
           },
-        }],
+        },
+        'drag-canvas', 'drag-node', 'drag-combo', 'collapse-expand-combo'
+        ],
+
     },
     defaultNode: {
       type: 'rect-node',
@@ -208,7 +212,24 @@ const initGraph=(data)=>{
 
   graph.data(data);
   graph.render();
+  graph.on('combo:mouseenter', (evt) => {
+    const { item } = evt;
+    graph.setItemState(item, 'active', true);
+  });
 
+  graph.on('combo:mouseleave', (evt) => {
+    const { item } = evt;
+    graph.setItemState(item, 'active', false);
+  });
+  graph.on('combo:click', (evt) => {
+    const { item } = evt;
+    graph.setItemState(item, 'selected', true);
+  });
+  graph.on('canvas:click', (evt) => {
+    graph.getCombos().forEach((combo) => {
+      graph.clearItemStates(combo);
+    });
+  });
   graph.on('aftercreateedge', (e) => {
     // update the sourceAnchor and targetAnchor for the newly added edge
     graph.updateItem(e.edge, {
@@ -300,16 +321,18 @@ onMounted(() => {
 const addItem=()=>{
   const stateNodeX=50;
   const stateNodey=50;
-  const stateNodeId=G6.Util.uniqueId();
-  const algNodeId=G6.Util.uniqueId();
-  const eveNodeId=G6.Util.uniqueId();
+  const comboId=uuidv4();
+  const stateNodeId=uuidv4();
+  const algNodeId=uuidv4();
+  const eveNodeId=uuidv4();
   //初始距离是50,状态机的坐标永远是50,50
   const stateNode = {
     id:stateNodeId,
     label: '状态机',
     x: stateNodeX,
     y: stateNodey,
-    size:algEveSize
+    size:algEveSize,
+    comboId:comboId
   };
   //算法的x向右移初始距离+状态机的width+线的width为20
   const algNodeX=stateNodeX+stateGraphSize[0]+20
@@ -319,6 +342,7 @@ const addItem=()=>{
     x: algNodeX,
     y: stateNodey,
     size:algEveSize,
+    comboId:comboId
   }
   //事件的初始距离为算法的x+算法的长度
   const eveNode={
@@ -327,19 +351,30 @@ const addItem=()=>{
     x: algNodeX+algGraphSize[0],
     y: stateNodey,
     size:algEveSize,
+    comboId:comboId
   }
   //状态机到算法的连接
   const stateToAlgEdge = {
     source: stateNodeId,
     target: algNodeId,
+    comboId:comboId,
     style: {
       endArrow: false,
     }
   };
+  const comboConfig={
+    id:comboId,
+    type:'rect',
+    label:"combotest",
+    allowZoom: true, // 允许 Combo 跟随缩放
+    allowDrag: true, // 允许 Combo 跟随平移
+  }
+  graph.addItem('combo',comboConfig)
   graph.addItem('node', stateNode);
   graph.addItem('node', algNode);
   graph.addItem('node', eveNode);
   graph.addItem('edge',stateToAlgEdge)
+
 }
 const initLoad = () => {
   pid.value = route.params.pid;
