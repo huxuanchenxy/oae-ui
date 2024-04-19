@@ -12,6 +12,10 @@ import useEveInputStore from "@/store/modules/eveInput.ts";
 import useEveOutputStore from "@/store/modules/eveOutput.ts";
 import useVariInputStore from "@/store/modules/variInput.ts";
 import useVariOutputStore from "@/store/modules/variOutput.ts";
+import {getInputEvents,getOutputEvents} from "@/api/inter/event";
+import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
+import inVariApi from "@/api/inter/invari";
+import tempVariApi from "@/api/inter/tempvari";
 const eveInputStore=useEveInputStore();
 const eveOutputStore=useEveOutputStore();
 const variInputStore=useVariInputStore();
@@ -53,7 +57,7 @@ onMounted(() => {
   }
 });
 const getCurrentDataEventInput=()=>{
-  let data=interUtil.getInputEvents(project,module);
+  let data=getInputEvents(project,module);
   let nameList=[];
   data?.forEach(element => {
     nameList.push(element.text);
@@ -61,7 +65,7 @@ const getCurrentDataEventInput=()=>{
   return nameList;
 }
 const getCurrentDataEventOutput=()=>{
-  let data=interUtil.getOutputEvents(project,module);
+  let data=getOutputEvents(project,module);
   let nameList=[];
   data?.forEach(element => {
     nameList.push(element.text);
@@ -69,7 +73,7 @@ const getCurrentDataEventOutput=()=>{
   return nameList;
 }
 const getCurrentDataVariInput=()=>{
-  let data=interUtil.getInputVaris(project,module);
+  let data=getInputVaris(project,module);
   let nameList=[];
   data?.forEach(element => {
     nameList.push(element.text);
@@ -77,7 +81,7 @@ const getCurrentDataVariInput=()=>{
   return nameList;
 }
 const getCurrentDataVariOutput=()=>{
-  let data=interUtil.getOutputVaris(project,module);
+  let data=getOutputVaris(project,module);
   let nameList=[];
   data?.forEach(element => {
     nameList.push(element.text);

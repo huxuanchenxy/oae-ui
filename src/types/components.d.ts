@@ -51,7 +51,7 @@ declare module '@vue/runtime-core' {
     RouterView: typeof import('vue-router')['RouterView']
     Tags: typeof import('./../components/Tags.vue')['default']
     TagsModule: typeof import('./../components/TagsModule.vue')['default']
-    Tmpvari: typeof import('./../components/event_vari/tmpvari/index.vue')['default']
+    Tempvari: typeof import('./../components/event_vari/tempvari/index.vue')['default']
     Vari: typeof import('./../components/event_vari/vari/index.vue')['default']
   }
 }

@@ -1,126 +1,109 @@
 import  cache  from "@/plugins/cache.ts";
+import  {getInitData,getInitArr}  from "@/api/common/init.ts";
 const cacheKey="json";
-let oldJson;
-const getJson=(project,module)=>{
-    oldJson=cache.local.getJSON(cacheKey);
-    if(!oldJson){
-        return;
-    }
-    let rlt= oldJson.find(
+// let oldJson;
+
+export const getCurrentObj=(project,module)=>{
+    let jsonAll=getJsonAll(project,module);
+    let rlt= jsonAll.find(
         (x) => x.project == project&&x.name==module
     );
-    oldJson=oldJson.filter(
+    if(!rlt){
+        //如果缓存里找不到对应模块数据，也用初始数据
+        return getInitData(project,module);
+    }
+    // oldJson=oldJson.filter(
+    //     (x) => !(x.project == project&&x.name==module)
+    // );
+    return rlt;
+}
+const getJsonAll=(project,module)=>{
+    let jsonAll= cache.local.getJSON(cacheKey);
+    //如果连缓存都没有，直接return初始数据
+    if(!jsonAll){
+        let initArr= getInitArr(project,module);
+        return initArr;
+    }
+    return jsonAll;
+}
+const removeCurrentModule=(data,project,module)=>{
+    data= data.filter(
         (x) => !(x.project == project&&x.name==module)
     );
-    return rlt;
+    return data;
 }
 //----事件输入工具开始
 export const changeInputEvents=(project,module,data)=>{
-    let rlt=getJson(project,module);
-    if(rlt){
-        rlt.interface.input_events=data;
-        oldJson.push(rlt);
-        cache.local.setJSON(cacheKey,oldJson);
-    }
-}
-export const getInputEvents=(project,module)=>{
-    let inputEvents;
-    let rlt=getJson(project,module);
-    if(rlt){
-        let inputEvents= rlt.interface.input_events;
-        inputEvents.forEach(inputEvent => {
-            let no=1;
-            if(!inputEvent.no){
-                inputEvent.no=no;
-                no++;
-            }
-        });
-    }
-    return inputEvents;
+    let jsonAll=getJsonAll(project,module);
+    let rlt=getCurrentObj(project,module);
+    rlt.interface.input_events=data;
+    //先移除当前的
+    jsonAll=removeCurrentModule(jsonAll,project,module);
+    jsonAll.push(rlt);
+    console.log("push后的jsonall",jsonAll)
+    cache.local.setJSON(cacheKey,jsonAll);
 }
 //----事件输入工具结束
 //----事件输出工具开始
 export const changeOutputEvents=(project,module,data)=>{
-    let rlt=getJson(project,module);
-    if(rlt){
-        rlt.interface.output_events=data;
-        oldJson.push(rlt);
-        cache.local.setJSON(cacheKey,oldJson);
-    }
+    let jsonAll=getJsonAll(project,module);
+    let rlt=getCurrentObj(project,module);
+    rlt.interface.output_events=data;
+    //先移除当前的
+    jsonAll=removeCurrentModule(jsonAll,project,module);
+    jsonAll.push(rlt);
+    console.log("push后的jsonall",jsonAll)
+    cache.local.setJSON(cacheKey,jsonAll);
 }
-export const getOutputEvents=(project,module)=>{
-    let rlt=getJson(project,module);
-    let outputEvents;
-    if(rlt){
-        outputEvents= rlt.interface.output_events;
-        outputEvents.forEach(outputEvent => {
-            let no=1;
-            if(!outputEvent.no){
-                outputEvent.no=no;
-                no++;
-            }
-        });
-    }
-    return outputEvents;
-}
+
 //----事件输出工具结束
 //----变量输入工具开始
 export const changeInputVaris=(project,module,data)=>{
-    let rlt=getJson(project,module);
-    if(rlt){
-        rlt.interface.inputs=data;
-        oldJson.push(rlt);
-        cache.local.setJSON(cacheKey,oldJson);
-    }
+    let jsonAll=getJsonAll(project,module);
+    let rlt=getCurrentObj(project,module);
+    rlt.interface.inputs=data;
+    //先移除当前的
+    jsonAll=removeCurrentModule(jsonAll,project,module);
+    jsonAll.push(rlt);
+    console.log("push后的jsonall",jsonAll)
+    cache.local.setJSON(cacheKey,jsonAll);
 }
-export const getInputVaris=(project,module)=>{
-    let rlt=getJson(project,module);
-    let inputVaris;
-    if(rlt){
-        inputVaris= rlt.interface.inputs;
-        inputVaris.forEach(inputVari => {
-            let no=1;
-            if(!inputVari.no){
-                inputVari.no=no;
-                no++;
-            }
-        });
-    }
-    return inputVaris;
-}
+
 //----变量输入工具结束
 //----变量输出工具开始
 export const changeOutputVaris=(project,module,data)=>{
-    let rlt=getJson(project,module);
-    if(rlt){
-        rlt.interface.outputs=data;
-        oldJson.push(rlt);
-        cache.local.setJSON(cacheKey,oldJson);
-    }
+    let jsonAll=getJsonAll(project,module);
+    let rlt=getCurrentObj(project,module);
+    rlt.interface.outputs=data;
+    //先移除当前的
+    jsonAll=removeCurrentModule(jsonAll,project,module);
+    jsonAll.push(rlt);
+    console.log("push后的jsonall",jsonAll)
+    cache.local.setJSON(cacheKey,jsonAll);
 }
-export const getOutputVaris=(project,module)=>{
-    let rlt=getJson(project,module);
-    let outputVaris;
-    if(rlt){
-        outputVaris= rlt.interface.outputs;
-        outputVaris.forEach(outputVari => {
-            let no=1;
-            if(!outputVari.no){
-                outputVari.no=no;
-                no++;
-            }
-        });
-    }
-    return outputVaris;
-}
+
 //----变量输出工具结束
-export default {
-    changeInputEvents,
-    getInputEvents,
-    changeOutputEvents,
-    getOutputEvents,
-    changeInputVaris,
-    getInputVaris,
-    changeOutputVaris,
-    getOutputVaris
-};
+//----内部变量工具开始
+export const changeInVaris=(project,module,data)=>{
+    let jsonAll=getJsonAll(project,module);
+    let rlt=getCurrentObj(project,module);
+    rlt.interface.internals=data;
+    //先移除当前的
+    jsonAll=removeCurrentModule(jsonAll,project,module);
+    jsonAll.push(rlt);
+    console.log("push后的jsonall",jsonAll)
+    cache.local.setJSON(cacheKey,jsonAll);
+}
+
+//----内部变量工具结束
+//----临时变量工具开始
+export const changeTempVaris=(project,module,data)=>{
+    let jsonAll=getJsonAll(project,module);
+    let rlt=getCurrentObj(project,module);
+    rlt.interface.temps=data;
+    //先移除当前的
+    jsonAll=removeCurrentModule(jsonAll,project,module);
+    jsonAll.push(rlt);
+    console.log("push后的jsonall",jsonAll)
+    cache.local.setJSON(cacheKey,jsonAll);
+}

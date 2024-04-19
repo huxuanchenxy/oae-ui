@@ -44,7 +44,7 @@
                                 <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="关联事件" prop="relateEveName" width="55" />
+                        <el-table-column label="关联事件" prop="relateEveName" width="180" />
                         <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
@@ -119,9 +119,9 @@
 
 <script setup name="Event" lang="ts">
     import type { EveInputForm,EveInputQuery,EveInputVO,EveOutputForm,EveOutputQuery,EveOutputVO} from '@/api/inter/event/type';
-    import api from "@/api/inter/event";
+    import {getRelateEveList,getInputEvents,getOutputEvents} from "@/api/inter/event";
     import { Eve } from "@/api/inter/event/types";
-    import interUtil from "@/utils/cache/inter";
+    import {changeInputEvents,changeOutputEvents} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useEveInputStore from "@/store/modules/eveInput.ts";
     import useEveOutputStore from "@/store/modules/eveOutput.ts";
@@ -189,7 +189,7 @@
         resetInput();
         dialogInput.visible = true;
         dialogInput.title = "添加输入事件";
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateInput = (row?: EveInputVO) => {
         resetInput();
@@ -199,7 +199,7 @@
         res.relatedEvents?.forEach(element => {
             relatedEventIds.push(element.id);
         });
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         eveInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveInputForm.value, res);
         dialogInput.visible = true;
@@ -255,7 +255,7 @@
         data.key=key;
         inputEventList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeInputEvents(project,module,inputEventList.value);
+        changeInputEvents(project,module,inputEventList.value);
     }
     const updateEveInput=(data:EveInputForm)=>{
         let relateEveName="";
@@ -278,11 +278,11 @@
         data.relateEveName=relateEveName;
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeInputEvents(project,module,inputEventList.value);
+        changeInputEvents(project,module,inputEventList.value);
     };
     //加载输入事件数据 
     const getEveInputList = () => {
-        inputEventList.value=interUtil.getInputEvents(project,module);
+        inputEventList.value=getInputEvents(project,module);
         inputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
@@ -304,7 +304,7 @@
         }
         inputEventList.value=[];
         Object.assign(inputEventList.value,newList);
-        interUtil.changeInputEvents(project,module,inputEventList.value);
+        changeInputEvents(project,module,inputEventList.value);
         proxy?.$modal.msgSuccess("删除成功");
         eveInputStore.flag=true;
         eveInputStore.flag=false;
@@ -346,7 +346,7 @@
         resetOutput();
         dialogOutput.visible = true;
         dialogOutput.title = "添加输出事件";
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateOutput = (row?: EveOutputVO) => {
         resetOutput();
@@ -356,7 +356,7 @@
         res.relatedEvents?.forEach(element => {
             relatedEventIds.push(element.id);
         });
-        relateEveList.value=api.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         eveOutputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveOutputForm.value, res);
         dialogOutput.visible = true;
@@ -412,7 +412,7 @@
         data.key=key;
         outputEventList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeOutputEvents(project,module,outputEventList.value);
+        changeOutputEvents(project,module,outputEventList.value);
     }
     const updateEveOutput=(data:EveOutputForm)=>{
         let relateEveName="";
@@ -434,11 +434,11 @@
         data.relateEveName=relateEveName;
         outputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeOutputEvents(project,module,outputEventList.value);
+        changeOutputEvents(project,module,outputEventList.value);
     };
     //加载输出事件数据 
     const getEveOutputList = () => {
-        outputEventList.value=interUtil.getOutputEvents(project,module);
+        outputEventList.value=getOutputEvents(project,module);
         outputEventList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
@@ -460,7 +460,7 @@
         }
         outputEventList.value=[];
         Object.assign(outputEventList.value,newList);
-        interUtil.changeOutputEvents(project,module,outputEventList.value);
+        changeOutputEvents(project,module,outputEventList.value);
         proxy?.$modal.msgSuccess("删除成功");
         eveOutputStore.flag=true;
         eveOutputStore.flag=false;

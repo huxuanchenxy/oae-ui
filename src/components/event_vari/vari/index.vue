@@ -135,9 +135,10 @@
 
 <script setup name="Vari" lang="ts">
     import type { VariInputForm,VariInputQuery,VariInputVO,VariOutputForm,VariOutputQuery,VariOutputVO} from '@/api/inter/vari/type';
-    import eventApi from "@/api/inter/event";
+    import {getRelateEveList} from "@/api/inter/event";
+    import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
     import { Eve } from "@/api/inter/event/types";
-    import interUtil from "@/utils/cache/inter";
+    import {changeInputVaris,changeOutputVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useVariInputStore from "@/store/modules/variInput.ts";
     import useVariOutputStore from "@/store/modules/variOutput.ts";
@@ -207,7 +208,7 @@
         resetInput();
         dialogInput.visible = true;
         dialogInput.title = "添加输入事件";
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateInput = (row?: VariInputVO) => {
         resetInput();
@@ -217,7 +218,7 @@
         res.relatedEvents?.forEach(element => {
           relatedEventIds.push(element.id);
         });
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         variInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(variInputForm.value, res);
         dialogInput.visible = true;
@@ -273,7 +274,7 @@
         data.key=key;
         inputVariList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeInputVaris(project,module,inputVariList.value);
+        changeInputVaris(project,module,inputVariList.value);
     }
     const updateVariInput=(data:VariInputForm)=>{
         let relateEveName="";
@@ -296,11 +297,11 @@
         data.relateEveName=relateEveName;
         inputVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeInputVaris(project,module,inputVariList.value);
+        changeInputVaris(project,module,inputVariList.value);
     };
     //加载输入事件数据 
     const getVariInputList = () => {
-        inputVariList.value=interUtil.getInputVaris(project,module);
+        inputVariList.value=getInputVaris(project,module);
         inputVariList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
@@ -322,7 +323,7 @@
         }
         inputVariList.value=[];
         Object.assign(inputVariList.value,newList);
-        interUtil.changeInputVaris(project,module,inputVariList.value);
+        changeInputVaris(project,module,inputVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
         variInputStore.flag=true;
         variInputStore.flag=false;
@@ -366,7 +367,7 @@
         resetOutput();
         dialogOutput.visible = true;
         dialogOutput.title = "添加输出事件";
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
     }
     const handleUpdateOutput = (row?: VariOutputVO) => {
         resetOutput();
@@ -376,7 +377,7 @@
         res.relatedEvents?.forEach(element => {
           relatedEventIds.push(element.id);
         });
-        relateEveList.value=eventApi.getRelateEveList();
+        relateEveList.value=getRelateEveList();
         variOutputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(variOutputForm.value, res);
         dialogOutput.visible = true;
@@ -432,7 +433,7 @@
         data.key=key;
         outputVariList.value.push({...data});
         //保存到localstorage里
-        interUtil.changeOutputVaris(project,module,outputVariList.value);
+        changeOutputVaris(project,module,outputVariList.value);
     }
     const updateVariOutput=(data:VariOutputForm)=>{
         let relateEveName="";
@@ -454,11 +455,11 @@
         data.relateEveName=relateEveName;
         outputVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        interUtil.changeOutputVaris(project,module,outputVariList.value);
+        changeOutputVaris(project,module,outputVariList.value);
     };
     //加载输出事件数据 
     const getVariOutputList = () => {
-        outputVariList.value=interUtil.getOutputVaris(project,module);
+        outputVariList.value=getOutputVaris(project,module);
         outputVariList.value?.forEach(data => {
             let relateEveName="";
             let relatedEvents=data.relatedEvents
@@ -480,7 +481,7 @@
         }
         outputVariList.value=[];
         Object.assign(outputVariList.value,newList);
-        interUtil.changeOutputVaris(project,module,outputVariList.value);
+        changeOutputVaris(project,module,outputVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
         variOutputStore.flag=true;
         variOutputStore.flag=false;

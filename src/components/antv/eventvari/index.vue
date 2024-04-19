@@ -478,15 +478,15 @@
   onMounted(() => {
     let data = {
     nodes: [
-      {
-        id: "node1",
-        x: 150,
-        y: 200,
-        type: "myShape",
-        color: "red"
-      },
-    ],
-  };
+        {
+          id: "node1",
+          x: 150,
+          y: 200,
+          type: "myShape",
+          color: "red"
+        },
+      ],
+    };
     initNode(data);
   });
   //暴露子组件重新渲染方法

@@ -10,7 +10,7 @@
                     <div class="icon"><el-button type="success" plain icon="Setting"></el-button></div>
                 </div>
                 <div class="table_in">
-                    <el-table :data="inVariList" style="width: 100%" height="150"  @selection-change="handleSelectionChange">
+                    <el-table :data="tempVariList" style="width: 100%" height="150"  @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="55"  prop="key"/>
                         <el-table-column label="序号"  prop="no"/>
                         <el-table-column label="名称"   width="100" prop="text"/>
@@ -29,28 +29,28 @@
         </div>
         <!-- 添加或修改参数配置对话框 -->
         <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body>
-            <el-form ref="inVariFormRef" :model="inVariForm" :rules="inVariRules" label-width="80px">
+            <el-form ref="tempVariFormRef" :model="tempVariForm" :rules="tempVariRules" label-width="80px">
                 <el-form-item label="名称" prop="text">
-                    <el-input v-model="inVariForm.text" placeholder="请输入名称" />
+                    <el-input v-model="tempVariForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="数组长度" prop="arrayLength">
-                    <el-input v-model="inVariForm.arrayLength" placeholder="请输入数组长度" />
+                    <el-input v-model="tempVariForm.arrayLength" placeholder="请输入数组长度" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="inVariForm.type" placeholder="请输入类型">
+                    <el-select v-model="tempVariForm.type" placeholder="请输入类型">
                         <el-option v-for="dict in variType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="初始值" prop="initVals">
-                    <el-input v-model="inVariForm.initVals" placeholder="请输入初始值" />
+                    <el-input v-model="tempVariForm.initVals" placeholder="请输入初始值" />
                 </el-form-item>
                 <el-form-item label="备注" prop="comment">
-                    <el-input v-model="inVariForm.comment" type="textarea" placeholder="请输入内容"/>
+                    <el-input v-model="tempVariForm.comment" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
-                <el-button type="primary" @click="submitInVariForm">确 定</el-button>
+                <el-button type="primary" @click="submitTempVariForm">确 定</el-button>
                 <el-button @click="cancel">取 消</el-button>
                 </div>
             </template>
@@ -58,11 +58,11 @@
     </div>
 </template>
 
-<script setup name="InVari" lang="ts">
-    import type { InVariForm,InVariQuery,InVariVO} from '@/api/inter/invari/type';
-    import {getInVaris} from "@/api/inter/invari";
-    import {changeInputVaris} from "@/utils/cache/inter";
+<script setup name="TempVari" lang="ts">
+    import type { TempVariForm,TempVariQuery,TempVariVO} from '@/api/inter/tempvari/type';
+    import {changeTempVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
+    import {getTempVaris} from "@/api/inter/tempvari";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
@@ -71,13 +71,13 @@
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
     const multiple = ref(true);
-    const handleSelectionChange = (selection: InVariVO[]) => {
+    const handleSelectionChange = (selection: TempVariVO[]) => {
         nos.value = selection.map(item => item.no);
         single.value = selection.length != 1;
         multiple.value = !selection.length;
     }
     //初始值
-    const initInVariFormData:InVariForm = {
+    const initTempVariFormData:TempVariForm = {
         no:undefined,
         key:'',
         text:'',
@@ -86,45 +86,45 @@
         initVals:0,
         comment:''
     }
-    const inVariData = reactive<PageData<InVariForm, InVariQuery>>({
-        inVariForm: { ...initInVariFormData },
+    const tempVariData = reactive<PageData<TempVariForm, TempVariQuery>>({
+        tempVariForm: { ...initTempVariFormData },
         queryParams: {
             // pageNum: 1,
             // pageSize: 10,
         },
-      inVariRules: {
+      tempVariRules: {
             name: [{ required: true, message: "输入内部变量名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
-    const {  inVariForm, inVariRules } = toRefs(inVariData);
+    const {  tempVariForm, tempVariRules } = toRefs(tempVariData);
     //输入事件列表
-    const inVariList = ref<InVariForm[]>([]);
+    const tempVariList = ref<TempVariForm[]>([]);
     
     const dialog = reactive<DialogOption>({
         visible: false,
         title: ''
     });
     //增加/编辑输入事件对话框
-    const inVariFormRef = ref<ElFormInstance>();
+    const tempVariFormRef = ref<ElFormInstance>();
     /** 新增按钮操作 */
     const handleAdd = () => {
         reset();
         dialog.visible = true;
         dialog.title = "添加输入内部变量";
     }
-    const handleUpdate= (row?: InVariVO) => {
+    const handleUpdate= (row?: TempVariVO) => {
         reset();
         const no = row?.no||nos.value[0];
-        const res = inVariList.value[no-1];
-        Object.assign(inVariForm.value, res);
+        const res = tempVariList.value[no-1];
+        Object.assign(tempVariForm.value, res);
         dialog.visible = true;
         dialog.title = "修改输入内部变量";
     }
     /** 表单重置 */
     const reset = () => {
-        inVariForm.value={ ...initInVariFormData };
-        inVariFormRef.value?.resetFields();
+        tempVariForm.value={ ...initTempVariFormData };
+        tempVariFormRef.value?.resetFields();
     }
     /** 取消按钮 */
     const cancel = () => {
@@ -132,51 +132,51 @@
         dialog.visible = false;
     }
     //输入事件添加/修改
-    const submitInVariForm = () => {
-        inVariFormRef.value?.validate((valid: boolean) => {
+    const submitTempVariForm = () => {
+        tempVariFormRef.value?.validate((valid: boolean) => {
             if (valid) {
-                inVariForm.value.no?updateVariInput(inVariForm.value):addVariInput(inVariForm.value);
+                tempVariForm.value.no?updateVariInput(tempVariForm.value):addVariInput(tempVariForm.value);
                 proxy?.$modal.msgSuccess("操作成功");
                 dialog.visible = false;
             }
         });
     }
-    const addVariInput=(data:InVariForm)=>{ 
+    const addVariInput=(data:TempVariForm)=>{ 
         uuidv4();
         let key = uuidv4()
-        if(!inVariList.value){
-            inVariList.value=new Array();
+        if(!tempVariList.value){
+            tempVariList.value=new Array();
         }
         //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
-        data.no=(inVariList.value.length+1);
+        data.no=(tempVariList.value.length+1);
         data.key=key;
-        inVariList.value.push({...data});
+        tempVariList.value.push({...data});
         //保存到localstorage里
-        changeInVaris(project,module,inVariList.value);
+        changeTempVaris(project,module,tempVariList.value);
     }
-    const updateVariInput=(data:InVariForm)=>{
-        inVariList.value.splice(data.no-1,1,{...data})
+    const updateVariInput=(data:TempVariForm)=>{
+        tempVariList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
-        changeInVaris(project,module,inVariList.value);
+        changeTempVaris(project,module,tempVariList.value);
     };
     //加载输入事件数据 
-    const getInVariList = () => {
-        inVariList.value=getInVaris(project,module);
+    const getTempVariList = () => {
+        tempVariList.value=getTempVaris(project,module);
     }
-    const handleDelete = async (row?: InVariVO) => {
+    const handleDelete = async (row?: TempVariVO) => {
         const deleteNos = row?.no||nos.value;
         await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
-        let newList=inVariList.value.filter(x=>!deleteNos.includes(x.no));
+        let newList=tempVariList.value.filter(x=>!deleteNos.includes(x.no));
         for (let i=0; i< newList.length; i++){
             newList[i].no=i+1;
         }
-        inVariList.value=[];
-        Object.assign(inVariList.value,newList);
-        changeInVaris(project,module,inVariList.value);
+        tempVariList.value=[];
+        Object.assign(tempVariList.value,newList);
+        changeTempVaris(project,module,tempVariList.value);
         proxy?.$modal.msgSuccess("删除成功");
     }
     onMounted(() => {
-        getInVariList();
+        getTempVariList();
     })
 </script>
 
