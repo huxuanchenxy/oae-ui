@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import G6 from "@antv/g6";
+import G6, {Edge} from "@antv/g6";
 import { pagetagsStore } from "@/store/pageTags.js";
 const tagsStore = pagetagsStore();
 const router = useRouter();
@@ -297,17 +297,49 @@ onMounted(() => {
   };
   initGraph(data);
 });
-let x=150;
-let y=250;
 const addItem=()=>{
-  const model = {
-    label: 'node',
-    x: x,
-    y: y,
+  const stateNodeX=50;
+  const stateNodey=50;
+  const stateNodeId=G6.Util.uniqueId();
+  const algNodeId=G6.Util.uniqueId();
+  const eveNodeId=G6.Util.uniqueId();
+  //初始距离是50,状态机的坐标永远是50,50
+  const stateNode = {
+    id:stateNodeId,
+    label: '状态机',
+    x: stateNodeX,
+    y: stateNodey,
     size:algEveSize
   };
-  graph.addItem('node', model);
-  y+=20;
+  //算法的x向右移初始距离+状态机的width+线的width为20
+  const algNodeX=stateNodeX+stateGraphSize[0]+20
+  const algNode={
+    id:algNodeId,
+    label: '算法',
+    x: algNodeX,
+    y: stateNodey,
+    size:algEveSize,
+  }
+  //事件的初始距离为算法的x+算法的长度
+  const eveNode={
+    id:eveNodeId,
+    label: '输出',
+    x: algNodeX+algGraphSize[0],
+    y: stateNodey,
+    size:algEveSize,
+  }
+  //状态机到算法的连接
+  const stateToAlgEdge = {
+    source: stateNodeId,
+    target: algNodeId,
+    style: {
+      endArrow: false,
+    }
+  };
+  graph.addItem('node', stateNode);
+  graph.addItem('node', algNode);
+  graph.addItem('node', eveNode);
+  graph.addItem('edge',stateToAlgEdge)
 }
 const initLoad = () => {
   pid.value = route.params.pid;
