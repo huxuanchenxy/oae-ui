@@ -61,7 +61,7 @@
 <script setup name="InVari" lang="ts">
     import type { InVariForm,InVariQuery,InVariVO} from '@/api/inter/invari/type';
     import {getInVaris} from "@/api/inter/invari";
-    import {changeInputVaris} from "@/utils/cache/inter";
+    import {changeInVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
