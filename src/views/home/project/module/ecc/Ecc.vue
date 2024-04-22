@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div><el-button type="primary" @click="addCombo">新增节点</el-button></div>
+    <div>选中节点后拖动以创建连线，右键在当前位置新建节点,选中后右键可删除节点</div>
     <div id="container" ref="container"></div>
   </div>
 </template>
@@ -30,6 +30,44 @@ const algGraphSize=[50,25];
 const algEveSize=[50,25];
 const lineWidth=20;
 const nodeVertiPadding=20;//算法节点垂直的间隔距离
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+let mouseX,mouseY;
+const contextMenu = new G6.Menu({
+  getContent(evt) {
+      let str="";
+      if (evt.target && evt.target.isCanvas && evt.target.isCanvas()) {
+        mouseX = evt.clientX;
+        mouseY = evt.clientY;
+        str= "<ul><li>新建</li>";
+      } else if (evt.item) {
+        str= "<ul><li>删除</li>";
+      }
+      return str;
+  },
+  handleMenuClick: (target, item) => {
+    // console.log(`自定义右键菜单\nX: ${x}\nY: ${y}`);
+    if(item){
+      //如果右键的是节点或其他
+      deleteNode(item);
+    }else{
+      //如果右键的是画布，则新建节点
+      addCombo(mouseX,mouseY);
+    }
+  },
+  // offsetX and offsetY include the padding of the parent container
+  // 需要加上父级容器的 padding-left 16 与自身偏移量 10
+  // the types of items that allow the menu show up
+  // 在哪些类型的元素上响应
+  itemTypes: ['node', 'edge', 'canvas'],
+});
+const deleteNode=async (item)=> {
+    const nodes = graph.findAllByState('node', 'selected');
+    const nodeIds = nodes.map((node) => node.get('id'));
+    if (nodeIds.length != 0) {
+      await  proxy?.$modal.confirm(`确认删除节点 ${nodeIds.join(';')} 吗？`);
+      graph.removeItem(item);
+    }
+}
 const processParallelEdgesOnAnchorPoint = (
     edges,
     offsetDiff = 15,
@@ -117,13 +155,12 @@ const processParallelEdgesOnAnchorPoint = (
   return edges;
 };
 
-
-
 const initGraph=(data)=>{
   graph = new G6.Graph({
     container: 'container',
     width,
     height,
+    plugins: [contextMenu],
     modes: {
       default: [
           'click-select',
@@ -252,9 +289,7 @@ onMounted(() => {
   };
   initGraph(data);
 });
-const addCombo=()=>{
-  const stateNodeX=50;
-  const stateNodey=50;
+const addCombo=(stateNodeX,stateNodey)=>{
   const nodeId=uuidv4();
   const comboId=prefCombo+nodeId;
   const stateNodeId=prefState+nodeId;
