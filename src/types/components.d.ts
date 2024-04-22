@@ -10,7 +10,6 @@ declare module '@vue/runtime-core' {
     AttributeContent: typeof import('./../components/bottomContent/AttributeContent.vue')['default']
     BottomContent: typeof import('./../components/bottomContent/BottomContent.vue')['default']
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
-    copy: typeof import('./../components/bottomContent/AttributeContent copy.vue')['default']
     DictTag: typeof import('./../components/DictTag/index.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']

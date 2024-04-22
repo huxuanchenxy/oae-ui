@@ -43,6 +43,7 @@
 // import { useRoute } from "vue-router";
 // import { useStore } from "vuex";
 import { pagetagsStore } from "@/store/pageTags.js";
+import  cache  from "@/plugins/cache.ts";
 import * as monaco from 'monaco-editor'
 import { ElTree } from 'element-plus'
 import { tsModel } from "@/jslib/ts_model.js";
@@ -58,6 +59,19 @@ let id = ref("");
 
 const editor = ref();
 let monacoEditor = ref();
+let finalResultFormat = ref({
+		"key": "1",
+		"text": "INIT",
+		"comment": "",
+		"content": "",
+		"type": "ST",
+		"lines": [{
+			"branches": [{
+				"comps": []
+			}],
+			"comment": ""
+		}]
+	});
 
 const filterText = ref('');
 const treeRef = ref();
@@ -100,13 +114,43 @@ const initLoad = () => {
   tagsStore.ChangeTagModuleStatus( route.path)
 };
 function initEditor () {
+  monaco.editor.defineTheme('myTheme', {
+    base: 'vs',
+    rules: [
+      // 设置token颜色，
+      { token: 'keyword', foreground: '#169BD5' },
+      { token: 'inputs', foreground: '#EC808D' },
+      { token: 'outputs', foreground: '#8400FF'},
+      { token: 'internals', foreground: '#880014' },
+      { token: 'temps', foreground: '#F59A23' }
+    ],
+    inherit: true,
+    // 必须有否则无法生效
+    colors: {}
+  });
+  // let vals = cache.local.get('json');
+  // if (!vals || !vals.input_events) {
+  //   vals.
+  // }
+  let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
+  monaco.languages.setMonarchTokensProvider('st', {
+    // ignoreCase: true, // 忽略大小写
+    tokenizer: {
+      root:[
+        // [/ttt|ppp|ccc/, {token: "inputs"}],
+        [inputStr, {token: "inputs"}],
+        // [/-X|-H|-d/, {token: "keyword"}],
+        // [/POST|GET|DELETE|PATCH|PUT/, {token: "comment.doc"}],
+      ],
+    }
+  })
   // 创建 Monaco Editor 实例
   monacoEditor = monaco.editor.create(editor.value, {
     // 设置初始代码值
     value: '',
     // 设置语言为自定义语言
     language: 'st',
-    theme: 'hc-black', //官方自带三种主题vs, hc-black, or vs-dark
+    theme: 'myTheme', //官方自带三种主题vs, hc-black, or vs-dark
     // suggest: {
     //   preview: true
     //   // previewMode: 'subwordSmart',
@@ -127,14 +171,12 @@ function initEditor () {
     suggestions: true,
     snippetSuggestions: 'top'
   })
-  let tmp = sessionStorage.getItem('monaco_content');
+  let tmp = cache.local.get('monaco_content');
   if (tmp === null) tmp = ''
   monacoEditor.setValue(tmp);
-  tmp = sessionStorage.getItem('monaco_cursor_pos');
-  let pos = {lineNumber:1,column:1}
-  if (tmp !== null) {
-    pos = JSON.parse(tmp);
-    monacoEditor.setPosition(pos);
+  tmp = cache.local.getJSON('monaco_cursor_pos')
+  if (tmp) {
+    monacoEditor.setPosition(tmp);
   }
   monacoEditor.focus();
   // console.log(monacoEditor.getValue())
@@ -163,9 +205,13 @@ watch(
 );
 
 onUnmounted(() => {
-  sessionStorage.setItem('monaco_content', monacoEditor.getValue());
+  let ret = monacoEditor.getValue();
+  cache.local.set('monaco_content', ret);
   let pos = monacoEditor.getPosition();
-  sessionStorage.setItem('monaco_cursor_pos', JSON.stringify(pos))
+  cache.local.setJSON('monaco_cursor_pos', pos);
+  finalResultFormat.value.content = ret;
+  // console.log(finalResultFormat);
+  cache.local.setJSON('test', finalResultFormat.value);
 })
 </script>
 
@@ -205,6 +251,6 @@ onUnmounted(() => {
 .box-card {
   border-radius: 0;
   height: 654px;
-  overflow: scroll;
+  overflow: auto;
 }
 </style>
