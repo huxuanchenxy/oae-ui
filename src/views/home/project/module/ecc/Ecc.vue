@@ -1,7 +1,74 @@
 <template>
-  <div>
-    <div>选中节点后拖动以创建连线，右键在当前位置新建节点,选中后右键可删除节点</div>
-    <div id="container" ref="container"></div>
+  <div class="ecc">
+    <div class="main">
+      <div>选中节点后拖动以创建连线，右键在当前位置新建节点,选中后右键可删除节点</div>
+      <div id="container" style="height:1000px" ref="container"></div>
+    </div>
+    <div class="right">
+      <el-card class="box-card">
+        <el-input
+            style="width: 160px"
+            placeholder="Filter keyword"
+        />
+        <div v-if="showProp==1">
+          <div>
+            执行控制图属性
+          </div>
+          <hr/>
+          <div>
+            描述
+            <el-icon :size="20">
+              <Edit />
+            </el-icon>
+            <el-input  type="textarea" placeholder="请输入说明文字"/>
+            <el-button type="primary" @click="saveGraphProp">确 定</el-button>
+          </div>
+        </div>
+        <div v-if="showProp==2">
+          <div>
+            状态机属性
+          </div>
+          <hr/>
+          <div>
+            动态添加算法和事件
+          </div>
+        </div>
+        <div v-if="showProp==3">
+          <div>
+            连接线属性
+          </div>
+          <hr/>
+          <div>
+            <el-form ref="edgeFormRef" :model="edgeForm"  label-width="80px">
+              <el-form-item label="名称" prop="text">
+                <el-input v-model="edgeForm.text" placeholder="请输入名称" />
+              </el-form-item>
+              <el-form-item label="优先级" prop="type">
+                <el-select v-model="edgeForm.priority" placeholder="请输入优先级">
+                  <el-option v-for="dict in edgePriority" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="关联事件">
+                <el-select v-model="edgeForm.relatedEventId" placeholder="请选择关联事件">
+                  <el-option
+                      v-for="item in relateEveList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="注释" prop="comment">
+                <el-input v-model="edgeForm.comment" type="textarea" placeholder="请输入内容"/>
+              </el-form-item>
+            </el-form>
+            <div>
+              <el-button type="primary" @click="submitEdgeForm">确 定</el-button>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </div>
   </div>
 </template>
 
@@ -9,21 +76,51 @@
 import G6 from "@antv/g6";
 import { v4 as uuidv4 } from 'uuid';
 import { pagetagsStore } from "@/store/pageTags.js";
+import  cache  from "@/plugins/cache.ts";
+import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/inter/event/type';
+import { Eve } from "@/api/inter/event/types";
+import {getRelateEveList} from "@/api/inter/event";
+//初始值
+const initEdgeFormData:EdgeForm = {
+  key:'',
+  text:'',
+  relatedEvents:{},
+  priority:'',
+  condition:'',
+  comment:''
+}
+const edgeData = reactive<PageData<EdgeForm, EdgeQuery>>({
+  edgeForm: { ...initEdgeFormData },
+  queryParams: {
+    // pageNum: 1,
+    // pageSize: 10,
+  }
+});
+const {  edgeForm } = toRefs(edgeData);
+const cacheKey="graph";
+const project="project1";
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
+const module=route.params.pid;
+const graphCacheKey=cacheKey+"-"+project+"-"+module;
 const prefState="state";
 const prefAlg="alg";
 const prefEvent="event";
 const prefCombo="combo";
+/**
+ * 1：默认为画布，什么都不选中
+ * 2:选中状态机
+ * 3.选中连接线
+ */
+let showProp=ref(1);
 let pid = ref("");
 let id = ref("");
 let sourceAnchorIdx, targetAnchorIdx;
 const container = ref<any>(null);
-let width = container.scrollWidth;
-let height = (container.scrollHeight || 500) - 20;
 let graph;
 let graphWidth;
+let graphHeight;
 const startGraphSize=[60,25];
 const stateGraphSize=[60,25];
 const algGraphSize=[50,25];
@@ -32,6 +129,14 @@ const lineWidth=20;
 const nodeVertiPadding=20;//算法节点垂直的间隔距离
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 let mouseX,mouseY;
+const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
+const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
+const relateEveList = ref<Eve[]>([]);
+
+const submitEdgeForm = () => {
+    // edgeForm.value
+    proxy?.$modal.msgSuccess("操作成功");
+}
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -53,6 +158,7 @@ const contextMenu = new G6.Menu({
       //如果右键的是画布，则新建节点
       addCombo(mouseX,mouseY);
     }
+    saveDataToServer()
   },
   // offsetX and offsetY include the padding of the parent container
   // 需要加上父级容器的 padding-left 16 与自身偏移量 10
@@ -64,8 +170,10 @@ const deleteNode=async (item)=> {
     const nodes = graph.findAllByState('node', 'selected');
     const nodeIds = nodes.map((node) => node.get('id'));
     if (nodeIds.length != 0) {
-      await  proxy?.$modal.confirm(`确认删除节点 ${nodeIds.join(';')} 吗？`);
+      await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
       graph.removeItem(item);
+    }else{
+      proxy?.$modal.msgWarning("您没有选中任何节点");
     }
 }
 const processParallelEdgesOnAnchorPoint = (
@@ -155,16 +263,17 @@ const processParallelEdgesOnAnchorPoint = (
   return edges;
 };
 
-const initGraph=(data)=>{
+const initGraph=(data,graphWidth,graphHeight)=>{
   graph = new G6.Graph({
     container: 'container',
-    width,
-    height,
+    graphWidth,
+    graphHeight,
     plugins: [contextMenu],
     modes: {
       default: [
           'click-select',
           'drag-combo',
+          'drag-node',
           {
             type: 'create-edge',
             trigger: 'drag', // 'click' by default. options: 'drag', 'click'
@@ -202,6 +311,12 @@ const initGraph=(data)=>{
   graph.on('combo:click', (evt) => {
     const { item } = evt;
     graph.setItemState(item, 'selected', true);
+    showProp.value=2;
+  });
+  graph.on('edge:click', (evt) => {
+    const { item } = evt;
+    graph.setItemState(item, 'selected', true);
+    showProp.value=3;
   });
   graph.on('aftercreateedge', (e) => {
     const edges = graph.save().edges;
@@ -213,9 +328,29 @@ const initGraph=(data)=>{
       });
     });
   });
+  graph.on('node:click', (evt) => {
+    const { item } = evt;
+    let id=item.get("id");
+    if(!id.startsWith(prefState)){
+      showProp.value=1;
+    }else{
+      showProp.value=2
+    }
+  });
   graph.on('node:dblclick', nodeDbClick);
+  // 监听图数据更新事件
+  graph.on('afterupdateitem', (e) => {
+    saveDataToServer();
+  });
+  graph.on('canvas:click', (evt)=>{
+    showProp.value=1;
+  });
 }
 let data;
+const saveDataToServer=()=>{
+  const data = graph.save(); // 获取图实例的数据
+  cache.local.setJSON(graphCacheKey,data);
+}
 
 /**
  * 双击事件
@@ -228,6 +363,7 @@ const nodeDbClick=(e) => {
   if(id.startsWith(prefState)){
     addAlgAndEventNode(e)
   }
+  saveDataToServer()
 };
 /**
  * 添加算法和事件节点
@@ -279,16 +415,27 @@ const addAlgAndEventNode=(e)=>{
   graph.addItem('edge',stateToAlgEdge)
 }
 onMounted(() => {
+  //得到事件列表
+  relateEveList.value=getRelateEveList();
   initLoad();
   //用ref获取DOM元素必须在onMounted中赋值,否则取不到
   graphWidth=container.value.offsetWidth;
-  data = {
-    nodes: [
-      { id: 'node1', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
-    ]
-  };
-  initGraph(data);
+  graphHeight=container.value.offsetHeight;
+  data=initGraphData();
+  initGraph(data,graphWidth,graphHeight);
 });
+const initGraphData=()=>{
+    let graphJson=cache.local.getJSON(graphCacheKey);
+    if(graphJson){
+      return graphJson;
+    }else{
+      return  {
+        nodes: [
+          { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
+        ]
+      };
+    }
+}
 const addCombo=(stateNodeX,stateNodey)=>{
   const nodeId=uuidv4();
   const comboId=prefCombo+nodeId;
@@ -351,6 +498,35 @@ const initLoad = () => {
   //store.commit("ChangeTagModuleStatus", route.path);
   tagsStore.ChangeTagModuleStatus( route.path)
 };
+const saveGraphProp=()=>{
+  // let relateEveName="";
+  // let key = uuidv4()
+  // if(!inputEventList.value){
+  //   inputEventList.value=new Array();
+  // }
+  // let dataRelatedEvents=data.relatedEventIds;
+  // let eventsVo:Eve=[];
+  // dataRelatedEvents?.forEach(element => {
+  //   eventsVo.push({id:element,name:""})
+  // });
+  // eventsVo.forEach(relateEve => {
+  //   relateEveList.value.forEach( dict=> {
+  //     if(dict.id==relateEve.id){
+  //       relateEve.name=dict.name;
+  //       relateEveName+=dict.name+",";
+  //     }
+  //   });
+  // });
+  // data.relatedEvents=eventsVo;
+  // relateEveName=relateEveName.substring(0,relateEveName.length-1);
+  // data.relateEveName=relateEveName;
+  // //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
+  // data.no=(inputEventList.value.length+1);
+  // data.key=key;
+  // inputEventList.value.push({...data});
+  // //保存到localstorage里
+  // changeInputEvents(project,module,inputEventList.value);
+}
 watch(
   () => router.currentRoute.value,
   (newValue) => {
@@ -360,4 +536,22 @@ watch(
 </script>
 
 <style   scoped>
+  .ecc{
+    display: flex;
+    .main{
+      flex:9;
+    }
+    .right {
+      flex:2;
+      width: 200px;
+      transition: all 0.2s;
+      height: 500px;
+      //display: flex;
+      //flex-direction: column;
+      .box-card{
+        height: 500px;
+      }
+    }
+  }
+
 </style>
