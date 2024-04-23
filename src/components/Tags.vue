@@ -23,19 +23,14 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-//import { useStore } from "vuex";
 import { useRouter, useRoute } from "vue-router";
-//import { funcList } from "@/jslib/common.js";
 import { pagetagsStore } from "@/store/pageTags.js";
 const tagsStore = pagetagsStore();
 const router = useRouter();
-//const store = useStore();
 const curRouteObj = useRoute();
-//const dynamicTags = ref(store.state.TagArrs);
 const dynamicTags = ref(tagsStore.TagArrs);
 const handleClose = (tag) => {
   var index = dynamicTags.value.indexOf(tag);
-  console.log("tag:::", tag.effect, index);
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
   if (tag.effect == "dark") {
     if (index == 0) index = 1;
@@ -56,15 +51,7 @@ const goToPath = (path) => {
       }
     });
   }
-  // var pathArrays = path.split("/");
-  // if (pathArrays.length == 4) {
-  //   let funcList = JSON.parse(sessionStorage.getItem("curFuncList"));
-  //   let childList = funcList.filter((obj) => obj.funcParentId == pathArrays[3]);
-  //   if (childList.length > 0) {
-  //     var childFirst = childList[0];
-  //     path = `${childFirst.funcUrl}/${pathArrays[3]}/${childFirst.funcId}`;
-  //   }
-  // }
+
   router.push({ path });
 };
 onMounted(() => {
@@ -75,24 +62,32 @@ onMounted(() => {
     var path = curRouteObj.path;
     var pathArrays = path.split("/");
     var funcUrl = "/" + pathArrays[1];
-    let curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
+    let curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
     var objFunc = curFuncList.find((obj) => obj.funcUrl == funcUrl);
-    let id = objFunc.funcId;
+    let id = objFunc.id;
     let name = objFunc.funcName;
     let addPath = objFunc.funcUrl;
-    if (objFunc?.funcLevel > 2) {
+    if (objFunc?.funcLevelId > 2) {
       if (pathArrays.length == 4) {
         let pId = "";
         let urlPath = "";
-        if (objFunc.funcLevel == 3) {
+        if (objFunc?.funcLevelId == 3) {
           urlPath = path;
-        } else if (objFunc.funcLevel == 4) {
+        } else if (objFunc?.funcLevelId == 4) {
           pId = pathArrays[2];
-          let parentObj = curFuncList.find((l) => l.funcId == pId);
-          urlPath = `${parentObj.funcUrl}/${parentObj.funcParentId}/${parentObj.funcId}`;
+          let parentObj = curFuncList.find((l) => l.id == pId);
+          urlPath = `${parentObj.funcUrl}/${parentObj.funcParentId}/${parentObj.id}`;
           name = parentObj.funcName;
           id = pId;
+        } else if (objFunc?.funcLevelId == 5) {
+          pId = pathArrays[2];
+          let pObj = curFuncList.find((obj) => obj.id == pId);
+          let ppObj = curFuncList.find((obj) => obj.id == pObj.funcParentId);
+          id = ppObj.id;
+          urlPath = `${ppObj.funcUrl}/${ppObj.funcParentId}/${ppObj.id}`;
+          name = ppObj.funcName;
         }
+
         let model = {
           id,
           path: urlPath,
