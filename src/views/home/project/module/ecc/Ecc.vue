@@ -133,10 +133,6 @@ const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
 
-const submitEdgeForm = () => {
-    // edgeForm.value
-    proxy?.$modal.msgSuccess("操作成功");
-}
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -499,33 +495,25 @@ const initLoad = () => {
   tagsStore.ChangeTagModuleStatus( route.path)
 };
 const saveGraphProp=()=>{
-  // let relateEveName="";
-  // let key = uuidv4()
-  // if(!inputEventList.value){
-  //   inputEventList.value=new Array();
-  // }
-  // let dataRelatedEvents=data.relatedEventIds;
-  // let eventsVo:Eve=[];
-  // dataRelatedEvents?.forEach(element => {
-  //   eventsVo.push({id:element,name:""})
-  // });
-  // eventsVo.forEach(relateEve => {
-  //   relateEveList.value.forEach( dict=> {
-  //     if(dict.id==relateEve.id){
-  //       relateEve.name=dict.name;
-  //       relateEveName+=dict.name+",";
-  //     }
-  //   });
-  // });
-  // data.relatedEvents=eventsVo;
-  // relateEveName=relateEveName.substring(0,relateEveName.length-1);
-  // data.relateEveName=relateEveName;
-  // //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
-  // data.no=(inputEventList.value.length+1);
-  // data.key=key;
-  // inputEventList.value.push({...data});
-  // //保存到localstorage里
-  // changeInputEvents(project,module,inputEventList.value);
+
+}
+
+const submitEdgeForm = () => {
+  let data=edgeForm.value;
+  // edgeForm.value
+  let eventVo:Eve={};
+  if(data.relatedEventId){
+    eventVo={id:data.relatedEventId,name:""}
+  }
+    relateEveList.value.forEach( dict=> {
+      if(dict.id==eventVo.id){
+        eventVo.name=dict.name;
+        data.relateEveName=dict.name;
+      }
+    });
+  data.relatedEvents=eventVo;
+  //保存到localstorage里
+  proxy?.$modal.msgSuccess("操作成功");
 }
 watch(
   () => router.currentRoute.value,
