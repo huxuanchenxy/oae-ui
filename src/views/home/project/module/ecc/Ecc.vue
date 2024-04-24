@@ -1,7 +1,7 @@
 <template>
   <div class="ecc">
     <div class="main">
-      <div>选中节点后拖动以创建连线，右键在当前位置新建节点,选中后右键可删除节点</div>
+      <div>选中节点后拖动以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
       <div id="container" style="height:1000px" ref="container"></div>
     </div>
     <div class="right">
@@ -40,16 +40,14 @@
           <hr/>
           <div>
             <el-form ref="edgeFormRef" :model="edgeForm"  label-width="80px">
+              <el-form-item prop="key" v-if="false" >
+                <el-input v-model="edgeForm.key" />
+              </el-form-item>
               <el-form-item label="名称" prop="text">
                 <el-input v-model="edgeForm.text" placeholder="请输入名称" />
               </el-form-item>
-              <el-form-item label="优先级" prop="type">
-                <el-select v-model="edgeForm.priority" placeholder="请输入优先级">
-                  <el-option v-for="dict in edgePriority" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="关联事件">
-                <el-select v-model="edgeForm.relatedEventId" placeholder="请选择关联事件">
+              <el-form-item label="输入事件">
+                <el-select v-model="edgeForm.relatedEventId" placeholder="请选择">
                   <el-option
                       v-for="item in relateEveList"
                       :key="item.id"
@@ -58,8 +56,16 @@
                   ></el-option>
                 </el-select>
               </el-form-item>
-              <el-form-item label="注释" prop="comment">
-                <el-input v-model="edgeForm.comment" type="textarea" placeholder="请输入内容"/>
+              <el-form-item label="优先级" prop="type">
+                <el-select v-model="edgeForm.priority" placeholder="请输入优先级">
+                  <el-option v-for="dict in edgePriority" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="条件设置" prop="guard_condition">
+                <el-input v-model="edgeForm.guard_condition" type="textarea" placeholder="请输入说明文字"/>
+              </el-form-item>
+              <el-form-item label="描述" prop="comment">
+                <el-input v-model="edgeForm.comment" type="textarea" placeholder="请输入说明文字"/>
               </el-form-item>
             </el-form>
             <div>
@@ -80,13 +86,14 @@ import  cache  from "@/plugins/cache.ts";
 import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/inter/event/type';
 import { Eve } from "@/api/inter/event/types";
 import {getRelateEveList} from "@/api/inter/event";
+import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc";
 //初始值
 const initEdgeFormData:EdgeForm = {
   key:'',
   text:'',
   relatedEvents:{},
   priority:'',
-  condition:'',
+  guard_condition:'',
   comment:''
 }
 const edgeData = reactive<PageData<EdgeForm, EdgeQuery>>({
@@ -133,10 +140,6 @@ const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
 
-const submitEdgeForm = () => {
-    // edgeForm.value
-    proxy?.$modal.msgSuccess("操作成功");
-}
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -160,9 +163,6 @@ const contextMenu = new G6.Menu({
     }
     saveDataToServer()
   },
-  // offsetX and offsetY include the padding of the parent container
-  // 需要加上父级容器的 padding-left 16 与自身偏移量 10
-  // the types of items that allow the menu show up
   // 在哪些类型的元素上响应
   itemTypes: ['node', 'edge', 'canvas'],
 });
@@ -176,93 +176,6 @@ const deleteNode=async (item)=> {
       proxy?.$modal.msgWarning("您没有选中任何节点");
     }
 }
-const processParallelEdgesOnAnchorPoint = (
-    edges,
-    offsetDiff = 15,
-    multiEdgeType = 'quadratic',
-    singleEdgeType = undefined,
-    loopEdgeType = undefined
-) => {
-  const len = edges.length;
-  const cod = offsetDiff * 2;
-  const loopPosition = [
-    'top',
-    'top-right',
-    'right',
-    'bottom-right',
-    'bottom',
-    'bottom-left',
-    'left',
-    'top-left',
-  ];
-  const edgeMap = {};
-  const tags = [];
-  const reverses = {};
-  for (let i = 0; i < len; i++) {
-    const edge = edges[i];
-    const { source, target, sourceAnchor, targetAnchor } = edge;
-    const sourceTarget = `${source}|${sourceAnchor}-${target}|${targetAnchor}`;
-
-    if (tags[i]) continue;
-    if (!edgeMap[sourceTarget]) {
-      edgeMap[sourceTarget] = [];
-    }
-    tags[i] = true;
-    edgeMap[sourceTarget].push(edge);
-    for (let j = 0; j < len; j++) {
-      if (i === j) continue;
-      const sedge = edges[j];
-      const { source: src, target: dst, sourceAnchor: srcAnchor, targetAnchor: dstAnchor } = sedge;
-
-      // 两个节点之间共同的边
-      // 第一条的source = 第二条的target
-      // 第一条的target = 第二条的source
-      if (!tags[j]) {
-        if (source === dst && sourceAnchor === dstAnchor
-            && target === src && targetAnchor === srcAnchor) {
-          edgeMap[sourceTarget].push(sedge);
-          tags[j] = true;
-          reverses[`${src}|${srcAnchor}|${dst}|${dstAnchor}|${edgeMap[sourceTarget].length - 1}`] = true;
-        } else if (source === src && sourceAnchor === srcAnchor
-            && target === dst  && targetAnchor === dstAnchor) {
-          edgeMap[sourceTarget].push(sedge);
-          tags[j] = true;
-        }
-      }
-    }
-  }
-
-  for (const key in edgeMap) {
-    const arcEdges = edgeMap[key];
-    const { length } = arcEdges;
-    for (let k = 0; k < length; k++) {
-      const current = arcEdges[k];
-      if (current.source === current.target) {
-        if (loopEdgeType) current.type = loopEdgeType;
-        // 超过8条自环边，则需要重新处理
-        current.loopCfg = {
-          position: loopPosition[k % 8],
-          dist: Math.floor(k / 8) * 20 + 50,
-        };
-        continue;
-      }
-      if (length === 1 && singleEdgeType && (current.source !== current.target || current.sourceAnchor !== current.targetAnchor)) {
-        current.type = singleEdgeType;
-        continue;
-      }
-      current.type = multiEdgeType;
-      const sign =
-          (k % 2 === 0 ? 1 : -1) * (reverses[`${current.source}|${current.sourceAnchor}|${current.target}|${current.targetAnchor}|${k}`] ? -1 : 1);
-      if (length % 2 === 1) {
-        current.curveOffset = sign * Math.ceil(k / 2) * cod;
-      } else {
-        current.curveOffset = sign * (Math.floor(k / 2) * cod + offsetDiff);
-      }
-    }
-  }
-  return edges;
-};
-
 const initGraph=(data,graphWidth,graphHeight)=>{
   graph = new G6.Graph({
     container: 'container',
@@ -273,7 +186,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
       default: [
           'click-select',
           'drag-combo',
-          'drag-node',
+          // 'drag-node',
           {
             type: 'create-edge',
             trigger: 'drag', // 'click' by default. options: 'drag', 'click'
@@ -317,6 +230,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     const { item } = evt;
     graph.setItemState(item, 'selected', true);
     showProp.value=3;
+    getEdgesById(item.get("id"));
   });
   graph.on('aftercreateedge', (e) => {
     const edges = graph.save().edges;
@@ -499,33 +413,45 @@ const initLoad = () => {
   tagsStore.ChangeTagModuleStatus( route.path)
 };
 const saveGraphProp=()=>{
-  // let relateEveName="";
-  // let key = uuidv4()
-  // if(!inputEventList.value){
-  //   inputEventList.value=new Array();
-  // }
-  // let dataRelatedEvents=data.relatedEventIds;
-  // let eventsVo:Eve=[];
-  // dataRelatedEvents?.forEach(element => {
-  //   eventsVo.push({id:element,name:""})
-  // });
-  // eventsVo.forEach(relateEve => {
-  //   relateEveList.value.forEach( dict=> {
-  //     if(dict.id==relateEve.id){
-  //       relateEve.name=dict.name;
-  //       relateEveName+=dict.name+",";
-  //     }
-  //   });
-  // });
-  // data.relatedEvents=eventsVo;
-  // relateEveName=relateEveName.substring(0,relateEveName.length-1);
-  // data.relateEveName=relateEveName;
-  // //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
-  // data.no=(inputEventList.value.length+1);
-  // data.key=key;
-  // inputEventList.value.push({...data});
-  // //保存到localstorage里
-  // changeInputEvents(project,module,inputEventList.value);
+
+}
+
+const submitEdgeForm = () => {
+  let data=edgeForm.value;
+  // edgeForm.value
+  let eventVo:Eve={};
+  if(data.relatedEventId){
+    eventVo={id:data.relatedEventId,name:""}
+  }
+  relateEveList.value.forEach( dict=> {
+    if(dict.id==eventVo.id){
+      eventVo.name=dict.name;
+      data.relateEveName=dict.name;
+    }
+  });
+  data.relatedEvents=eventVo;
+  //保存大JSON里 todo
+  //保存连线
+  saveOrUpdateEdge(project,module,data);
+  //antv回显
+  let edge=graph.findById(data.key)
+  graph.update(edge, {
+    label: eventVo.name+"-"+data.guard_condition
+  });
+  proxy?.$modal.msgSuccess("操作成功");
+}
+const getEdgesById=(id)=>{
+  resetInput();
+  let ege=getOneEdge(project,module,id);
+  if(ege){
+    Object.assign(edgeForm.value, ege);
+  }else{
+    edgeForm.value.key=id;
+  }
+}
+const resetInput = () => {
+  edgeForm.value={ ...initEdgeFormData };
+  edgeFormRef.value?.resetFields();
 }
 watch(
   () => router.currentRoute.value,

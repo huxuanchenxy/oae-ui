@@ -126,9 +126,9 @@ const defaultProps = {
 const processMenuData = (list) => {
   list.forEach((l) => {
     let curLevel = l.funcLevelId + 1;
-    if (l.funcUrl != "" && l.funcParentId) {
-      l.funcUrl = `${l.funcUrl}/${l.funcParentId}/${l.id}`;
-    }
+    // if (l.funcUrl != "" && l.funcParentId) {
+    //   l.funcUrl = `${l.funcUrl}/${l.funcParentId}/${l.id}`;
+    // }
     let isExistFlag = curFuncList.value.some(
       (t) => t.funcParentId == l.id && t.funcLevelId == curLevel
     );
@@ -154,58 +154,83 @@ const handleNodeClick = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
     data.isPenultimate = true;
-
-    const funcList = JSON.parse(sessionStorage.getItem("curFuncLists"));
+    const curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
     let path = data.funcUrl;
-    let pathArray = path.split("/");
-    if (pathArray.length == 2) {
-      let cObj = funcList.find((obj) => obj.funcUrl == path);
-      let model = {
-        id: cObj.funcId,
-        path,
-        name: cObj.funcName,
-        effect: "dark",
-      };
-      tagsStore.AddTag(model);
-      router.push({ path });
-    } else {
-      let pId = pathArray[2];
-      let cId = pathArray[3];
-      let cObj = funcList.find((obj) => obj.id == cId);
-      let id = "";
-      let path = "";
-      let name = "";
-      let cPath = "";
-      if (cObj.funcLevelId == 4) {
-        let pObj = funcList.find((obj) => obj.id == pId);
-        if (pObj) {
-          id = pObj.id;
-          path = `${pObj.funcUrl}/${pObj.funcParentId}/${pObj.id}`;
-          name = pObj.funcName;
-        }
-      } else if (cObj.funcLevelId == 3) {
-        id = cObj.id;
-        path = `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
-        name = cObj.funcName;
-      } else if (cObj.funcLevelId == 5) {
-        let pObj = funcList.find((obj) => obj.id == pId);
-        let ppObj = funcList.find((obj) => obj.id == pObj.funcParentId);
-        id = ppObj.id;
-        path = `${ppObj.funcUrl}/${ppObj.funcParentId}/${ppObj.id}`;
-        name = ppObj.funcName;
-      }
-
-      let model = {
-        id,
-        path,
-        name,
-        effect: "dark",
-      };
-      cPath = `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
-      tagsStore.AddTag(model);
-      router.push({ path: cPath });
+    let pathArrays = path.split("/");
+    let id = "";
+    let name = "";
+    if (pathArrays.length == 2) {
+      let objFunc = curFuncList.find((l) => l.funcUrl == path);
+      id = objFunc.id;
+      name = objFunc.funcName;
     }
-    //router.push(data.funcUrl);
+    if (pathArrays.length >= 4) {
+      id = pathArrays[3];
+      let cObj = curFuncList.find((l) => l.id == id);
+      path = cObj.funcUrl;
+      name = cObj.funcName;
+    }
+    let model = {
+      id,
+      path,
+      name,
+      effect: "dark",
+    };
+    //cPath = `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
+    tagsStore.AddTag(model);
+    router.push({ path: data.funcUrl });
+
+    // if (pathArray.length == 2) {
+    //   let cObj = funcList.find((obj) => obj.funcUrl == path);
+    //   let model = {
+    //     id: cObj.funcId,
+    //     path,
+    //     name: cObj.funcName,
+    //     effect: "dark",
+    //   };
+    //   tagsStore.AddTag(model);
+    //   router.push({ path });
+    // } else {
+    //   let pId = pathArray[2];
+    //   let cId = pathArray[3];
+    //   let cObj = funcList.find((obj) => obj.id == cId);
+    //   let id = "";
+    //   let path = "";
+    //   let name = "";
+    //   let cPath = "";
+    //   // if (cObj.funcLevelId == 4) {
+    //   //   let pObj = funcList.find((obj) => obj.id == pId);
+    //   //   if (pObj) {
+    //   //     id = pObj.id;
+    //   //     path = `${pObj.funcUrl}/${pObj.funcParentId}/${pObj.id}`;
+    //   //     name = pObj.funcName;
+    //   //   }
+    //   // } else
+    //   //   if (cObj.funcLevelId == 3) {
+    //   //   id = cObj.id;
+    //   //   path = `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
+    //   //   name = cObj.funcName;
+    //   // } else if (cObj.funcLevelId == 5) {
+    //   //   let pObj = funcList.find((obj) => obj.id == pId);
+    //   //   let ppObj = funcList.find((obj) => obj.id == pObj.funcParentId);
+    //   //   id = ppObj.id;
+    //   //   path = `${ppObj.funcUrl}/${ppObj.funcParentId}/${ppObj.id}`;
+    //   //   name = ppObj.funcName;
+    //   // }
+    //   id = cObj.id;
+    //   path = data.funcUrl; // `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
+    //   name = cObj.funcName;
+    //   let model = {
+    //     id,
+    //     path,
+    //     name,
+    //     effect: "dark",
+    //   };
+    //   //cPath = `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
+    //   tagsStore.AddTag(model);
+    //   router.push({ path: path });
+    // }
+    router.push(data.funcUrl);
   }
   // 仅右键打开时用到
   popStatus.value = false;
@@ -250,7 +275,7 @@ onMounted(() => {
   curFuncList.value = JSON.parse(sessionStorage.getItem("curFuncLists"));
   console.log("curFuncList:::", curFuncList.value);
   listOneFuncList.value = curFuncList.value?.filter((obj) => {
-    return obj.funcParentId == "";
+    return obj.funcParentId == 0;
   });
   processMenuData(listOneFuncList.value);
 });

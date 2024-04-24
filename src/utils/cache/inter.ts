@@ -1,37 +1,32 @@
 import  cache  from "@/plugins/cache.ts";
-import  {getInitData,getInitArr}  from "@/api/common/init.ts";
-const cacheKey="json";
+import {cacheKey,getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
+import  {getInitData,getInitArr}  from "@/api/common/init";
 // let oldJson;
 
-export const getCurrentObj=(project,module)=>{
-    let jsonAll=getJsonAll(project,module);
-    let rlt= jsonAll.find(
-        (x) => x.project == project&&x.name==module
-    );
-    if(!rlt){
-        //如果缓存里找不到对应模块数据，也用初始数据
-        return getInitData(project,module);
-    }
-    // oldJson=oldJson.filter(
-    //     (x) => !(x.project == project&&x.name==module)
-    // );
-    return rlt;
-}
-const getJsonAll=(project,module)=>{
-    let jsonAll= cache.local.getJSON(cacheKey);
-    //如果连缓存都没有，直接return初始数据
-    if(!jsonAll){
-        let initArr= getInitArr(project,module);
-        return initArr;
-    }
-    return jsonAll;
-}
-const removeCurrentModule=(data,project,module)=>{
-    data= data.filter(
-        (x) => !(x.project == project&&x.name==module)
-    );
-    return data;
-}
+// export const getCurrentObj=(project,module)=>{
+//     let jsonAll=getJsonAll(project,module);
+//     let rlt= jsonAll.find(
+//         (x) => x.project == project&&x.name==module
+//     );
+//     if(!rlt){
+//         //如果缓存里找不到对应模块数据，也用初始数据
+//         return getInitData(project,module);
+//     }
+//     // oldJson=oldJson.filter(
+//     //     (x) => !(x.project == project&&x.name==module)
+//     // );
+//     return rlt;
+// }
+// const getJsonAll=(project,module)=>{
+//     let jsonAll= cache.local.getJSON(cacheKey);
+//     //如果连缓存都没有，直接return初始数据
+//     if(!jsonAll){
+//         let initArr= getInitArr(project,module);
+//         return initArr;
+//     }
+//     return jsonAll;
+// }
+
 //----事件输入工具开始
 export const changeInputEvents=(project,module,data)=>{
     let jsonAll=getJsonAll(project,module);
@@ -40,7 +35,6 @@ export const changeInputEvents=(project,module,data)=>{
     //先移除当前的
     jsonAll=removeCurrentModule(jsonAll,project,module);
     jsonAll.push(rlt);
-    console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
 //----事件输入工具结束
@@ -52,7 +46,6 @@ export const changeOutputEvents=(project,module,data)=>{
     //先移除当前的
     jsonAll=removeCurrentModule(jsonAll,project,module);
     jsonAll.push(rlt);
-    console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
 
@@ -65,7 +58,6 @@ export const changeInputVaris=(project,module,data)=>{
     //先移除当前的
     jsonAll=removeCurrentModule(jsonAll,project,module);
     jsonAll.push(rlt);
-    console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
 
@@ -78,7 +70,6 @@ export const changeOutputVaris=(project,module,data)=>{
     //先移除当前的
     jsonAll=removeCurrentModule(jsonAll,project,module);
     jsonAll.push(rlt);
-    console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
 
@@ -91,7 +82,6 @@ export const changeInVaris=(project,module,data)=>{
     //先移除当前的
     jsonAll=removeCurrentModule(jsonAll,project,module);
     jsonAll.push(rlt);
-    console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
 
@@ -104,6 +94,5 @@ export const changeTempVaris=(project,module,data)=>{
     //先移除当前的
     jsonAll=removeCurrentModule(jsonAll,project,module);
     jsonAll.push(rlt);
-    console.log("push后的jsonall",jsonAll)
     cache.local.setJSON(cacheKey,jsonAll);
 }
