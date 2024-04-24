@@ -1,4 +1,4 @@
-import {getCurrentObj} from "@/utils/cache/inter";
+import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
 import {getInitData} from "@/api/common/init";
 export const getInputVaris=(project,module)=>{
     let rlt=getCurrentObj(project,module);

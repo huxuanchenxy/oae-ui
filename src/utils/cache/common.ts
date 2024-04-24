@@ -17,7 +17,7 @@ export const getCurrentObj=(project,module)=>{
     // );
     return rlt;
 }
-const getJsonAll=(project,module)=>{
+export const getJsonAll=(project,module)=>{
     let jsonAll= cache.local.getJSON(cacheKey);
     //如果连缓存都没有，直接return初始数据
     if(!jsonAll){
@@ -26,7 +26,7 @@ const getJsonAll=(project,module)=>{
     }
     return jsonAll;
 }
-const removeCurrentModule=(data,project,module)=>{
+export const removeCurrentModule=(data,project,module)=>{
     data= data.filter(
         (x) => !(x.project == project&&x.name==module)
     );

@@ -1,6 +1,6 @@
 import  cache  from "@/plugins/cache.ts";
-import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/common/common.ts";
-import  {cacheKey,getInitData,getInitArr}  from "@/api/common/init.ts";
+import {cacheKey,getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
+import  {getInitData,getInitArr}  from "@/api/common/init.ts";
 export const changeLinkData=(project,module,data)=>{
     let jsonAll=getJsonAll(project,module);
     let rlt=getCurrentObj(project,module);

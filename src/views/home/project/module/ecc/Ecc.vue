@@ -512,7 +512,8 @@ const submitEdgeForm = () => {
       }
     });
   data.relatedEvents=eventVo;
-  //保存到localstorage里
+  //保存大JSON里 todo
+  //保存连线
   proxy?.$modal.msgSuccess("操作成功");
 }
 watch(
