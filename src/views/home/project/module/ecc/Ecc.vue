@@ -13,7 +13,7 @@
         <div v-if="showProp==1">
           <div>
             编辑<el-button type="success" plain icon="Edit" @click="handleUpdateCanvas()"></el-button><br/>
-            <el-descriptions title="执行控制图属性">
+            <el-descriptions title="执行控制图属性" direction="vertical" border>
               <el-descriptions-item label="描述">{{currentCanvas?.comment}}</el-descriptions-item>
             </el-descriptions>
           </div>
@@ -29,14 +29,14 @@
         </div>
         <div v-if="showProp==3">
           <div>
-            连接线属性
-          </div>
-          <hr/>
-          <div>
             编辑<el-button type="success" plain icon="Edit" @click="handleUpdateEdge()"></el-button><br/>
-            <ul>
-
-            </ul>
+            <el-descriptions title="连接线属性" direction="vertical" border column="1">
+              <el-descriptions-item label="条件名称">{{currentEdge?.text}}</el-descriptions-item>
+              <el-descriptions-item label="输入事件">{{currentEdge?.relateEveName}}</el-descriptions-item>
+              <el-descriptions-item label="优先级">{{currentEdge?.priority}}</el-descriptions-item>
+              <el-descriptions-item label="条件设置">{{currentEdge?.guard_condition}}</el-descriptions-item>
+              <el-descriptions-item label="描述">{{currentEdge?.comment}}</el-descriptions-item>
+            </el-descriptions>
           </div>
         </div>
       </el-card>
@@ -169,21 +169,7 @@ const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
-const handleUpdateCanvas=()=>{
-  Object.assign(canvasForm.value, currentCanvas.value);
-  dialogCanvas.visible = true;
-  dialogCanvas.title = "修改控制图属性";
-}
-const handleUpdateEdge=()=>{
-  let ege=getOneEdge(project,module,id);
-  if(ege){
-    Object.assign(edgeForm.value, ege);
-  }else{
-    edgeForm.value.key=id;
-  }
-  dialogEdge.visible = true;
-  dialogEdge.title = "修改连接线属性";
-}
+
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -485,22 +471,45 @@ const submitEdgeForm = () => {
   data.relatedEvents=eventVo;
   //保存大JSON里 todo
   //保存连线
+  console.log(111,data)
   saveOrUpdateEdge(project,module,data);
+  //详情双向绑定
+  currentEdge.value=data
   //antv回显
   let edge=graph.findById(data.key)
-  graph.update(edge, {
-    label: eventVo.name+"-"+data.guard_condition
-  });
+  if(edge){
+    graph.update(edge, {
+      label: eventVo.name+"-"+data.guard_condition
+    });
+  }
   proxy?.$modal.msgSuccess("操作成功");
   dialogEdge.visible = false;
 }
+//拿到当前连接线赋给currentEdge
 const getEdgesById=(id)=>{
-  let ege=getOneEdge(project,module,id);
-  if(ege){
-    Object.assign(edgeForm.value, ege);
+  currentEdge.value=getOneEdge(project,module,id);
+  if(!currentEdge.value){
+    currentEdge.value=initEdgeFormData;
+    currentEdge.value.key=id;
+  }
+}
+const handleUpdateCanvas=()=>{
+  Object.assign(canvasForm.value, currentCanvas.value);
+  dialogCanvas.visible = true;
+  dialogCanvas.title = "修改控制图属性";
+}
+//从currentEdge赋值给form回显
+const handleUpdateEdge=()=>{
+  let id=edgeForm.value.key;
+  if(currentEdge.value){
+    Object.assign(edgeForm.value,currentEdge.value);
   }else{
     edgeForm.value.key=id;
+    initEdgeFormData.key=id;
+    currentEdge.value=initEdgeFormData;
   }
+  dialogEdge.visible = true;
+  dialogEdge.title = "修改连接线属性";
 }
 const resetEdgeForm = () => {
   edgeForm.value={ ...initEdgeFormData };
