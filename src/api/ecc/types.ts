@@ -3,7 +3,7 @@ export interface EdgeForm {
     text:string,
     priority:string;
     relatedEvents:{ id: string; name: string };
-    condition:string,
+    guard_condition:string,
     comment:string
 }
 
@@ -15,7 +15,7 @@ export interface EdgeVO extends BaseEntity {
     text:string,
     priority:string;
     relatedEvents:{ id: string; name: string };
-    condition:string,
+    guard_condition:string,
     comment:string
     relateEveName:string
 }

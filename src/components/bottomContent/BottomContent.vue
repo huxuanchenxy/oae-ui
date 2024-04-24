@@ -1,6 +1,6 @@
 <template>
   <div class="divBottom">
-    <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
+    <el-tabs v-model="props.editableTabsValue" type="card" @tab-remove="removeTab">
       <el-tab-pane
         v-for="(item, i) in editableTabs"
         :key="item.index"
@@ -21,19 +21,47 @@ import { ref } from "vue";
 import AttributeContent from "@/components/bottomContent/AttributeContent.vue";
 import LogContent from "@/components/bottomContent/LogContent.vue";
 import EventVari from "@/components/event_vari/index.vue";
-
-const editableTabsValue = ref("0");
-const editableTabs = ref([
+/*
+   * 定义组件的属性
+   * type 表示属性类型
+   * default 表示默认值
+   */
+   const props = defineProps({
+    editableTabsValue:{
+      type:Number,
+      default:0,
+    }
+  });
+  
+// 也可以通过数组方式定义属性,缺点是不能定义类型和默认值
+// const props = defineProps(['footTabIdex']);
+// const editableTabsValue = ref(0);
+const currentTabIndex = ref([0,1,2]);
+const editableTabsAll = ref([
   {
-    index: "0",
+    index: 0,
     title: "属性",
   },
   {
-    index: "1",
+    index: 1,
     title: "事件及变量",
   },
   {
-    index: "2",
+    index: 2,
+    title: "函数日志",
+  },
+]);
+const editableTabs = ref([
+  {
+    index: 0,
+    title: "属性",
+  },
+  {
+    index: 1,
+    title: "事件及变量",
+  },
+  {
+    index: 2,
     title: "函数日志",
   },
 ]);
@@ -49,21 +77,35 @@ const editableTabs = ref([
 // };
 const removeTab = (targetName) => {
   const tabs = editableTabs.value;
-  let activeName = editableTabsValue.value;
+  let activeName = props.editableTabsValue;
   if (activeName === targetName) {
     tabs.forEach((tab, index) => {
-      if (tab.name === targetName) {
+      if (tab.index === targetName) {
         const nextTab = tabs[index + 1] || tabs[index - 1];
         if (nextTab) {
-          activeName = nextTab.name;
+          activeName = nextTab.index;
         }
       }
     });
   }
-
-  editableTabsValue.value = activeName;
-  editableTabs.value = tabs.filter((tab) => tab.name !== targetName);
+  props.editableTabsValue = activeName;
+  editableTabs.value = tabs.filter((tab) => tab.index !== targetName);
+  currentTabIndex.value = currentTabIndex.value.filter((tab) => tab !== targetName);
+  // console.log(currentTabIndex.value)
 };
+
+watch(()=>props.editableTabsValue, (newVal) => {
+  // if (currentTabIndex.indexOf(newVal) === -1) {
+  if (currentTabIndex.value.length < 3) {
+    editableTabs.value = editableTabsAll.value
+    // console.log(editableTabsAll.value)
+    // editableTabsAll.value.forEach((item) => {
+    //   editableTabs.value.push(item)
+    // })
+    currentTabIndex.value = [0,1,2]
+  }
+})
+
 onMounted(() => {
   //console.log("bottomContent onMounted");
 });

@@ -54,7 +54,7 @@
     <el-table :data="tableData" border style="width: 100%;height: 100%;">
       <el-table-column type="index" index="index+1" label="序号" width="60" />
       <el-table-column prop="date" label="发生时间" width="210" />
-      <el-table-column prop="isError" label="类型" width="70" filter-multiple="false"
+      <el-table-column prop="isError" label="类型" width="70"
       :filters="[
         { text: '报错', value: true },
         { text: '日志', value: false }

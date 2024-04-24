@@ -12,6 +12,7 @@ declare module '@vue/runtime-core' {
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
     DictTag: typeof import('./../components/DictTag/index.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
+    ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElCol: typeof import('element-plus/es')['ElCol']
