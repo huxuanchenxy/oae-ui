@@ -4,7 +4,7 @@
     <div class="routerHeight">
       <router-view class="routerView"></router-view>
     </div>
-    <BottomContent></BottomContent>
+    <BottomContent :editableTabsValue="footTabIndex"></BottomContent>
   </div>
 </template>
 
@@ -14,6 +14,8 @@ import TagsModule from "@/components/TagsModule.vue";
 // const router = useRouter();
 // let path = ref("");
 // path.value = route.path;
+const footTabIndex = ref(0);
+provide("changeTabIndex",footTabIndex);
 onMounted(() => {
   //console.log("abcde");
 });

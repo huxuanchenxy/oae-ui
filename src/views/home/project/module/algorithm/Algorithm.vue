@@ -1,7 +1,8 @@
 <template>
   <div class="editor-container">
     <div>
-      <el-button class="func" @click="drawer = !drawer">函数库</el-button>
+      <el-button class="func" @click="drawer = !drawer;tabIndex=2">函数库</el-button>
+      <el-button class="func" @click="test">test</el-button>
     </div>
     <!-- 将编辑器容器绑定到 ref -->
     <div id="editor" ref="editor"></div>
@@ -68,6 +69,7 @@ let id = ref("");
 const editor = ref();
 let monacoEditor = ref();
 const intervalId = ref();
+let tabIndex = ref(inject('changeTabIndex'));
 let finalResultFormat = ref({
 		"key": "cafe10f0-951a-4c24-b5bf-15d7b78cf4a2",
 		"text": "INIT",
@@ -209,6 +211,11 @@ function initEditor () {
   intervalId.value = setInterval(() => {
     saveCache();
   }, 60000);
+  tabIndex.value = 0
+}
+
+const test = () => {
+  tabIndex.value = 2
 }
 
 const getAlgorithmByKey = (key, arr) => {
