@@ -34,24 +34,65 @@
     v-show="popStatus"
     @mouseleave="popStatus = false"
   >
-    <div style="text-align: center; padding: 10px">
-      <el-link type="primary">添加</el-link>
+    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 2 || currentData.funcName === '算法'">
+      <el-link type="primary" @click="dialogVisible = true">新建</el-link>
     </div>
-    <div style="text-align: center; padding: 10px">
+    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
+      <el-link type="primary" @click="handleNodeClick(currentData)">打开</el-link>
+    </div>
+    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
       <el-link type="primary">删除</el-link>
     </div>
+    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
+      <el-link type="primary">重命名</el-link>
+    </div>
   </div>
+  <el-dialog
+    v-model="dialogVisible"
+    title=""
+    width="500"
+  >
+    <el-form :model="newAlgorithm">
+      <el-form-item label="算法名称">
+        <el-input v-model="newAlgorithm.text"  placeholder="请输入"/>
+      </el-form-item>
+      <el-form-item label="语言类型">
+        <el-select v-model="newAlgorithm.type" placeholder="请选择">
+          <el-option
+            v-for="item in codeLanguage"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
 //import { useRouter, useRoute } from "vue-router";
 //import sysApi from "@/api/sysApi";
 import { pagetagsStore } from "@/store/pageTags.js";
+import { algorithmDS } from "@/jslib/dataStructure.js";
+import { codeLanguage } from "@/jslib/common.js";
+import { getCurrentObj } from "@/utils/cache/inter";
+import  cache  from "@/plugins/cache.ts";
+import { reactive, ref } from "vue";
 const tagsStore = pagetagsStore();
 //let defaultOpeneds = ref([]);
 //let leftX = ref(10);
 //let topY = ref(10);
 let popStatus = ref(false);
+let dialogVisible = ref(false);
+let currentData = reactive({funcLevelId: 0});
+let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)))
 const dyStyle = reactive({
   rightPop: {
     position: "absolute",
@@ -108,6 +149,7 @@ const processMenuData = (list) => {
 };
 
 const router = useRouter();
+const route = useRoute();
 const handleNodeClick = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
@@ -165,6 +207,8 @@ const handleNodeClick = (data) => {
     }
     //router.push(data.funcUrl);
   }
+  // 仅右键打开时用到
+  popStatus.value = false;
 };
 
 const queryData = (list) => {
@@ -178,11 +222,22 @@ const queryData = (list) => {
 
 const showContextMenu = (e, data, node, n) => {
   e.preventDefault();
-  dyStyle.rightPop.top = e.y + "px";
-  dyStyle.rightPop.left = e.x + "px";
-  popStatus.value = true;
+  if (data.funcLevelId === 2 || data.funcName === '算法' || data.funcLevelId === 3 || data.funcLevelId === 5) {
+    dyStyle.rightPop.top = e.y + "px";
+    dyStyle.rightPop.left = e.x + "px";
+    popStatus.value = true;
+    currentData = data
+    // console.log(currentData)
+  }
 };
 
+const onSubmit = () => {
+  dialogVisible.value = false;
+  // let cacheJson = cache.local.getJSON('json');
+  // getCurrentObj
+  console.log(route)
+  console.log(newAlgorithm)
+}
 onMounted(() => {
   // sysApi.getFuncList().then((res) => {
   //  console.log("sysApi--2", res);

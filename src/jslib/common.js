@@ -47,6 +47,13 @@ const funcList = JSON.parse(sessionStorage.getItem("curFuncList"));
 
 let keyMd5 = ")(*@wsxqaz!anglar"
 let pageSize = 10;
+const codeLanguage = [{
+    label: 'st',
+    value: 'st',
+},{
+    label: 'c++',
+    value: 'cpp'
+}]
 export {
     keyMd5,
     pageSize,
@@ -54,5 +61,6 @@ export {
     ElMsg,
     CusElLoading,
     svg,
-    funcList
+    funcList,
+    codeLanguage
 }

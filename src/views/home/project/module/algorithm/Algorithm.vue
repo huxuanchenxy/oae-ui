@@ -56,6 +56,7 @@ import  cache  from "@/plugins/cache.ts";
 import * as monaco from 'monaco-editor'
 import { ElTree } from 'element-plus'
 import { tsModel } from "@/jslib/ts_model.js";
+import { algorithmDS } from "@/jslib/dataStructure.js";
 // import type Node from 'element-plus/es/components/tree/src/model/node'
 // import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
 const tagsStore = pagetagsStore();
@@ -70,19 +71,7 @@ const editor = ref();
 let monacoEditor = ref();
 const intervalId = ref();
 let tabIndex = ref(inject('changeTabIndex'));
-let finalResultFormat = ref({
-		"key": "cafe10f0-951a-4c24-b5bf-15d7b78cf4a2",
-		"text": "INIT",
-		"comment": "",
-		"content": "",
-		"type": "ST",
-		"lines": [{
-			"branches": [{
-				"comps": []
-			}],
-			"comment": ""
-		}]
-	});
+let finalResultFormat = reactive(JSON.parse(JSON.stringify(algorithmDS)));
 
 const filterText = ref('');
 const treeRef = ref();
@@ -129,6 +118,8 @@ const initRegRule = (val) => {
   return new RegExp(ret.slice(0,-1), 'ig');
 }
 function initEditor () {
+  finalResultFormat.key = 'cafe10f0-951a-4c24-b5bf-15d7b78cf4a2';
+  finalResultFormat.type = 'ST'
   monaco.editor.defineTheme('myTheme', {
     base: 'vs',
     rules: [
