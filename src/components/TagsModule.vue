@@ -8,7 +8,7 @@
       :type="tag.funcStatus == 'plain' ? 'info' : ''"
       :effect="tag.funcStatus"
       @click="goToPath(tag.funcUrl)"
-      size="default"
+      size="small"
     >
       <el-link :underline="false"
         ><span :class="tag.funcStatus == 'dark' ? 'tagName' : ''">{{
@@ -20,9 +20,6 @@
 </template>
 
 <script setup>
-//import { ref, onMounted, watch } from "vue";
-//import { useRouter, useRoute } from "vue-router";
-//import { useStore } from "vuex";
 import { pagetagsStore } from "@/store/pageTags.js";
 const tagsStore = pagetagsStore();
 const goToPath = (path) => {
@@ -32,33 +29,30 @@ const router = useRouter();
 const route = useRoute();
 //const store = useStore();
 const list = ref([]);
-const pid = ref([""]);
+const pid = ref("");
+const cid = ref("");
 onMounted(() => {
   pid.value = route.params.pid;
-  let id = route.params.id;
-  //store.commit("GetTagModule", { pid: pid.value, id, path: route.path });
-  tagsStore.GetTagModule({ pid: pid.value, id, path: route.path });
-  list.value = tagsStore.TagModuleArrs; //store.state.TagModuleArrs;
+  cid.value = route.params.id;
+  tagsStore.GetTagModule({ pid: pid.value, id: cid.value, path: route.path });
+  list.value = tagsStore.TagModuleArrs;
 });
 watch(
   () => router.currentRoute.value,
-  (newValue) => {
+  (newValue, oldValue) => {
     //newValue.value;
+    console.log("tagsModule.vue", newValue, oldValue);
     var newPaths = newValue.fullPath;
     var pathArrays = newPaths.split("/");
     if (pathArrays.length == 4) {
       let cPid = pathArrays[2];
-      //console.log("pathArrays:", pathArrays, cPid, pid.value);
-      if (cPid != pid.value) {
+      let cCid = pathArrays[3];
+      if (cPid != pid.value || cCid != cid.value) {
         pid.value = cPid;
-        // store.commit("GetTagModule", {
-        //   pid: pid.value,
-        //   id: pathArrays[3],
-        //   path: newPaths,
-        // });
+        cid.value = cCid;
         tagsStore.GetTagModule({
           pid: pid.value,
-          id: pathArrays[3],
+          id: cid.value,
           path: newPaths,
         });
         list.value = tagsStore.TagModuleArrs; //store.state.TagModuleArrs;

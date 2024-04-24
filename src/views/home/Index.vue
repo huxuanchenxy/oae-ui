@@ -1,14 +1,15 @@
 <template>
   <div id="module">
     <el-container>
-      <NavMenu id="leftMenu" :isCollapse="!isCollapse" />
+      <!-- <NavMenu id="leftMenu" :isCollapse="!isCollapse" /> -->
+      <NavTree></NavTree>
       <el-container>
         <el-header>
           <!-- <div class="logo"></div> -->
-          <div class="center">
+            <div class="center">
             <Tags></Tags>
-          </div>
-          <div class="right" style="display: none">
+          </div> 
+          <!-- <div class="right" style="display: none">
             <div style="width: 100px"></div>
 
             <el-tooltip placement="bottom" effect="light" :offset="-3">
@@ -23,16 +24,16 @@
                 </ul>
               </template>
               <div style="float: left; margin: 6px 15px 0 0">
-                <el-avatar style="float: left; cursor: pointer" />
+                <el-avatar style="float: left; cursor: pointer" /> -->
                 <!-- :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" -->
-                <div style="float: left; color: #fff; margin: 10px 0 0 10px">
-                  {{ curUserInfo.userName }}
+                <!-- <div style="float: left; color: #fff; margin: 10px 0 0 10px">
+                  {{ curUserInfo?.userName }}
                 </div>
               </div>
-            </el-tooltip>
+            </el-tooltip> -->
 
             <!-- <el-button style="margin-top: 9px" class="exit" type="primary">注销</el-button> -->
-          </div>
+          <!-- </div> -->
         </el-header>
 
         <el-main>
@@ -84,19 +85,19 @@
                 class="drawerItem"
               >
                 <el-form-item label="姓名：">
-                  {{ curUserInfo.userName }}
+                  {{ curUserInfo?.userName }}
                 </el-form-item>
                 <el-form-item label="登录名：">
-                  {{ curUserInfo.userLoginName }}
+                  {{ curUserInfo?.userLoginName }}
                 </el-form-item>
                 <el-form-item label="性别：">
-                  {{ curUserInfo.sex == 1 ? "男" : "女" }}
+                  {{ curUserInfo?.sex == 1 ? "男" : "女" }}
                 </el-form-item>
                 <el-form-item label="工号：">
-                  {{ curUserInfo.jobNumber }}
+                  {{ curUserInfo?.jobNumber }}
                 </el-form-item>
                 <el-form-item label="联系电话：">
-                  {{ curUserInfo.mobilePhone }}
+                  {{ curUserInfo?.mobilePhone }}
                 </el-form-item>
                 <el-form-item label="部门：">
                   <div v-html="deptListStr"></div>
@@ -116,12 +117,14 @@
 <script setup>
 import Tags from "@/components/Tags.vue";
 import NavMenu from "@/components/NavMenu.vue"; //导航
+import NavTree from "@/components/NavTree.vue";
 //import Breadcrumb from "@/components/Breadcrumb.vue"; //引入组件
 import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
-import { useRouter } from "vue-router"; //导入路由
+//import { useRouter } from "vue-router"; //导入路由
 //import { Fold, Expand } from "@element-plus/icons-vue";
-import { ref, reactive, onMounted, computed } from "vue";
-import { baseUrl } from "@/api/baseUrl";
+//import { ref, reactive, onMounted, computed } from "vue";
+//import { baseUrl } from "@/api/baseUrl";
+//import sysApi from "@/api/sysApi";
 import cache from "@/plugins/cache.ts";
 import { getInitData } from "@/api/common/init.ts";
 const router = useRouter(); //实例化路由
@@ -136,28 +139,28 @@ const formLabelAlign = reactive({
   region: "",
   type: "",
 });
-const curUserInfo = ref({
-  avatarLinkUrl: "",
-  sex: 1,
-  userLoginName: "",
-  userName: "",
-  userId: "",
-  jobNumber: "",
-});
+// const curUserInfo = ref({
+//   avatarLinkUrl: "",
+//   sex: 1,
+//   userLoginName: "",
+//   userName: "",
+//   userId: "",
+//   jobNumber: "",
+// });
 
-const ImageUrlFilter = computed(() => (item) => {
-  return `${baseUrl}/${item}`;
-});
+// const ImageUrlFilter = computed(() => (item) => {
+//   return `${baseUrl}/${item}`;
+// });
 //退出
 function goBack() {
   router.push("/login");
 }
-const isCollapse = ref(true);
-const clickExpand = () => {
-  isCollapse.value = !isCollapse.value;
-};
-const deptListStr = ref("");
-const postListStr = ref("");
+// const isCollapse = ref(true);
+// const clickExpand = () => {
+//   isCollapse.value = !isCollapse.value;
+// };
+// const deptListStr = ref("");
+// const postListStr = ref("");
 const cacheKey = "json";
 //location.reload();
 onMounted(() => {
@@ -177,25 +180,27 @@ onMounted(() => {
   //   window.location.href = window.location.href + "#reloaded";
   //   window.location.reload();
   // }
-  const curDeptList = JSON.parse(sessionStorage.getItem("curDeptList"));
-  if (curDeptList && curDeptList.length > 0) {
-    let deptStr = "";
-    curDeptList.forEach((obj) => {
-      deptStr += obj.orgName + "<br />";
-    });
-    deptListStr.value = deptStr;
-  }
+  // const curDeptList = JSON.parse(sessionStorage.getItem("curDeptList"));
+  // if (curDeptList && curDeptList.length > 0) {
+  //   let deptStr = "";
+  //   curDeptList.forEach((obj) => {
+  //     deptStr += obj.orgName + "<br />";
+  //   });
+  //   //deptListStr.value = deptStr;
+  // }
+  // const curPostList = JSON.parse(sessionStorage.getItem("curPostList"));
+  // if (curPostList && curPostList.length > 0) {
+  //   let postStr = "";
+  //   curPostList.forEach((obj) => {
+  //     postStr += obj.orgName + "<br />";
+  //   });
+  //   postListStr.value = postStr;
+  // }
+  // curUserInfo.value = JSON.parse(sessionStorage.getItem("curUserInfo"));
 
-  const curPostList = JSON.parse(sessionStorage.getItem("curPostList"));
-  if (curPostList && curPostList.length > 0) {
-    let postStr = "";
-    curPostList.forEach((obj) => {
-      postStr += obj.orgName + "<br />";
-    });
-    postListStr.value = postStr;
-  }
-
-  curUserInfo.value = JSON.parse(sessionStorage.getItem("curUserInfo"));
+  // sysApi.getFuncList().then((res) => {
+  //   console.log("sysApi--1", res);
+  // });
 });
 </script>
 

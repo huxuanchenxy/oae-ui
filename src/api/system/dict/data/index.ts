@@ -107,18 +107,50 @@ export function getDicts(dictType: string): DictDataVO[] {
       ]
     }
   }else if(dictType=='eveType'){
-          rlt={
-              code: 200,
-              msg: "操作成功",
-              data: [
-                  {
-                      dictCode: 1,
-                      dictLabel: "EVENT",
-                      dictValue: "EVENT"
-                  }
-              ]
-          }
+      rlt={
+          code: 200,
+          msg: "操作成功",
+          data: [
+              {
+                  dictCode: 1,
+                  dictLabel: "EVENT",
+                  dictValue: "EVENT"
+              }
+          ]
       }
+  }else if(dictType=='edgePriority'){
+      rlt={
+          code: 200,
+          msg: "操作成功",
+          data: [
+              {
+                  dictCode: 1,
+                  dictLabel: "1",
+                  dictValue: "1"
+              },
+              {
+                  dictCode: 2,
+                  dictLabel: "2",
+                  dictValue: "2"
+              },
+              {
+                  dictCode: 3,
+                  dictLabel: "3",
+                  dictValue: "3"
+              },
+              {
+                  dictCode: 4,
+                  dictLabel: "4",
+                  dictValue: "4"
+              },
+              {
+                  dictCode: 5,
+                  dictLabel: "5",
+                  dictValue: "5"
+              },
+          ]
+      }
+  }
   return rlt;
 }
 

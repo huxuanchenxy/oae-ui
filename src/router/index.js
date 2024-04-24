@@ -31,7 +31,6 @@ const routes = [{
                 meta: {
                     id: "main",
                     title: '首页',
-                    group: '/main'
                 },
                 component: () =>
                     import ('../views/home/main/Index.vue')
@@ -39,59 +38,43 @@ const routes = [{
             },
 
             {
-                "path": "/xmcs",
-                "name": "xmcs",
+                "path": "/module/:pid/:id",
+                "name": "module",
                 "meta": {
-                    "id": "4907628fe8ce",
-                    "title": "项目测试",
-                    "group": "xmcs"
+                    "id": "module",
                 },
-
+                component: () =>
+                    import ('../views/home/project/module/Module.vue'),
                 "children": [{
-                    "path": "/mk/:pid/:id",
-                    "name": "mk",
-                    "meta": {
-                        "id": "49etce",
-                        "title": "模块一",
-
+                        "path": "/interface/:pid/:id",
+                        "name": "interface",
+                        "meta": {
+                            "id": "interface",
+                        },
+                        component: () =>
+                            import ('../views/home/project/module/cusinterface/index.vue')
                     },
-                    component: () =>
-                        import ('../views/home/project/module/Module.vue'),
-                    "children": [{
-                            "path": "/jiekou/:pid/:id",
-                            "name": "jiekou",
-                            "meta": {
-                                "id": "1536a8ce",
-                                "title": "接口",
-
-                            },
-                            component: () =>
-                                import ('../views/home/project/module/cusinterface/index.vue')
+                    {
+                        "path": "/algorithm/:pid/:id",
+                        "name": "algorithm",
+                        "meta": {
+                            "id": "algorithm",
                         },
-                        {
-                            "path": "/suanfa/:pid/:id",
-                            "name": "suanfa",
-                            "meta": {
-                                "id": "5860ab8ce",
-                                "title": "算法",
-
-                            },
-                            component: () =>
-                                import ('../views/home/project/module/algorithm/Algorithm.vue')
+                        component: () =>
+                            import ('../views/home/project/module/algorithm/Algorithm.vue')
+                    },
+                    {
+                        "path": "/ecc/:pid/:id",
+                        "name": "ecc",
+                        "meta": {
+                            "id": "ecc",
                         },
-                        {
-                            "path": "/ecc/:pid/:id",
-                            "name": "ecc",
-                            "meta": {
-                                "id": "4907a8ce",
-                                "title": "ECC",
-                                "group": "xmcs"
-                            },
-                            component: () =>
-                                import ('../views/home/project/module/ecc/Ecc.vue')
-                        }
-                    ]
-                }]
+                        component: () =>
+                            import ('../views/home/project/module/ecc/Ecc.vue')
+                    }
+                ]
+
+
             },
         ]
     },
@@ -110,35 +93,35 @@ const router = createRouter({
     //路由拦截
 router.beforeEach((to, from, next) => {
     //console.log("menuData:::", menuData)
-    var res = menuData;
-    if (res) {
-        let curUserInfo = res.userInfo;
-        let curFuncList = res.funcInfo;
-        let curDeptList = res.deptList;
-        let curPostList = res.postList;
-        if (curUserInfo && curFuncList.length > 0) {
-            sessionStorage.setItem("curUserInfo", JSON.stringify(curUserInfo));
-            sessionStorage.setItem("curFuncList", JSON.stringify(curFuncList));
-            sessionStorage.setItem("curDeptList", JSON.stringify(curDeptList));
-            sessionStorage.setItem("curPostList", JSON.stringify(curPostList));
-            //console.log("curUserInfo………………")
-            //跳转
-            //router.push("/main");
-        }
-    }
+    // var res = menuData;
+    // if (res) {
+    //     let curUserInfo = res.userInfo;
+    //     let curFuncList = res.funcInfo;
+    //     let curDeptList = res.deptList;
+    //     let curPostList = res.postList;
+    //     if (curUserInfo && curFuncList.length > 0) {
+    //         sessionStorage.setItem("curUserInfo", JSON.stringify(curUserInfo));
+    //         sessionStorage.setItem("curFuncList", JSON.stringify(curFuncList));
+    //         sessionStorage.setItem("curDeptList", JSON.stringify(curDeptList));
+    //         sessionStorage.setItem("curPostList", JSON.stringify(curPostList));
+    //         //console.log("curUserInfo………………")
+    //         //跳转
+    //         //router.push("/main");
+    //     }
+    // }
 
     //console.log("to,from:", to, from); 
-    var curUserInfo = sessionStorage.getItem("curUserInfo");
-    if (!curUserInfo || curUserInfo == "null") {
-        if (to.path !== "/login") {
-            next('/login');
-        }
-    }
-    if (to.path == "/login") {
-        //console.log("to.path login")
-        sessionStorage.setItem("curUserInfo", null);
-        sessionStorage.setItem("curFuncList", null);
-    }
+    // var curUserInfo = sessionStorage.getItem("curUserInfo");
+    // if (!curUserInfo || curUserInfo == "null") {
+    //     if (to.path !== "/login") {
+    //         next('/login');
+    //     }
+    // }
+    // if (to.path == "/login") {
+    //     //console.log("to.path login")
+    //     sessionStorage.setItem("curUserInfo", null);
+    //     sessionStorage.setItem("curFuncList", null);
+    // }
 
     next();
 })
