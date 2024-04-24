@@ -32,13 +32,7 @@ export const saveOrUpdateEdge=(project,module,data)=>{
     cache.local.setJSON(edgeKey,edges);
 }
 //删除localstorage里edgeKey的其中一个连接线
-export const removeEdge=(project,module,data)=> {
-    let edges = listEdges(project, module);
-    if (edges) {
-        removeCurrentEdge(project, module,data)
-    }
-}
-const removeCurrentEdge=(project,module,id)=>{
+export const removeEdge=(project,module,id)=> {
     let edges=listEdges(project, module);
     edges= edges.filter(
         (x) => !(x.key == id)

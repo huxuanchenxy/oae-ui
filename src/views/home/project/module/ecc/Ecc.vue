@@ -12,16 +12,10 @@
         />
         <div v-if="showProp==1">
           <div>
-            执行控制图属性
-          </div>
-          <hr/>
-          <div>
-            描述
-            <el-icon :size="20">
-              <Edit />
-            </el-icon>
-            <el-input  type="textarea" placeholder="请输入说明文字"/>
-            <el-button type="primary" @click="saveGraphProp">确 定</el-button>
+            编辑<el-button type="success" plain icon="Edit" @click="handleUpdateCanvas()"></el-button><br/>
+            <el-descriptions title="执行控制图属性">
+              <el-descriptions-item label="描述">{{currentCanvas?.comment}}</el-descriptions-item>
+            </el-descriptions>
           </div>
         </div>
         <div v-if="showProp==2">
@@ -39,42 +33,67 @@
           </div>
           <hr/>
           <div>
-            <el-form ref="edgeFormRef" :model="edgeForm"  label-width="80px">
-              <el-form-item prop="key" v-if="false" >
-                <el-input v-model="edgeForm.key" />
-              </el-form-item>
-              <el-form-item label="名称" prop="text">
-                <el-input v-model="edgeForm.text" placeholder="请输入名称" />
-              </el-form-item>
-              <el-form-item label="输入事件">
-                <el-select v-model="edgeForm.relatedEventId" placeholder="请选择">
-                  <el-option
-                      v-for="item in relateEveList"
-                      :key="item.id"
-                      :label="item.name"
-                      :value="item.id"
-                  ></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="优先级" prop="type">
-                <el-select v-model="edgeForm.priority" placeholder="请输入优先级">
-                  <el-option v-for="dict in edgePriority" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="条件设置" prop="guard_condition">
-                <el-input v-model="edgeForm.guard_condition" type="textarea" placeholder="请输入说明文字"/>
-              </el-form-item>
-              <el-form-item label="描述" prop="comment">
-                <el-input v-model="edgeForm.comment" type="textarea" placeholder="请输入说明文字"/>
-              </el-form-item>
-            </el-form>
-            <div>
-              <el-button type="primary" @click="submitEdgeForm">确 定</el-button>
-            </div>
+            编辑<el-button type="success" plain icon="Edit" @click="handleUpdateEdge()"></el-button><br/>
+            <ul>
+
+            </ul>
           </div>
         </div>
       </el-card>
     </div>
+    <el-dialog :title="dialogCanvas.title" v-model="dialogCanvas.visible" width="500px" append-to-body>
+    <el-form ref="canvasFormRef" :model="canvasForm"  label-width="80px">
+      <el-form-item prop="key" v-if="false" >
+        <el-input v-model="canvasForm.key" />
+      </el-form-item>
+      <el-form-item label="描述" prop="comment">
+        <el-input v-model="canvasForm.comment" type="textarea" placeholder="请输入说明文字"/>
+      </el-form-item>
+    </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="saveCanvasForm">确 定</el-button>
+          <el-button @click="cancelCanvasDialog">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <el-dialog :title="dialogEdge.title" v-model="dialogEdge.visible" width="500px" append-to-body>
+      <el-form ref="edgeFormRef" :model="edgeForm"  label-width="80px">
+        <el-form-item prop="key" v-if="false" >
+          <el-input v-model="edgeForm.key" />
+        </el-form-item>
+        <el-form-item label="名称" prop="text">
+          <el-input v-model="edgeForm.text" placeholder="请输入名称" />
+        </el-form-item>
+        <el-form-item label="输入事件">
+          <el-select v-model="edgeForm.relatedEventId" placeholder="请选择">
+            <el-option
+                v-for="item in relateEveList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="优先级" prop="type">
+          <el-select v-model="edgeForm.priority" placeholder="请输入优先级">
+            <el-option v-for="dict in edgePriority" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="条件设置" prop="guard_condition">
+          <el-input v-model="edgeForm.guard_condition" type="textarea" placeholder="请输入说明文字"/>
+        </el-form-item>
+        <el-form-item label="描述" prop="comment">
+          <el-input v-model="edgeForm.comment" type="textarea" placeholder="请输入说明文字"/>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitEdgeForm">确 定</el-button>
+          <el-button @click="cancelEdgeDialog">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -83,10 +102,14 @@ import G6 from "@antv/g6";
 import { v4 as uuidv4 } from 'uuid';
 import { pagetagsStore } from "@/store/pageTags.js";
 import  cache  from "@/plugins/cache.ts";
-import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/inter/event/type';
+import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/ecc/edge/type';
+import type { CanvasForm,CanvasQuery,CanvasVO} from '@/api/ecc/canvas/type';
 import { Eve } from "@/api/inter/event/types";
 import {getRelateEveList} from "@/api/inter/event";
-import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc";
+import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
+import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
+let currentEdge:EdgeVO=ref(null);
+let currentCanvas:CanvasVO=ref(null);
 //初始值
 const initEdgeFormData:EdgeForm = {
   key:'',
@@ -98,12 +121,18 @@ const initEdgeFormData:EdgeForm = {
 }
 const edgeData = reactive<PageData<EdgeForm, EdgeQuery>>({
   edgeForm: { ...initEdgeFormData },
-  queryParams: {
-    // pageNum: 1,
-    // pageSize: 10,
-  }
+  queryParams: {}
+});
+const initCanvasFormData:CanvasForm = {
+  key:'',
+  comment:'',
+}
+const canvasData = reactive<PageData<CanvasForm, CanvasQuery>>({
+  canvasForm: { ...initCanvasFormData },
+  queryParams: {}
 });
 const {  edgeForm } = toRefs(edgeData);
+const {  canvasForm } = toRefs(canvasData);
 const cacheKey="graph";
 const project="project1";
 const tagsStore = pagetagsStore();
@@ -137,9 +166,24 @@ const nodeVertiPadding=20;//算法节点垂直的间隔距离
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 let mouseX,mouseY;
 const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
+const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
-
+const handleUpdateCanvas=()=>{
+  Object.assign(canvasForm.value, currentCanvas.value);
+  dialogCanvas.visible = true;
+  dialogCanvas.title = "修改控制图属性";
+}
+const handleUpdateEdge=()=>{
+  let ege=getOneEdge(project,module,id);
+  if(ege){
+    Object.assign(edgeForm.value, ege);
+  }else{
+    edgeForm.value.key=id;
+  }
+  dialogEdge.visible = true;
+  dialogEdge.title = "修改连接线属性";
+}
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -338,6 +382,9 @@ onMounted(() => {
   data=initGraphData();
   initGraph(data,graphWidth,graphHeight);
 });
+const getCurrentCanvas=()=>{
+  currentCanvas.value= getCanvas(project,module);
+}
 const initGraphData=()=>{
     let graphJson=cache.local.getJSON(graphCacheKey);
     if(graphJson){
@@ -412,8 +459,14 @@ const initLoad = () => {
   //store.commit("ChangeTagModuleStatus", route.path);
   tagsStore.ChangeTagModuleStatus( route.path)
 };
-const saveGraphProp=()=>{
-
+const saveCanvasForm=()=>{
+  let data=canvasForm.value;
+  //保存大JSON里 todo
+  //保存连线
+  saveOrUpdateCanvas(project,module,data);
+  currentCanvas.value=data;
+  proxy?.$modal.msgSuccess("操作成功");
+  dialogCanvas.visible = false;
 }
 
 const submitEdgeForm = () => {
@@ -439,9 +492,9 @@ const submitEdgeForm = () => {
     label: eventVo.name+"-"+data.guard_condition
   });
   proxy?.$modal.msgSuccess("操作成功");
+  dialogEdge.visible = false;
 }
 const getEdgesById=(id)=>{
-  resetInput();
   let ege=getOneEdge(project,module,id);
   if(ege){
     Object.assign(edgeForm.value, ege);
@@ -449,9 +502,27 @@ const getEdgesById=(id)=>{
     edgeForm.value.key=id;
   }
 }
-const resetInput = () => {
+const resetEdgeForm = () => {
   edgeForm.value={ ...initEdgeFormData };
   edgeFormRef.value?.resetFields();
+}
+const resetCanvasForm = () => {
+  canvasForm.value={ ...initCanvasFormData };
+  canvasFormRef.value?.resetFields();
+}
+const dialogEdge = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+const dialogCanvas = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+const cancelEdgeDialog = () => {
+  dialogEdge.visible = false;
+}
+const cancelCanvasDialog = () => {
+  dialogCanvas.visible = false;
 }
 watch(
   () => router.currentRoute.value,
