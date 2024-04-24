@@ -45,36 +45,24 @@ const routes = [{
                 },
                 component: () =>
                     import ('../views/home/project/module/Module.vue'),
-                "children": [{
-                        "path": "/interface/:pid/:id",
-                        "name": "interface",
-                        "meta": {
-                            "id": "interface",
-                        },
-                        component: () =>
-                            import ('../views/home/project/module/cusinterface/index.vue')
-                    },
-                    {
-                        "path": "/algorithm/:pid/:id",
-                        "name": "algorithm",
-                        "meta": {
-                            "id": "algorithm",
-                        },
-                        component: () =>
-                            import ('../views/home/project/module/algorithm/Algorithm.vue')
-                    },
-                    {
-                        "path": "/ecc/:pid/:id",
-                        "name": "ecc",
-                        "meta": {
-                            "id": "ecc",
-                        },
-                        component: () =>
-                            import ('../views/home/project/module/ecc/Ecc.vue')
-                    }
-                ]
-
-
+            },
+            {
+                "path": "/module/:pid/:id/:type",
+                "name": "module2",
+                "meta": {
+                    "id": "module2",
+                },
+                component: () =>
+                    import ('../views/home/project/module/Module.vue'),
+            },
+            {
+                "path": "/module/:pid/:id/:type/:algorithms",
+                "name": "module3",
+                "meta": {
+                    "id": "module3",
+                },
+                component: () =>
+                    import ('../views/home/project/module/Module.vue'),
             },
         ]
     },
