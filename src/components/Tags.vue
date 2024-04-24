@@ -55,58 +55,35 @@ const goToPath = (path) => {
   router.push({ path });
 };
 onMounted(() => {
-  //console.log("onMounted tags");
-  //页面初始化时，vuex没有值，则这里使用默认的路由当做第一个tag页
-  //if (store.state.TagArrs.length == 0) {
   if (tagsStore.TagArrs.length == 0) {
     var path = curRouteObj.path;
+    console.log("tags path", path, path.length);
     var pathArrays = path.split("/");
-    var funcUrl = "/" + pathArrays[1];
+    console.log("tags path", path, pathArrays.length);
+    //var funcUrl = "/" + pathArrays[1];
     let curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
-    var objFunc = curFuncList.find((obj) => obj.funcUrl == funcUrl);
-    let id = objFunc.id;
-    let name = objFunc.funcName;
-    let addPath = objFunc.funcUrl;
-    if (objFunc?.funcLevelId > 2) {
-      if (pathArrays.length == 4) {
-        let pId = "";
-        let urlPath = "";
-        if (objFunc?.funcLevelId == 3) {
-          urlPath = path;
-        } else if (objFunc?.funcLevelId == 4) {
-          pId = pathArrays[2];
-          let parentObj = curFuncList.find((l) => l.id == pId);
-          urlPath = `${parentObj.funcUrl}/${parentObj.funcParentId}/${parentObj.id}`;
-          name = parentObj.funcName;
-          id = pId;
-        } else if (objFunc?.funcLevelId == 5) {
-          pId = pathArrays[2];
-          let pObj = curFuncList.find((obj) => obj.id == pId);
-          let ppObj = curFuncList.find((obj) => obj.id == pObj.funcParentId);
-          id = ppObj.id;
-          urlPath = `${ppObj.funcUrl}/${ppObj.funcParentId}/${ppObj.id}`;
-          name = ppObj.funcName;
-        }
-
-        let model = {
-          id,
-          path: urlPath,
-          name,
-          effect: "dark",
-        };
-        //store.commit("AddTag", model);
-        tagsStore.AddTag(model);
-      }
-    } else {
-      let info = {
-        id: id,
-        path: addPath,
-        name: name,
-        effect: "dark",
-      };
-      //store.commit("AddTag", info);
-      tagsStore.AddTag(info);
+    let id = 0;
+    let name = "";
+    let addPath = "";
+    if (pathArrays.length == 2) {
+      var objFunc = curFuncList.find((obj) => obj.funcUrl == path);
+      id = objFunc.id;
+      name = objFunc.funcName;
+      addPath = objFunc.funcUrl;
+    } else if (pathArrays.length >= 4) {
+      //pId = pathArrays[2];
+      id = pathArrays[3];
+      let cObj = curFuncList.find((l) => l.id == id);
+      addPath = cObj.funcUrl;
+      name = cObj.funcName;
     }
+    let info = {
+      id: id,
+      path: addPath,
+      name: name,
+      effect: "dark",
+    };
+    tagsStore.AddTag(info);
   }
 });
 </script>
