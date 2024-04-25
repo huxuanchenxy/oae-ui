@@ -52,11 +52,11 @@
     title=""
     width="500"
   >
-    <el-form :model="newAlgorithm">
-      <el-form-item label="算法名称">
+    <el-form :model="newAlgorithm" :rules="rules" status-icon ref="ruleFormRef" class="demo-ruleForm">
+      <el-form-item label="算法名称" prop="text">
         <el-input v-model="newAlgorithm.text"  placeholder="请输入"/>
       </el-form-item>
-      <el-form-item label="语言类型">
+      <el-form-item label="语言类型" prop="type">
         <el-select v-model="newAlgorithm.type" placeholder="请选择">
           <el-option
             v-for="item in codeLanguage"
@@ -70,7 +70,7 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="onSubmit">确定</el-button>
+        <el-button type="primary" @click="onSubmit(ruleFormRef)">确定</el-button>
       </div>
     </template>
   </el-dialog>
@@ -82,7 +82,7 @@
 import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
-import { getCurrentObj } from "@/utils/cache/inter";
+// import { getCurrentObj } from "@/utils/cache/inter";
 import  cache  from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 const tagsStore = pagetagsStore();
@@ -93,6 +93,20 @@ let popStatus = ref(false);
 let dialogVisible = ref(false);
 let currentData = reactive({funcLevelId: 0});
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)))
+const ruleFormRef = ref();
+const rules = reactive({
+  text: [
+    { required: true, message: '算法名称不能为空', trigger: 'blur' },
+    // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
+  ],
+  type: [
+    {
+      required: true,
+      message: '语言类型必选',
+      trigger: 'change',
+    },
+  ]
+})
 const dyStyle = reactive({
   rightPop: {
     position: "absolute",
@@ -256,13 +270,22 @@ const showContextMenu = (e, data, node, n) => {
   }
 };
 
-const onSubmit = () => {
-  dialogVisible.value = false;
-  // let cacheJson = cache.local.getJSON('json');
-  // getCurrentObj
-  console.log(route)
-  console.log(newAlgorithm)
+const onSubmit = async (formEl) => {
+  console.log(formEl)
+  if (!formEl) return
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      dialogVisible.value = false;
+      let cacheJson = cache.local.getJSON('json');
+      // 暂时先默认从第一个模块里读写数据
+      cacheJson[0].algorithms.push(newAlgorithm)
+      cache.local.setJSON('json',cacheJson);
+    } else {
+      // console.log('error submit!', fields)
+    }
+  })
 }
+
 onMounted(() => {
   // sysApi.getFuncList().then((res) => {
   //  console.log("sysApi--2", res);

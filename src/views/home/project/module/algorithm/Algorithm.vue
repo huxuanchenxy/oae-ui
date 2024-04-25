@@ -137,6 +137,7 @@ function initEditor () {
   // 暂时这样取，目前暂定为.模块名的方式获取
   let cacheJson = cache.local.getJSON('json');
   let vals = cacheJson[0].interface;
+  // console.log(vals)
   let tokenizerRoot = [];
   if (vals.inputs.length > 0) {
     tokenizerRoot.push([initRegRule(vals.inputs), {token: 'inputs'}]);
@@ -150,7 +151,7 @@ function initEditor () {
   if (vals.temps.length > 0) {
     tokenizerRoot.push([initRegRule(vals.temps), {token: 'temps'}]);
   }
-  // console.log(tokenizerRoot);
+  console.log(tokenizerRoot);
   // let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
   monaco.languages.setMonarchTokensProvider('st', {
     // ignoreCase: true, // 忽略大小写
@@ -169,7 +170,7 @@ function initEditor () {
     // 设置初始代码值
     value: '',
     // 设置语言为自定义语言
-    language: 'st',
+    language: 'ST',
     theme: 'myTheme', //官方自带三种主题vs, hc-black, or vs-dark
     // suggest: {
     //   preview: true
@@ -191,7 +192,7 @@ function initEditor () {
     suggestions: true,
     snippetSuggestions: 'top'
   })
-  let tmp = getAlgorithmByKey(finalResultFormat.value.key, cacheJson[0].algorithms);
+  let tmp = getAlgorithmByKey(finalResultFormat.key, cacheJson[0].algorithms);
   monacoEditor.setValue(tmp.content);
   tmp = cache.local.getJSON('monaco_cursor_pos')
   if (tmp) {
@@ -250,7 +251,7 @@ const saveCache = () => {
   // 新建时直接插入json内，这里只判定编辑修改
   let tmp = cache.local.getJSON('json');
   for (let item of tmp[0].algorithms) {
-    if (item.key === finalResultFormat.value.key) {
+    if (item.key === finalResultFormat.key) {
       item.content = monacoEditor.getValue();
       break;
     }
