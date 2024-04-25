@@ -1,39 +1,38 @@
 //参数加上项目和模块以提高查找效率
 import  cache  from "@/plugins/cache.ts";
 import {getCurrentObj,changeData}  from "@/utils/cache/common";
-//通过edgeKey得到localstorage连接线的列表
-const listEdges=(project,module)=>{
+const listStates=(project,module)=>{
     let rlt=getCurrentObj(project,module);
-    return rlt.ecc.linkDataArray;
+    return rlt.ecc.nodeDataArray;
 }
 //通过edgeKey得到localstorage得到当前连接线
-export const getOneEdge=(project,module,id)=>{
+export const getOneState=(project,module,id)=>{
     let rlt=getCurrentObj(project,module);
-    let edges=rlt.ecc.linkDataArray;
-    return edges?.find((data)=>data.key==id);
+    let states=rlt.ecc.nodeDataArray;
+    return states?.find((data)=>data.key==id);
 }
 //增加或修改localstorage里edgeKey的其中一个连接线
-export const saveOrUpdateEdge=(project,module,data)=>{
+export const saveOrUpdateState=(project,module,data)=>{
     let rlt=getCurrentObj(project,module);
-    let edges=listEdges(project,module);
-    if(edges){
-        edges= edges.filter(
+    let states=listStates(project,module);
+    if(states){
+        states= states.filter(
             (x) => !(x.key == data.key)
         );
     }else{
-        edges=new Array();
+        states=new Array();
     }
-    edges.push(data);
-    rlt.ecc.linkDataArray=edges;
+    states.push(data);
+    rlt.ecc.nodeDataArray=states;
     changeData(project,module,rlt)
 }
 //删除localstorage里edgeKey的其中一个连接线
-export const removeEdge=(project,module,id)=> {
+export const removeState=(project,module,id)=> {
     let rlt=getCurrentObj(project,module);
-    let edges=listEdges(project, module);
-    edges= edges.filter(
+    let states=listStates(project, module);
+    states= states.filter(
         (x) => !(x.key == id)
     );
-    rlt.ecc.linkDataArray=edges;
+    rlt.ecc.nodeDataArray=states;
     changeData(project,module,rlt)
 }

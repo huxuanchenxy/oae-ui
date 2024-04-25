@@ -104,19 +104,22 @@
 </template>
 
 <script setup lang="ts">
-import G6 from "@antv/g6";
+import G6, {IEdge, INode} from "@antv/g6";
 import { v4 as uuidv4 } from 'uuid';
 import { pagetagsStore } from "@/store/pageTags.js";
 import  cache  from "@/plugins/cache.ts";
 import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/ecc/edge/type';
 import type { CanvasForm,CanvasQuery,CanvasVO} from '@/api/ecc/canvas/type';
+import type { Alg} from '@/api/alg/type';
 import { Eve } from "@/api/inter/event/types";
 import {getRelateEveList} from "@/api/inter/event";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
+import type { StateForm,StateVO} from '@/api/ecc/state/type';
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
-let currentAlgAndEventList=ref<Eve[]>([]);
+let stateList=ref<StateForm[]>([]);
+let currentState:StateVO=ref(null);
 //初始值
 const initEdgeFormData:EdgeForm = {
   from:'',
@@ -177,7 +180,6 @@ const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
-
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -328,8 +330,9 @@ const addAlgAndEventNode=(e)=>{
   const edgesSize=item.get('edges').length;
   //item.getModel()是获取元素的数据模型。
   const comboId = item.getModel().comboId;
-  const algNodeId=prefAlg+uuidv4();
-  const eveNodeId=prefEvent+uuidv4();
+  let uuid=uuidv4();
+  const algNodeId=prefAlg+uuid;
+  const eveNodeId=prefEvent+uuid;
   let canvasY=e.canvasY;
   //算法的x和最上面一行的算法X对齐，所以需要得到上面的算法node
   const algNodeFirstLine=graph.findById(prefAlg+stateId.substring(5,stateId.length));
@@ -379,17 +382,53 @@ onMounted(() => {
 const getCurrentCanvas=()=>{
   currentCanvas.value= getCanvas(project,module);
 }
+//初始化图形
 const initGraphData=()=>{
     let graphJson=cache.local.getJSON(graphCacheKey);
     if(graphJson){
-      return graphJson;
+      stateList=new Array();
+      //从数据中得到状态机列表放进stateList里。
+      let nodes:INode[]=graphJson.nodes;
+      let edges:IEdge[]=graphJson.edges;
+      //找到所有状态机
+      let stateNodes:INode[]=nodes.filter((data)=>data.id.startsWith(prefState));
+      stateNodes.forEach((stateNode)=>{
+          let state:StateForm={};
+          state.key=stateNode.id;
+          state.text=stateNode.label;
+          state.algorithm=new Array();
+          state.output_event=new Array();
+          //遍历连线，找到source为本state的ID，并且target为算法的，输出的ID和算法相同，只是前缀不同
+          edges.forEach((edgeNode)=>{
+              //如果找到了
+              if(edgeNode.source==stateNode.id&&edgeNode.target.startsWith(prefAlg)){
+                  let algId=edgeNode.target;
+
+                  let eventId=prefEvent+algId.substring(prefAlg.length,algId.length)
+                  //从node找出该targeid对应的item,就是这个状态机连上的算法，在通过该ID做相应处理后找出对应的输出事件
+                  let algNode:INode=nodes.find((data)=>data.id==algId);
+                  let eventNode:INode=nodes.find((data)=>data.id==eventId);
+                //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
+                  if(algNode&&eventNode){
+                      let alg:Alg={key:algNode.id,text:edgeNode.label};
+                      let eve:Eve={id:eventNode.id,name:eventNode.label};
+                      state.algorithm.push(alg);
+                      state.output_event.push(eve);
+                  }
+              }
+          })
+          stateList.push(state);
+      })
     }else{
-      return  {
+      //如果不存在数据，就用初始数据
+      graphJson=  {
         nodes: [
           { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
         ]
       };
     }
+  //返回图形数据
+    return graphJson;
 }
 const addCombo=(stateNodeX,stateNodey)=>{
   const nodeId=uuidv4();
