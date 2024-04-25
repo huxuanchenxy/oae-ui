@@ -62,6 +62,12 @@
         <el-form-item prop="key" v-if="false" >
           <el-input v-model="edgeForm.key" />
         </el-form-item>
+        <el-form-item prop="from" v-if="false" >
+          <el-input v-model="edgeForm.from" />
+        </el-form-item>
+        <el-form-item prop="to" v-if="false" >
+          <el-input v-model="edgeForm.to" />
+        </el-form-item>
         <el-form-item label="名称" prop="text">
           <el-input v-model="edgeForm.text" placeholder="请输入名称" />
         </el-form-item>
@@ -110,11 +116,14 @@ import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
+let currentAlgAndEventList=ref<Eve[]>([]);
 //初始值
 const initEdgeFormData:EdgeForm = {
+  from:'',
+  to:'',
   key:'',
   text:'',
-  relatedEvents:{},
+  event_condition:{},
   priority:'',
   guard_condition:'',
   comment:''
@@ -260,7 +269,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     const { item } = evt;
     graph.setItemState(item, 'selected', true);
     showProp.value=3;
-    getEdgesById(item.get("id"));
+    getEdgesById({id:item.get("id"),from:item.getSource().get("id"),to:item.getTarget().get("id")});
   });
   graph.on('aftercreateedge', (e) => {
     const edges = graph.save().edges;
@@ -429,7 +438,6 @@ const addCombo=(stateNodeX,stateNodey)=>{
   const comboConfig={
     id:comboId,
     type:'rect',
-    label:"combotest",
     allowZoom: true, // 允许 Combo 跟随缩放
     allowDrag: true, // 允许 Combo 跟随平移
   }
@@ -468,7 +476,7 @@ const submitEdgeForm = () => {
       data.relateEveName=dict.name;
     }
   });
-  data.relatedEvents=eventVo;
+  data.event_condition=eventVo;
   //保存大JSON里 todo
   //保存连线
   console.log(111,data)
@@ -486,11 +494,13 @@ const submitEdgeForm = () => {
   dialogEdge.visible = false;
 }
 //拿到当前连接线赋给currentEdge
-const getEdgesById=(id)=>{
-  currentEdge.value=getOneEdge(project,module,id);
+const getEdgesById=(data)=>{
+  currentEdge.value=getOneEdge(project,module,data.id);
   if(!currentEdge.value){
     currentEdge.value=initEdgeFormData;
     currentEdge.value.key=id;
+    currentEdge.value.from=data.from;
+    currentEdge.value.to=data.to;
   }
 }
 const handleUpdateCanvas=()=>{
