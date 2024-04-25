@@ -6,15 +6,12 @@ export const cacheKey="json";
 export const getCurrentObj=(project,module)=>{
     let jsonAll=getJsonAll(project,module);
     let rlt= jsonAll.find(
-        (x) => x.project == project&&x.name==module
+        (x) => x.project == project&&x.id==module
     );
     if(!rlt){
         //如果缓存里找不到对应模块数据，也用初始数据
         return getInitData(project,module);
     }
-    // oldJson=oldJson.filter(
-    //     (x) => !(x.project == project&&x.name==module)
-    // );
     return rlt;
 }
 export const getJsonAll=(project,module)=>{
@@ -28,7 +25,13 @@ export const getJsonAll=(project,module)=>{
 }
 export const removeCurrentModule=(data,project,module)=>{
     data= data.filter(
-        (x) => !(x.project == project&&x.name==module)
+        (x) => !(x.project == project&&x.id==module)
     );
     return data;
+}
+export const changeData=(project,module,moduleJson)=>{
+    let jsonAll=getJsonAll(project,module);//拿出全部
+    jsonAll=removeCurrentModule(jsonAll,project,module);//移除当前模块
+    jsonAll.push(moduleJson);//再把模块新JSON加进去
+    cache.local.setJSON(cacheKey,jsonAll);
 }

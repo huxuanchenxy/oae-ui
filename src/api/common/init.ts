@@ -6,7 +6,7 @@ const outputs_key=uuidv4();
 const internals_key=uuidv4();
 const temp_key=uuidv4();
 const project="project1";
-const rlt= [
+let rlt=
   {
     project: project,
     namespace: "Light",
@@ -112,44 +112,7 @@ const rlt= [
       ],
     },
     ecc: {
-      linkDataArray: [
-        {
-          from: "3",
-          to: "1",
-          event_condition: "1",
-          priority: 1,
-          guard_condition: "",
-          comment: "",
-        },
-        {
-          from: "1",
-          to: "3",
-          event_condition: "12e4d89f-1711-4ba6-a21d-c5a2cebb2547",
-          priority: 1,
-          guard_condition: "",
-          comment: "",
-        },
-      ],
-      nodeDataArray: [
-        {
-          key: "1",
-          text: "START",
-          comment: "",
-          loc: "-184 -33.999969482421875",
-        },
-        {
-          key: "3",
-          text: "INIT",
-          comment: "",
-          table: [
-            {
-              algorithm: "cafe10f0-951a-4c24-b5bf-15d7b78cf4a2",
-              output_event: "cd5a4d2e-d47b-44f4-996c-5f66dfe5d508",
-            },
-          ],
-          loc: "-219 205.99996948242188",
-        },
-      ],
+
     },
     panel: {
       children: null,
@@ -182,17 +145,18 @@ const rlt= [
         ],
       },
     ],
-    id: "09c98578-4b43-4c45-b29e-8abb8799f360",
     dynamic: false,
     lock: false,
     updated_time: 1710213247000,
-  },
-];
+    id:''
+  };
+let rltArr=new Array();
 export const getInitData=(project:string,module:string)=>{
-    rlt[0].name=module;
-    return rlt[0];
+    rlt.id=module;
+    return rlt;
 }
 export const getInitArr=(project:string,module:string)=>{
-  rlt[0].name=module;
-  return rlt;
+  rlt.id=module;
+  rltArr.push(rlt)
+  return rltArr;
 }
