@@ -112,44 +112,7 @@ let rlt=
       ],
     },
     ecc: {
-      linkDataArray: [
-        {
-          from: "3",
-          to: "1",
-          event_condition: "1",
-          priority: 1,
-          guard_condition: "",
-          comment: "",
-        },
-        {
-          from: "1",
-          to: "3",
-          event_condition: "12e4d89f-1711-4ba6-a21d-c5a2cebb2547",
-          priority: 1,
-          guard_condition: "",
-          comment: "",
-        },
-      ],
-      nodeDataArray: [
-        {
-          key: "1",
-          text: "START",
-          comment: "",
-          loc: "-184 -33.999969482421875",
-        },
-        {
-          key: "3",
-          text: "INIT",
-          comment: "",
-          table: [
-            {
-              algorithm: "cafe10f0-951a-4c24-b5bf-15d7b78cf4a2",
-              output_event: "cd5a4d2e-d47b-44f4-996c-5f66dfe5d508",
-            },
-          ],
-          loc: "-219 205.99996948242188",
-        },
-      ],
+
     },
     panel: {
       children: null,

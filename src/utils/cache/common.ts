@@ -29,3 +29,9 @@ export const removeCurrentModule=(data,project,module)=>{
     );
     return data;
 }
+export const changeData=(project,module,moduleJson)=>{
+    let jsonAll=getJsonAll(project,module);//拿出全部
+    jsonAll=removeCurrentModule(jsonAll,project,module);//移除当前模块
+    jsonAll.push(moduleJson);//再把模块新JSON加进去
+    cache.local.setJSON(cacheKey,jsonAll);
+}

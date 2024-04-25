@@ -121,7 +121,6 @@ let currentAlgAndEventList=ref<Eve[]>([]);
 const initEdgeFormData:EdgeForm = {
   from:'',
   to:'',
-  key:'',
   text:'',
   event_condition:{},
   priority:'',
@@ -482,6 +481,7 @@ const submitEdgeForm = () => {
   saveOrUpdateEdge(project,module,data);
   //详情双向绑定
   currentEdge.value=data
+  console.log(data)
   //antv回显
   let edge=graph.findById(data.key)
   if(edge){
@@ -497,7 +497,7 @@ const getEdgesById=(data)=>{
   currentEdge.value=getOneEdge(project,module,data.id);
   if(!currentEdge.value){
     currentEdge.value=initEdgeFormData;
-    currentEdge.value.key=id;
+    currentEdge.value.key=data.id;
     currentEdge.value.from=data.from;
     currentEdge.value.to=data.to;
   }
@@ -509,6 +509,7 @@ const handleUpdateCanvas=()=>{
 }
 //从currentEdge赋值给form回显
 const handleUpdateEdge=()=>{
+  resetEdgeForm();
   let id=edgeForm.value.key;
   if(currentEdge.value){
     Object.assign(edgeForm.value,currentEdge.value);
