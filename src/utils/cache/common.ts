@@ -19,7 +19,6 @@ export const getJsonAll=(project,module)=>{
     //如果连缓存都没有，直接return初始数据
     if(!jsonAll){
         let initArr= getInitArr(project,module);
-        console.log(1111,initArr)
         return initArr;
     }
     return jsonAll;

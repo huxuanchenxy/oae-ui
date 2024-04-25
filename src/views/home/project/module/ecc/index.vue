@@ -479,7 +479,6 @@ const submitEdgeForm = () => {
   data.event_condition=eventVo;
   //保存大JSON里 todo
   //保存连线
-  console.log(111,data)
   saveOrUpdateEdge(project,module,data);
   //详情双向绑定
   currentEdge.value=data

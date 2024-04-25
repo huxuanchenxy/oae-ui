@@ -1,6 +1,6 @@
 //参数加上项目和模块以提高查找效率
 import  cache  from "@/plugins/cache.ts";
-import {removeCurrentModule}  from "@/utils/cache/common";
+import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
 const seperator="-";
 const key="canvas";
 const getCacheKey=(project,module)=>{

@@ -164,16 +164,6 @@ function goBack() {
 const cacheKey = "json";
 //location.reload();
 onMounted(() => {
-  // let jsonData=cache.local.getJSON(cacheKey);
-  // if(!jsonData){
-  //   jsonData=getInitData();
-  // }
-  // cache.local.setJSON("json", jsonData); //后续从数据库中读取
-  let jsonData = cache.local.getJSON(cacheKey);
-  if (!jsonData) {
-    jsonData = getInitData();
-  }
-  cache.local.setJSON("json", jsonData); //后续从数据库中读取
   // location.reload();
   // router.push("/rolelist");
   // if (window.location.href.indexOf("#reloaded") == -1) {

@@ -32,7 +32,7 @@
 
 <script setup>
 import Algorithm from "@/views/home/project/module/algorithm/Algorithm.vue";
-import Ecc from "@/views/home/project/module/ecc/Ecc.vue";
+import Ecc from "@/views/home/project/module/ecc/index.vue";
 import Cusinterface from "@/views/home/project/module/cusinterface/index.vue";
 //import TagsModule from "@/components/TagsModule.vue";
 const route = useRoute();
