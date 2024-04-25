@@ -26,7 +26,12 @@
         :props="defaultProps"
         @node-click="handleNodeClick"
         @node-contextmenu="showContextMenu"
-      />
+      >
+      <template #default="{ node, data }">
+        <el-input v-model="data.funcName" autofocus v-if="data.isEdit" style="height: 26px;" @keyup.enter="saveName(data)"></el-input>
+        <span v-else>{{data.funcName}}</span>
+      </template>
+    </el-tree>
     </div>
   </el-aside>
   <div
@@ -37,14 +42,16 @@
     <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 2 || currentData.funcName === '算法'">
       <el-link type="primary" @click="dialogVisible = true">新建</el-link>
     </div>
-    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
-      <el-link type="primary" @click="handleNodeClick(currentData)">打开</el-link>
-    </div>
-    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
-      <el-link type="primary">删除</el-link>
-    </div>
-    <div style="text-align: center; padding: 10px" v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
-      <el-link type="primary">重命名</el-link>
+    <div v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5">
+      <div style="text-align: center; padding: 10px">
+        <el-link type="primary" @click="handleNodeClick(currentData)">打开</el-link>
+      </div>
+      <div style="text-align: center; padding: 10px">
+        <el-link type="primary" @click="delAlgorithm(currentData)">删除</el-link>
+      </div>
+      <div style="text-align: center; padding: 10px">
+        <el-link type="primary" @click="renameAlgorithm(currentData)">重命名</el-link>
+      </div>
     </div>
   </div>
   <el-dialog
@@ -82,6 +89,7 @@
 import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
+import { ElNotification } from 'element-plus'
 // import { getCurrentObj } from "@/utils/cache/inter";
 import  cache  from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
@@ -92,11 +100,24 @@ const tagsStore = pagetagsStore();
 let popStatus = ref(false);
 let dialogVisible = ref(false);
 let currentData = reactive({funcLevelId: 0});
-let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)))
+let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
+const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
+
+const validateName = (rule, value, callback) => {
+  if (!reg.test(value)) {
+    callback(new Error('使用字母数字和下划线,首个字符必须是字母'))
+  } else {
+    let cacheJson = cache.local.getJSON('json');
+    let tmp = cacheJson[0].algorithms.filter((item) => {return item.text === value})
+    if (!tmp) callback()
+    else callback(new Error('同一个模块中算法名称不可重复'))
+  }
+}
 const rules = reactive({
   text: [
     { required: true, message: '算法名称不能为空', trigger: 'blur' },
+    { validator: validateName, trigger: 'blur' }
     // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
   ],
   type: [
@@ -107,6 +128,7 @@ const rules = reactive({
     },
   ]
 })
+
 const dyStyle = reactive({
   rightPop: {
     position: "absolute",
@@ -271,21 +293,57 @@ const showContextMenu = (e, data, node, n) => {
 };
 
 const onSubmit = async (formEl) => {
-  console.log(formEl)
   if (!formEl) return
   await formEl.validate((valid, fields) => {
     if (valid) {
       dialogVisible.value = false;
       let cacheJson = cache.local.getJSON('json');
       // 暂时先默认从第一个模块里读写数据
-      cacheJson[0].algorithms.push(newAlgorithm)
-      cache.local.setJSON('json',cacheJson);
+      // cacheJson[0].algorithms.push(newAlgorithm)
+      // cache.local.setJSON('json',cacheJson);
+      console.log(newAlgorithm)
     } else {
       // console.log('error submit!', fields)
     }
   })
 }
 
+const delAlgorithm = (data) => {
+  // 暂时不作关联判断
+  let cacheJson = cache.local.getJSON('json');
+  cacheJson[0].algorithms = cacheJson[0].algorithms.filter((item) => {return item.text !== data.funcName})
+  // cache.local.setJSON('json',cacheJson);
+  popStatus.value = false;
+  console.log(cacheJson[0].algorithms)
+}
+
+const renameAlgorithm = (data) => {
+  data.isEdit = true
+  popStatus.value = false;
+  // 临时保留老名字
+  data.oldFuncName = data.funcName;
+}
+const saveName = (data) => {
+  if (data.funcName === data.oldFuncName) return;
+  if (!reg.test(data.funcName)) {
+    ElNotification({
+      title: '算法'+data.oldFuncName+'重命名错误',
+      message: "使用字母数字和下划线,首个字符必须是字母",
+      position: 'bottom-left',
+      type: 'error'
+    })
+  } else {
+    let cacheJson = cache.local.getJSON('json');
+    for (let item of cacheJson[0].algorithms) {
+      if (item.text === data.oldFuncName) {
+        item.text = data.funcName;
+        break;
+      }
+    }
+    // console.log(cacheJson[0].algorithms)
+  }
+  // console.log(data)
+}
 onMounted(() => {
   // sysApi.getFuncList().then((res) => {
   //  console.log("sysApi--2", res);
