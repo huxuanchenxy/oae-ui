@@ -170,7 +170,7 @@ function initEditor () {
     // 设置初始代码值
     value: '',
     // 设置语言为自定义语言
-    language: 'ST',
+    language: 'st',
     theme: 'myTheme', //官方自带三种主题vs, hc-black, or vs-dark
     // suggest: {
     //   preview: true

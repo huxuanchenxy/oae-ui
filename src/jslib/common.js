@@ -49,10 +49,10 @@ let keyMd5 = ")(*@wsxqaz!anglar"
 let pageSize = 10;
 const codeLanguage = [{
     label: 'st',
-    value: 'ST',
+    value: 'st',
 },{
     label: 'c++',
-    value: 'CPP'
+    value: 'cpp'
 }]
 export {
     keyMd5,
