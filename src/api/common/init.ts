@@ -6,7 +6,7 @@ const outputs_key=uuidv4();
 const internals_key=uuidv4();
 const temp_key=uuidv4();
 const project="project1";
-const rlt= [
+let rlt=
   {
     project: project,
     namespace: "Light",
@@ -182,17 +182,19 @@ const rlt= [
         ],
       },
     ],
-    id: "09c98578-4b43-4c45-b29e-8abb8799f360",
     dynamic: false,
     lock: false,
     updated_time: 1710213247000,
-  },
-];
+    id:''
+  };
+let rltArr=new Array();
 export const getInitData=(project:string,module:string)=>{
-    rlt[0].name=module;
-    return rlt[0];
+    rlt.id=module;
+    return rlt;
 }
 export const getInitArr=(project:string,module:string)=>{
-  rlt[0].name=module;
-  return rlt;
+  rlt.id=module;
+  console.log("rltarr",rlt)
+  rltArr.push(rlt)
+  return rltArr;
 }
