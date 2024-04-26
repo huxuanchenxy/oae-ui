@@ -124,10 +124,10 @@ import { Eve } from "@/api/inter/event/types";
 import {getRelateEveList} from "@/api/inter/event";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
+import {listStates,saveOrUpdateState,getOneState} from "@/api/ecc/state";
 import type { StateMachine,StateForm,StateVO} from '@/api/ecc/state/type';
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
-let stateList:StateForm[]=new Array();
 let currentState:StateVO=ref(null);
 //初始值
 const initEdgeFormData:EdgeForm = {
@@ -308,15 +308,16 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     if(id.startsWith(prefState)){
       showProp.value=2;
       //设置被选中的状态机
-      let state:StateMachine=stateList.find((x)=>x.key==id);
+      let state:StateMachine=getOneState(project,module,id);
       currentState.value={...state}
       let algAndEvents=state.algAndEvent;
       if(!currentState.value.algAndEventName){
         currentState.value.algAndEventName=new Array();
       }
-      algAndEvents.forEach((algAndEvent)=>{
+      algAndEvents?.forEach((algAndEvent)=>{
         currentState.value.algAndEventName.push({alg:algAndEvent.alg.text,event:algAndEvent.event.name})
       })
+      console.log(currentState.value)
     }else{
       //如果节点不是状态机，那就算画布
       showProp.value=1
@@ -388,9 +389,11 @@ const addAlgAndEventNode=(item,canvasY)=>{
   const algNodeX=algNodeFirstLine.getModel().x
   //根据连线数量来确定canvasX，公式为初始 y=e的Y+连线数量*（algGraphSize的高度+nodeVertiPadding）
   const algNodeY=canvasY+getStateConditionNumber(stateId)*(algGraphSize[1]+nodeVertiPadding);
+  const algLabel='算法';
+  const eveLabel='输出';
   const algNode={
     id:algNodeId,
-    label: '算法',
+    label: algLabel,
     x: algNodeX,
     y: algNodeY,
     size:algEveSize,
@@ -399,7 +402,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
   //事件的初始距离为算法的x+算法的长度,y是和左边的算法一致
   const eveNode={
     id:eveNodeId,
-    label: '输出',
+    label: eveLabel,
     x: algNodeX+algGraphSize[0],
     y: algNodeY,
     size:algEveSize,
@@ -418,6 +421,28 @@ const addAlgAndEventNode=(item,canvasY)=>{
   graph.addItem('node', eveNode);
   graph.addItem('edge',stateToAlgEdge)
   saveDataToServer()
+  if(!currentState.value.algAndEvent){
+    currentState.value.algAndEvent=new Array();
+  }
+  currentState.value.algAndEventName.push({alg:algLabel,event:eveLabel})
+  //大JSON更新
+  let state:StateMachine=getOneState(project,module,stateId);
+  let algAndEvents=state.algAndEvent;
+  if(!algAndEvents){
+    algAndEvents=new Array();
+  }
+  algAndEvents.push({ alg: {key:algNode.id,text:algNode.label},event: {id:eveNode.id,name:eveNode.label} });
+  let algorithm=state.algorithm;
+  if(!algorithm){
+    algorithm=new Array();
+  }
+  algorithm.push({ key: algNode.id,text: algNode.label });
+  let output_event=state.output_event;
+  if(!output_event){
+    output_event=new Array();
+  }
+  output_event.push({ key: eveNode.id,text: eveNode.label });
+  saveOrUpdateState(project,module,state);
 }
 onMounted(() => {
   //得到事件列表
@@ -434,6 +459,7 @@ const getCurrentCanvas=()=>{
 }
 //初始化图形
 const initGraphData=()=>{
+    let stateList:StateForm[]=new Array();
     let graphJson=cache.local.getJSON(graphCacheKey);
     if(graphJson){
       stateList=new Array();
@@ -471,6 +497,7 @@ const initGraphData=()=>{
           })
           stateList.push(state);
       })
+      saveOrUpdateState(project,module,stateList);
     }else{
       //如果不存在数据，就用初始数据
       graphJson=  {
@@ -482,18 +509,21 @@ const initGraphData=()=>{
   //返回图形数据
     return graphJson;
 }
-const addCombo=(stateNodeX,stateNodey)=>{
+const addCombo=(stateNodeX,stateNodeY)=>{
   const nodeId=uuidv4();
   const comboId=prefCombo+nodeId;
   const stateNodeId=prefState+nodeId;
   const algNodeId=prefAlg+nodeId;
   const eveNodeId=prefEvent+nodeId;
+  const stateLabel='状态机';
+  const algLabel='算法';
+  const eveLabel='输出';
   //初始距离是50,状态机的坐标永远是50,50
   const stateNode = {
     id:stateNodeId,
-    label: '状态机',
+    label: stateLabel,
     x: stateNodeX,
-    y: stateNodey,
+    y: stateNodeY,
     size:algEveSize,
     comboId:comboId
   };
@@ -501,18 +531,18 @@ const addCombo=(stateNodeX,stateNodey)=>{
   const algNodeX=stateNodeX+stateGraphSize[0]+lineWidth
   const algNode={
     id:algNodeId,
-    label: '算法',
+    label: algLabel,
     x: algNodeX,
-    y: stateNodey,
+    y: stateNodeY,
     size:algEveSize,
     comboId:comboId
   }
   //事件的初始距离为算法的x+算法的长度
   const eveNode={
     id:eveNodeId,
-    label: '输出',
+    label: eveLabel,
     x: algNodeX+algGraphSize[0],
-    y: stateNodey,
+    y: stateNodeY,
     size:algEveSize,
     comboId:comboId
   }
@@ -536,6 +566,17 @@ const addCombo=(stateNodeX,stateNodey)=>{
   graph.addItem('node', algNode);
   graph.addItem('node', eveNode);
   graph.addItem('edge',stateToAlgEdge)
+  //保存大JSON
+  saveOrUpdateState(project,module,{
+    key:stateNodeId,
+    text:stateLabel,
+    x:stateNodeX,
+    y:stateNodeY,
+    algorithm:[{ key: algNode.id,text: algNode.label }],
+    output_event:[{ key: eveNode.id,text: eveNode.label }],
+    algAndEvent:[{ alg: {key:algNode.id,text:algNode.label},event: {id:eveNode.id,name:eveNode.label} }] ,
+    comment:''
+  });
 }
 const initLoad = () => {
   pid.value = route.params.pid;

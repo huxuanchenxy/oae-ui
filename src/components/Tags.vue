@@ -10,7 +10,7 @@
       :effect="tag.effect"
       @close="handleClose(tag)"
       @click="goToPath(tag.path)"
-      size="large"
+      size="default"
     >
       <el-link :underline="false"
         ><span :class="tag.effect == 'dark' ? 'tagName' : ''">{{
@@ -57,9 +57,9 @@ const goToPath = (path) => {
 onMounted(() => {
   if (tagsStore.TagArrs.length == 0) {
     var path = curRouteObj.path;
-    console.log("tags path", path, path.length);
+    //console.log("tags path", path, path.length);
     var pathArrays = path.split("/");
-    console.log("tags path", path, pathArrays.length);
+    //console.log("tags path", path, pathArrays.length);
     //var funcUrl = "/" + pathArrays[1];
     let curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
     let id = 0;
@@ -90,7 +90,7 @@ onMounted(() => {
 
 <style  scoped>
 #elTag {
-  margin-top: 16px;
+  margin-top: 26px;
 }
 #elTag .el-tag {
   margin-left: 5px;

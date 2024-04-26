@@ -23,7 +23,10 @@
       <!-- <router-view class="routerView"></router-view> -->
 
       <Ecc v-if="showType == 'ecc'"></Ecc>
-      <Algorithm v-if="showType == 'algorithm'" @getName="getAlgorithmName"></Algorithm>
+      <Algorithm
+        v-if="showType == 'algorithm'"
+        @getName="getAlgorithmName"
+      ></Algorithm>
       <Cusinterface v-if="showType == 'interface'"></Cusinterface>
     </div>
     <BottomContent :editableTabsValue="footTabIndex"></BottomContent>
@@ -35,6 +38,7 @@ import Algorithm from "@/views/home/project/module/algorithm/Algorithm.vue";
 import Ecc from "@/views/home/project/module/ecc/index.vue";
 import Cusinterface from "@/views/home/project/module/cusinterface/index.vue";
 //import TagsModule from "@/components/TagsModule.vue";
+import { getCurrentObj, setModuleData } from "@/utils/cache/common";
 const route = useRoute();
 const router = useRouter();
 // let path = ref("");
@@ -42,6 +46,8 @@ const router = useRouter();
 let pid = ref(0);
 let cid = ref(0);
 let showType = ref("");
+let algorithmName = ref("");
+const project = "project1";
 const tagList = ref([
   {
     name: "接口",
@@ -61,9 +67,9 @@ const tagList = ref([
 ]);
 
 const getAlgorithmName = (value) => {
-  tagList.value[1].name = '算法'+value
-  tagList.value[1].funcStatus = 'dark'
-}
+  tagList.value[1].name = "算法" + value;
+  tagList.value[1].funcStatus = "dark";
+};
 
 const goToTag = (tag) => {
   tagList.value.forEach((t) => {
@@ -77,12 +83,22 @@ const goToTag = (tag) => {
 const initLoad = () => {
   pid.value = route.params.pid;
   cid.value = route.params.id;
-
   showType.value = route.params?.type?.toLowerCase() ?? "";
+  let rlt = getCurrentObj(project, cid.value);
+  if (!rlt) {
+    setModuleData(project, cid.value);
+    rlt = getCurrentObj(project, cid.value);
+  }
+  console.log("rlt", rlt);
 };
 const footTabIndex = ref(0);
-provide("changeTabIndex",footTabIndex);
+provide("changeTabIndex", footTabIndex);
 onMounted(() => {
+  //initLoad();
+});
+
+onBeforeMount(() => {
+  //console.log("fdafasf");
   initLoad();
 });
 
