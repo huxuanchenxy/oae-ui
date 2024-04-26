@@ -66,7 +66,7 @@ const router = useRouter();
 const route = useRoute();
 const currentProject = 'project1';
 const currentModule = route.params.id;
-const currentAlgorithm = route.params.algorithms;
+let currentAlgorithm = ref(route.params.algorithms);
 const drawer = ref(false);
 let funcDB = ref();
 const emit = defineEmits(["getName"]);
@@ -125,9 +125,17 @@ const initRegRule = (val) => {
   return new RegExp(ret.slice(0,-1), 'ig');
 }
 function initEditor () {
-  emit('getName', currentAlgorithm);
+  // console.log(currentAlgorithm.value)
   let moduleJson = getCurrentObj(currentProject,currentModule)
-  let algorithm = moduleJson.algorithms.filter((item) => {return item.text === currentAlgorithm})[0]
+  let algorithm;
+  // 点模块 再点tag算法时，路由中不含当前算法名
+  if (!currentAlgorithm.value) {
+    algorithm = moduleJson.algorithms[0];
+    currentAlgorithm.value = algorithm.text;
+  } else {
+    algorithm = moduleJson.algorithms.filter((item) => {return item.text === currentAlgorithm.value})[0]
+  }
+  emit('getName', currentAlgorithm.value);
   // console.log(algorithm)
   let algorithmType = algorithm.type.toLowerCase();
   api.GetFunctions({lang: algorithmType}).then((res) => {
@@ -264,7 +272,7 @@ const saveCache = () => {
   // 新建时直接插入json内，这里只判定编辑修改
   let moduleJson = getCurrentObj(currentProject,currentModule);
   for (let item of moduleJson.algorithms) {
-    if (item.text === currentAlgorithm) {
+    if (item.text === currentAlgorithm.value) {
       item.content = monacoEditor.getValue();
       break;
     }
