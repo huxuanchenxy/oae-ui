@@ -1,7 +1,7 @@
 <template>
   <div class="ecc">
     <div class="main">
-      <div>选中节点后拖动以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
+      <div>按住shift后选中节点拖动以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
       <div id="container" style="height:1000px" ref="container"></div>
     </div>
     <div class="right">
@@ -27,9 +27,9 @@
               状态机名称 {{currentState.text}}
             </div>
             <hr/>
-            <div v-for="algAndEvent in currentState.algAndEvent">
-              <div>{{algAndEvent.alg?.text}}</div>
-              <div>{{algAndEvent.event?.name}}</div>
+            <div v-for="algAndEvent in currentState.algAndEventName">
+              <div>{{algAndEvent.alg}}</div>
+              <div>{{algAndEvent.event}}</div>
               <hr/>
             </div>
             <el-button type="success"  @click="addCondition">新增条件</el-button>
@@ -189,10 +189,11 @@ const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验�
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
 const addCondition=()=>{
-  if(!currentState.algAndEvent){
-    currentState.algAndEvent=new Array();
+  if(!currentState.value.algAndEvent){
+    currentState.value.algAndEvent=new Array();
   }
-  currentState.algAndEvent.push()
+  currentState.value.algAndEventName.push({alg:"事件",event:"输出"})
+  addAlgAndEventNodeById(currentState.value.key)
 }
 const contextMenu = new G6.Menu({
   getContent(evt) {
@@ -309,14 +310,12 @@ const initGraph=(data,graphWidth,graphHeight)=>{
       let state:StateMachine=stateList.find((x)=>x.key==id);
       currentState.value={...state}
       let algAndEvents=state.algAndEvent;
-      if(!currentState.algAndEventName){
-        currentState.algAndEventName=new Array();
+      if(!currentState.value.algAndEventName){
+        currentState.value.algAndEventName=new Array();
       }
       algAndEvents.forEach((algAndEvent)=>{
-        console.log(algAndEvent)
-        currentState.algAndEventName.push({alg:algAndEvent.alg.text,event:algAndEvent.event.text})
+        currentState.value.algAndEventName.push({alg:algAndEvent.alg.text,event:algAndEvent.event.name})
       })
-      console.log("currentState",currentState.value);
     }else{
       //如果节点不是状态机，那就算画布
       showProp.value=1
@@ -346,30 +345,48 @@ const nodeDbClick=(e) => {
   const id=item.get("id")
   //如果双击的是状态机，就添加算法和事件
   if(id.startsWith(prefState)){
-    addAlgAndEventNode(e)
+    addAlgAndEventNode(e.item,e.canvasY)
   }
   saveDataToServer()
 };
+//得到状态机的条件数量
+const getStateConditionNumber=((stateId)=>{
+  let number=0;
+  let graphJson=cache.local.getJSON(graphCacheKey);
+  let edges:IEdge[]=graphJson.edges;
+    edges.forEach((edgeNode)=>{
+      if(edgeNode.source==stateId&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
+        number++;
+      }
+    });
+    return number;
+})
+const addAlgAndEventNodeById=((id)=>{
+  let node=graph.findById(id);
+  if(!node){
+    return;
+  }
+  addAlgAndEventNode(node,node.getModel().y);
+})
 /**
  * 添加算法和事件节点
  * @param e
  */
-const addAlgAndEventNode=(e)=>{
-  const item = e.item;
+const addAlgAndEventNode=(item,canvasY)=>{
+  // const item = e.item;
   const stateId=item.get("id")
   //连线数量
-  const edgesSize=item.get('edges').length;
   //item.getModel()是获取元素的数据模型。
   const comboId = item.getModel().comboId;
   let uuid=uuidv4();
   const algNodeId=prefAlg+uuid;
   const eveNodeId=prefEvent+uuid;
-  let canvasY=e.canvasY;
+  // let canvasY=e.canvasY;
   //算法的x和最上面一行的算法X对齐，所以需要得到上面的算法node
   const algNodeFirstLine=graph.findById(prefAlg+stateId.substring(5,stateId.length));
   const algNodeX=algNodeFirstLine.getModel().x
   //根据连线数量来确定canvasX，公式为初始 y=e的Y+连线数量*（algGraphSize的高度+nodeVertiPadding）
-  const algNodeY=canvasY+edgesSize*(algGraphSize[1]+nodeVertiPadding);
+  const algNodeY=canvasY+getStateConditionNumber(stateId)*(algGraphSize[1]+nodeVertiPadding);
   const algNode={
     id:algNodeId,
     label: '算法',
@@ -399,6 +416,7 @@ const addAlgAndEventNode=(e)=>{
   graph.addItem('node', algNode);
   graph.addItem('node', eveNode);
   graph.addItem('edge',stateToAlgEdge)
+  saveDataToServer()
 }
 onMounted(() => {
   //得到事件列表
