@@ -246,6 +246,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
           {
             type: 'create-edge',
             trigger: 'drag', // 'click' by default. options: 'drag', 'click'
+            key: 'shift',
           },
         ],
     },
