@@ -9,7 +9,7 @@
       </el-col>
       <el-col :span="14"></el-col>
       <el-col :span="2"><el-button icon="FullScreen" @click="dialogVisibleTable = true">全屏显示</el-button></el-col>
-      <el-col :span="2"><el-button icon="CircleCloseFilled" @click="tableData.length = 0">全部清除</el-button></el-col>
+      <el-col :span="2"><el-button icon="CircleCloseFilled" @click="tableData.length = 0;errorNum=0;infoNum=0;">全部清除</el-button></el-col>
     </el-row>
     <el-table :data="tableData" border height="120" style="width: 97.6%;margin: 5px 10px;">
       <el-table-column type="index" index="index+1" label="序号" width="60" />

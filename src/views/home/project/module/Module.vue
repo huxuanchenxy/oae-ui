@@ -23,7 +23,7 @@
       <!-- <router-view class="routerView"></router-view> -->
 
       <Ecc v-if="showType == 'ecc'"></Ecc>
-      <Algorithm v-if="showType == 'algorithm'"></Algorithm>
+      <Algorithm v-if="showType == 'algorithm'" @getName="getAlgorithmName"></Algorithm>
       <Cusinterface v-if="showType == 'interface'"></Cusinterface>
     </div>
     <BottomContent :editableTabsValue="footTabIndex"></BottomContent>
@@ -59,6 +59,11 @@ const tagList = ref([
     funcStatus: "plain",
   },
 ]);
+
+const getAlgorithmName = (value) => {
+  tagList.value[1].name = '算法'+value
+  tagList.value[1].funcStatus = 'dark'
+}
 
 const goToTag = (tag) => {
   tagList.value.forEach((t) => {

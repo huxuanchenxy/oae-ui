@@ -1,8 +1,8 @@
 <template>
   <div class="editor-container">
     <div>
-      <el-button class="func" @click="drawer = !drawer;tabIndex=2">函数库</el-button>
-      <el-button class="func" @click="test">test</el-button>
+      <el-button class="func" @click="drawer = !drawer;">函数库</el-button>
+      <!-- <el-button class="func" @click="test">test</el-button> -->
     </div>
     <!-- 将编辑器容器绑定到 ref -->
     <div id="editor" ref="editor"></div>
@@ -21,14 +21,14 @@
         style="max-width: 180px"
         class="filter-tree"
         draggable
-        :data="tsModel"
+        :data="funcDB"
         :props="defaultProps"
         accordion
         :filter-node-method="filterNode"
         @node-drag-end="handleDragEnd"
       >
       <template #default="{ node, data }">
-        <el-tooltip v-if="data.children === undefined" :content="data['zh-hans-tip']" placement="top" effect="light">
+        <el-tooltip v-if="data.children === undefined" :content="data['desc']" placement="top" effect="light">
           <span>{{data.name}}</span>
         </el-tooltip>
         <span v-else>{{data.name}}</span>
@@ -55,15 +55,22 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import  cache  from "@/plugins/cache.ts";
 import * as monaco from 'monaco-editor'
 import { ElTree } from 'element-plus'
-import { tsModel } from "@/jslib/ts_model.js";
-import { algorithmDS } from "@/jslib/dataStructure.js";
+// import { tsModel } from "@/jslib/ts_model.js";
+import api from "@/api/commonApi";
+import { getCurrentObj, changeData } from "@/utils/cache/common";
 // import type Node from 'element-plus/es/components/tree/src/model/node'
 // import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
 const tagsStore = pagetagsStore();
 //const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const drawer = ref(false)
+const currentProject = 'project1';
+const currentModule = route.params.id;
+const currentAlgorithm = route.params.algorithms;
+const drawer = ref(false);
+let funcDB = ref();
+const emit = defineEmits(["getName"]);
+
 let pid = ref("");
 let id = ref("");
 
@@ -71,7 +78,6 @@ const editor = ref();
 let monacoEditor = ref();
 const intervalId = ref();
 let tabIndex = ref(inject('changeTabIndex'));
-let finalResultFormat = reactive(JSON.parse(JSON.stringify(algorithmDS)));
 
 const filterText = ref('');
 const treeRef = ref();
@@ -81,24 +87,25 @@ const defaultProps = {
 }
 
 const handleDragEnd = (node) => {
-  // console.log('tree drag end:', node.data)
+  // console.log('tree drag end:', node.data.content)
   // console.log(monacoEditor.getPosition());
-  insertByPos(node.data.snippet, monacoEditor.getPosition())
+  insertByPos(node.data.content, monacoEditor.getPosition())
 }
 
-function insertByPos (test, pos) {
+function insertByPos (text, pos) {
   // 2 插入
   monacoEditor.executeEdits('', [
     {
-        range: new monaco.Range(pos.lineNumber, 
-          pos.column, 
-          pos.lineNumber, 
-          pos.column),
-        text: test
+      range: new monaco.Range(pos.lineNumber, 
+      pos.column, 
+      pos.lineNumber, 
+      pos.column),
+      text: text
     }
   ])
+  pos.column = pos.column + text.length;
   // 3 设置新的光标位置
-  monacoEditor.setPosition(pos.lineNumber, pos.column + insertText.length)
+  monacoEditor.setPosition(pos)
   // 4 聚焦
   monacoEditor.focus()
 }
@@ -118,8 +125,17 @@ const initRegRule = (val) => {
   return new RegExp(ret.slice(0,-1), 'ig');
 }
 function initEditor () {
-  finalResultFormat.key = 'cafe10f0-951a-4c24-b5bf-15d7b78cf4a2';
-  finalResultFormat.type = 'ST'
+  emit('getName', currentAlgorithm);
+  let moduleJson = getCurrentObj(currentProject,currentModule)
+  let algorithm = moduleJson.algorithms.filter((item) => {return item.text === currentAlgorithm})[0]
+  // console.log(algorithm)
+  let algorithmType = algorithm.type.toLowerCase();
+  api.GetFunctions({lang: algorithmType}).then((res) => {
+    funcDB.value = res;
+    // console.log(funcDB);
+  });
+  // let algorithmType = 'st'
+  // algorithm.key = 'cafe10f0-951a-4c24-b5bf-15d7b78cf4a2';
   monaco.editor.defineTheme('myTheme', {
     base: 'vs',
     rules: [
@@ -134,10 +150,7 @@ function initEditor () {
     // 必须有否则无法生效
     colors: {}
   });
-  // 暂时这样取，目前暂定为.模块名的方式获取
-  let cacheJson = cache.local.getJSON('json');
-  let vals = cacheJson[0].interface;
-  // console.log(vals)
+  let vals = moduleJson.interface;
   let tokenizerRoot = [];
   if (vals.inputs.length > 0) {
     tokenizerRoot.push([initRegRule(vals.inputs), {token: 'inputs'}]);
@@ -151,9 +164,9 @@ function initEditor () {
   if (vals.temps.length > 0) {
     tokenizerRoot.push([initRegRule(vals.temps), {token: 'temps'}]);
   }
-  console.log(tokenizerRoot);
+  // console.log(tokenizerRoot);
   // let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
-  monaco.languages.setMonarchTokensProvider('st', {
+  monaco.languages.setMonarchTokensProvider(algorithmType, {
     // ignoreCase: true, // 忽略大小写
     tokenizer: {
       // root:[
@@ -168,9 +181,9 @@ function initEditor () {
   // 创建 Monaco Editor 实例
   monacoEditor = monaco.editor.create(editor.value, {
     // 设置初始代码值
-    value: '',
+    value: algorithm.content,
     // 设置语言为自定义语言
-    language: 'st',
+    language: algorithmType,
     theme: 'myTheme', //官方自带三种主题vs, hc-black, or vs-dark
     // suggest: {
     //   preview: true
@@ -192,30 +205,29 @@ function initEditor () {
     suggestions: true,
     snippetSuggestions: 'top'
   })
-  let tmp = getAlgorithmByKey(finalResultFormat.key, cacheJson[0].algorithms);
-  monacoEditor.setValue(tmp.content);
-  tmp = cache.local.getJSON('monaco_cursor_pos')
+  let tmp = cache.local.getJSON('monaco_cursor_pos')
   if (tmp) {
     monacoEditor.setPosition(tmp);
   }
   monacoEditor.focus();
   // console.log(monacoEditor.getValue())
+  // 每分钟自动保存缓存
   intervalId.value = setInterval(() => {
     saveCache();
   }, 60000);
-  tabIndex.value = 0
-}
-
-const test = () => {
   tabIndex.value = 2
 }
 
-const getAlgorithmByKey = (key, arr) => {
-  for (let item of arr) {
-    if (item.key === key) {
-      return item;
-    }
-  }
+const test = () => {
+  // tabIndex.value = 2
+  // 将大json中module的id和路由保持一致
+  let tmp = cache.local.getJSON('json');
+  tmp[0].id = 4
+  tmp[0].name = '模块一'
+  tmp[1].id = 8
+  tmp[1].name = '模块二'
+  // console.log(tmp)
+  cache.local.setJSON('json',tmp);
 }
 
 watch(filterText, (val) => {
@@ -240,6 +252,7 @@ watch(
   }
 );
 
+// 想做ctrl+S快捷键，没成功，往后放
 const customizeShortcuts = () => {
   console.log('ok');
 }
@@ -249,15 +262,15 @@ const saveCache = () => {
   cache.local.setJSON('monaco_cursor_pos', monacoEditor.getPosition());
   // 代码内容存入最终存入数据库的json
   // 新建时直接插入json内，这里只判定编辑修改
-  let tmp = cache.local.getJSON('json');
-  for (let item of tmp[0].algorithms) {
-    if (item.key === finalResultFormat.key) {
+  let moduleJson = getCurrentObj(currentProject,currentModule);
+  for (let item of moduleJson.algorithms) {
+    if (item.text === currentAlgorithm) {
       item.content = monacoEditor.getValue();
       break;
     }
   }
   // console.log(tmp);
-  cache.local.setJSON('json', tmp);
+  changeData(currentProject,currentModule,moduleJson);
 }
 
 onUnmounted(() => {

@@ -6,6 +6,7 @@ const tsModel = [
      "header": "folder",
      "children": [
       {
+        "children": [],
        "name": "INT_STR",
        "en-us-tip": "Integer to String",
        "zh-hans-tip": "整数 转 字符串",
