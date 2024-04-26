@@ -156,6 +156,7 @@ export const getInitData=(project:string,module:string)=>{
     return rlt;
 }
 export const getInitArr=(project:string,module:string)=>{
+  rltArr=new Array();
   rlt.id=module;
   rltArr.push(rlt)
   return rltArr;

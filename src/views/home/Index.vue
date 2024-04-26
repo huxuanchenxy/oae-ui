@@ -126,7 +126,6 @@ import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
 //import { baseUrl } from "@/api/baseUrl";
 //import sysApi from "@/api/sysApi";
 import cache from "@/plugins/cache.ts";
-import { getInitData } from "@/api/common/init.ts";
 const router = useRouter(); //实例化路由
 const pwdChangeDialogVisible = ref(false);
 const resetPwd = () => {

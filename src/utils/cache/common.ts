@@ -15,12 +15,13 @@ export const getCurrentObj=(project,module)=>{
     return rlt;
 }
 export const getJsonAll=(project,module)=>{
-    console.log(11111,module)
+    if (!module){
+        return ;
+    }
     let jsonAll= cache.local.getJSON(cacheKey);
     //如果连缓存都没有，直接return初始数据
     if(!jsonAll){
-        let initArr= getInitArr(project,module);
-        return initArr;
+        jsonAll= getInitArr(project,module);
     }
     return jsonAll;
 }
