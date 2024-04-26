@@ -66,7 +66,7 @@
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
-    const module=route.params.cid;
+    const module=route.params.id;
     const project="project1";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);

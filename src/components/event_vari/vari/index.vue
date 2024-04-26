@@ -146,7 +146,7 @@
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const relateEveList = ref<Eve[]>([]);
     const route = useRoute()
-    const module=route.params.cid;
+    const module=route.params.id;
     const project="project1";
     //----输入变量开始
     const variInputStore=useVariInputStore();

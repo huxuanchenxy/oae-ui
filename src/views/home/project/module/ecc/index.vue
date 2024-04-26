@@ -28,6 +28,7 @@
             </div>
             <hr/>
             <div v-for="algAndEvent in currentState.algAndEventName">
+              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition()"></el-button><br/>
               <div>{{algAndEvent.alg}}</div>
               <div>{{algAndEvent.event}}</div>
               <hr/>
@@ -157,7 +158,7 @@ const project="project1";
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
-const module=route.params.cid;
+const module=route.params.id;
 const graphCacheKey=cacheKey+"-"+project+"-"+module;
 const prefState="state";
 const prefAlg="alg";
@@ -171,7 +172,6 @@ const prefCombo="combo";
 let showProp=ref(1);
 let pid = ref("");
 let id = ref("");
-let sourceAnchorIdx, targetAnchorIdx;
 const container = ref<any>(null);
 let graph;
 let graphWidth;
@@ -188,6 +188,7 @@ const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
+
 const addCondition=()=>{
   if(!currentState.value.algAndEvent){
     currentState.value.algAndEvent=new Array();
@@ -591,12 +592,13 @@ const getEdgesById=(data)=>{
     currentEdge.value.to=data.to;
   }
 }
+//打开编辑控制图属性对话框
 const handleUpdateCanvas=()=>{
   Object.assign(canvasForm.value, currentCanvas.value);
   dialogCanvas.visible = true;
   dialogCanvas.title = "修改控制图属性";
 }
-//从currentEdge赋值给form回显
+//从currentEdge赋值给form回显，打开编辑连接线对话框
 const handleUpdateEdge=()=>{
   resetEdgeForm();
   let id=edgeForm.value.key;
@@ -610,6 +612,10 @@ const handleUpdateEdge=()=>{
   dialogEdge.visible = true;
   dialogEdge.title = "修改连接线属性";
 }
+//打开编辑条件对话框
+const handleUpdateCondition=(()=>{
+
+})
 const resetEdgeForm = () => {
   edgeForm.value={ ...initEdgeFormData };
   edgeFormRef.value?.resetFields();

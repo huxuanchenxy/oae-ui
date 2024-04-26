@@ -15,6 +15,7 @@ export const getCurrentObj=(project,module)=>{
     return rlt;
 }
 export const getJsonAll=(project,module)=>{
+    console.log(11111,module)
     let jsonAll= cache.local.getJSON(cacheKey);
     //如果连缓存都没有，直接return初始数据
     if(!jsonAll){
