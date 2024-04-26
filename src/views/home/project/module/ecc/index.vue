@@ -28,7 +28,9 @@
             </div>
             <hr/>
             <div v-for="algAndEvent in currentState.algAndEventName">
-              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition()"></el-button><br/>
+              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition()"></el-button>
+              <el-button type="danger" plain icon="Delete"  @click="handleDeleteCondition(currentState.key)"></el-button><br/>
+              <br/>
               <div>{{algAndEvent.alg}}</div>
               <div>{{algAndEvent.event}}</div>
               <hr/>
@@ -317,7 +319,6 @@ const initGraph=(data,graphWidth,graphHeight)=>{
       algAndEvents?.forEach((algAndEvent)=>{
         currentState.value.algAndEventName.push({alg:algAndEvent.alg.text,event:algAndEvent.event.name})
       })
-      console.log(currentState.value)
     }else{
       //如果节点不是状态机，那就算画布
       showProp.value=1
@@ -657,6 +658,19 @@ const handleUpdateEdge=()=>{
 const handleUpdateCondition=(()=>{
 
 })
+const handleDeleteCondition=async(id)=>{
+  await proxy?.$modal.confirm('是否确认删除？');
+  let idNoPrefix=id.substring(prefState.length,id.length)
+  //删除节点
+  console.log(prefAlg,idNoPrefix)
+  graph.removeItem(graph.findById(prefAlg+idNoPrefix));
+  graph.removeItem(graph.findById(prefEvent+idNoPrefix));
+  //更新双向绑定的数据
+  //更新图JSON
+  saveDataToServer()
+  //更新大JSON
+}
+
 const resetEdgeForm = () => {
   edgeForm.value={ ...initEdgeFormData };
   edgeFormRef.value?.resetFields();
