@@ -23,12 +23,16 @@
             <div>
               状态机属性
             </div>
+            <div>
+              状态机名称 {{currentState.text}}
+            </div>
             <hr/>
             <div v-for="algAndEvent in currentState.algAndEvent">
               <div>{{algAndEvent.alg?.text}}</div>
               <div>{{algAndEvent.event?.name}}</div>
               <hr/>
             </div>
+            <el-button type="success"  @click="addCondition">新增条件</el-button>
           </div>
         </div>
         <div v-if="showProp==3">
@@ -153,7 +157,7 @@ const project="project1";
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
-const module=route.params.pid;
+const module=route.params.cid;
 const graphCacheKey=cacheKey+"-"+project+"-"+module;
 const prefState="state";
 const prefAlg="alg";
@@ -184,6 +188,12 @@ const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
+const addCondition=()=>{
+  if(!currentState.algAndEvent){
+    currentState.algAndEvent=new Array();
+  }
+  currentState.algAndEvent.push()
+}
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -295,10 +305,16 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     if(id.startsWith(prefState)){
       showProp.value=2;
       //设置被选中的状态机
-      console.log("stateList",stateList)
       let state:StateMachine=stateList.find((x)=>x.key==id);
-      console.log("state",state);
       currentState.value={...state}
+      let algAndEvents=state.algAndEvent;
+      if(!currentState.algAndEventName){
+        currentState.algAndEventName=new Array();
+      }
+      algAndEvents.forEach((algAndEvent)=>{
+        console.log(algAndEvent)
+        currentState.algAndEventName.push({alg:algAndEvent.alg.text,event:algAndEvent.event.text})
+      })
       console.log("currentState",currentState.value);
     }else{
       //如果节点不是状态机，那就算画布

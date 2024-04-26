@@ -129,7 +129,7 @@
     const { eveType } = toRefs<any>(proxy?.useDict("eveType"));
     const relateEveList = ref<Eve[]>([]);
     const route = useRoute()
-    const module=route.params.pid;
+    const module=route.params.cid;
     const project="project1";
     //----输入变量开始
     const eveInputStore=useEveInputStore();

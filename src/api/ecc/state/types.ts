@@ -5,8 +5,8 @@ import {AlgSimple} from "../../alg/types";
 export interface StateMachine {
     key:string,
     text:string,
-    algorithm:Array<{ id: string; name: string }>;//大JSON用
-    output_event:Array<{ id: string; name: string }>;//大JSON用
+    algorithm:Array<{ key: string; text: string }>;//大JSON用
+    output_event:Array<{ key: string; text: string }>;//大JSON用
     algAndEvent:Array<{alg:AlgSimple,event:Eve}>//实际业务用
     comment:string
 }
