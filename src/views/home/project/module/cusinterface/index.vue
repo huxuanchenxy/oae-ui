@@ -23,7 +23,7 @@ const variOutputStore=useVariOutputStore();
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
-const module=route.params.pid;
+const module=route.params.id;
 const project="project1";
 const eventVariAntvChild=ref();
 const initLoad = () => {

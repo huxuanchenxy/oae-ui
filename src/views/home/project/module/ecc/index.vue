@@ -1,7 +1,7 @@
 <template>
   <div class="ecc">
     <div class="main">
-      <div>选中节点后拖动以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
+      <div>按住shift后选中节点拖动以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
       <div id="container" style="height:1000px" ref="container"></div>
     </div>
     <div class="right">
@@ -20,11 +20,20 @@
         </div>
         <div v-if="showProp==2">
           <div>
-            状态机属性
-          </div>
-          <hr/>
-          <div>
-            动态添加算法和事件
+            <div>
+              状态机属性
+            </div>
+            <div>
+              状态机名称 {{currentState.text}}
+            </div>
+            <hr/>
+            <div v-for="algAndEvent in currentState.algAndEventName">
+              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition()"></el-button><br/>
+              <div>{{algAndEvent.alg}}</div>
+              <div>{{algAndEvent.event}}</div>
+              <hr/>
+            </div>
+            <el-button type="success"  @click="addCondition">新增条件</el-button>
           </div>
         </div>
         <div v-if="showProp==3">
@@ -104,19 +113,22 @@
 </template>
 
 <script setup lang="ts">
-import G6 from "@antv/g6";
+import G6, {IEdge, INode} from "@antv/g6";
 import { v4 as uuidv4 } from 'uuid';
 import { pagetagsStore } from "@/store/pageTags.js";
 import  cache  from "@/plugins/cache.ts";
 import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/ecc/edge/type';
 import type { CanvasForm,CanvasQuery,CanvasVO} from '@/api/ecc/canvas/type';
+import type { AlgSimple} from '@/api/alg/type';
 import { Eve } from "@/api/inter/event/types";
 import {getRelateEveList} from "@/api/inter/event";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
+import type { StateMachine,StateForm,StateVO} from '@/api/ecc/state/type';
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
-let currentAlgAndEventList=ref<Eve[]>([]);
+let stateList:StateForm[]=new Array();
+let currentState:StateVO=ref(null);
 //初始值
 const initEdgeFormData:EdgeForm = {
   from:'',
@@ -146,7 +158,7 @@ const project="project1";
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
-const module=route.params.pid;
+const module=route.params.id;
 const graphCacheKey=cacheKey+"-"+project+"-"+module;
 const prefState="state";
 const prefAlg="alg";
@@ -160,7 +172,6 @@ const prefCombo="combo";
 let showProp=ref(1);
 let pid = ref("");
 let id = ref("");
-let sourceAnchorIdx, targetAnchorIdx;
 const container = ref<any>(null);
 let graph;
 let graphWidth;
@@ -178,6 +189,13 @@ const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验�
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
 
+const addCondition=()=>{
+  if(!currentState.value.algAndEvent){
+    currentState.value.algAndEvent=new Array();
+  }
+  currentState.value.algAndEventName.push({alg:"事件",event:"输出"})
+  addAlgAndEventNodeById(currentState.value.key)
+}
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -191,7 +209,6 @@ const contextMenu = new G6.Menu({
       return str;
   },
   handleMenuClick: (target, item) => {
-    // console.log(`自定义右键菜单\nX: ${x}\nY: ${y}`);
     if(item){
       //如果右键的是节点或其他
       deleteNode(item);
@@ -206,10 +223,13 @@ const contextMenu = new G6.Menu({
 });
 const deleteNode=async (item)=> {
     const nodes = graph.findAllByState('node', 'selected');
+    const edges = graph.findAllByState('edge', 'selected');
     const nodeIds = nodes.map((node) => node.get('id'));
-    if (nodeIds.length != 0) {
+    const edgeIds = edges.map((edge) => edge.get('id'));
+    if (nodeIds.length != 0||edgeIds.length != 0) {
       await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
       graph.removeItem(item);
+      saveDataToServer();
     }else{
       proxy?.$modal.msgWarning("您没有选中任何节点");
     }
@@ -228,6 +248,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
           {
             type: 'create-edge',
             trigger: 'drag', // 'click' by default. options: 'drag', 'click'
+            key: 'shift',
           },
         ],
     },
@@ -283,10 +304,22 @@ const initGraph=(data,graphWidth,graphHeight)=>{
   graph.on('node:click', (evt) => {
     const { item } = evt;
     let id=item.get("id");
-    if(!id.startsWith(prefState)){
-      showProp.value=1;
+    //如果节点是状态机
+    if(id.startsWith(prefState)){
+      showProp.value=2;
+      //设置被选中的状态机
+      let state:StateMachine=stateList.find((x)=>x.key==id);
+      currentState.value={...state}
+      let algAndEvents=state.algAndEvent;
+      if(!currentState.value.algAndEventName){
+        currentState.value.algAndEventName=new Array();
+      }
+      algAndEvents.forEach((algAndEvent)=>{
+        currentState.value.algAndEventName.push({alg:algAndEvent.alg.text,event:algAndEvent.event.name})
+      })
     }else{
-      showProp.value=2
+      //如果节点不是状态机，那就算画布
+      showProp.value=1
     }
   });
   graph.on('node:dblclick', nodeDbClick);
@@ -313,29 +346,48 @@ const nodeDbClick=(e) => {
   const id=item.get("id")
   //如果双击的是状态机，就添加算法和事件
   if(id.startsWith(prefState)){
-    addAlgAndEventNode(e)
+    addAlgAndEventNode(e.item,e.canvasY)
   }
   saveDataToServer()
 };
+//得到状态机的条件数量
+const getStateConditionNumber=((stateId)=>{
+  let number=0;
+  let graphJson=cache.local.getJSON(graphCacheKey);
+  let edges:IEdge[]=graphJson.edges;
+    edges.forEach((edgeNode)=>{
+      if(edgeNode.source==stateId&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
+        number++;
+      }
+    });
+    return number;
+})
+const addAlgAndEventNodeById=((id)=>{
+  let node=graph.findById(id);
+  if(!node){
+    return;
+  }
+  addAlgAndEventNode(node,node.getModel().y);
+})
 /**
  * 添加算法和事件节点
  * @param e
  */
-const addAlgAndEventNode=(e)=>{
-  const item = e.item;
+const addAlgAndEventNode=(item,canvasY)=>{
+  // const item = e.item;
   const stateId=item.get("id")
   //连线数量
-  const edgesSize=item.get('edges').length;
   //item.getModel()是获取元素的数据模型。
   const comboId = item.getModel().comboId;
-  const algNodeId=prefAlg+uuidv4();
-  const eveNodeId=prefEvent+uuidv4();
-  let canvasY=e.canvasY;
+  let uuid=uuidv4();
+  const algNodeId=prefAlg+uuid;
+  const eveNodeId=prefEvent+uuid;
+  // let canvasY=e.canvasY;
   //算法的x和最上面一行的算法X对齐，所以需要得到上面的算法node
   const algNodeFirstLine=graph.findById(prefAlg+stateId.substring(5,stateId.length));
   const algNodeX=algNodeFirstLine.getModel().x
   //根据连线数量来确定canvasX，公式为初始 y=e的Y+连线数量*（algGraphSize的高度+nodeVertiPadding）
-  const algNodeY=canvasY+edgesSize*(algGraphSize[1]+nodeVertiPadding);
+  const algNodeY=canvasY+getStateConditionNumber(stateId)*(algGraphSize[1]+nodeVertiPadding);
   const algNode={
     id:algNodeId,
     label: '算法',
@@ -365,6 +417,7 @@ const addAlgAndEventNode=(e)=>{
   graph.addItem('node', algNode);
   graph.addItem('node', eveNode);
   graph.addItem('edge',stateToAlgEdge)
+  saveDataToServer()
 }
 onMounted(() => {
   //得到事件列表
@@ -379,17 +432,55 @@ onMounted(() => {
 const getCurrentCanvas=()=>{
   currentCanvas.value= getCanvas(project,module);
 }
+//初始化图形
 const initGraphData=()=>{
     let graphJson=cache.local.getJSON(graphCacheKey);
     if(graphJson){
-      return graphJson;
+      stateList=new Array();
+      //从数据中得到状态机列表放进stateList里。
+      let nodes:INode[]=graphJson.nodes;
+      let edges:IEdge[]=graphJson.edges;
+      //找到所有状态机
+      let stateNodes:INode[]=nodes.filter((data)=>data.id.startsWith(prefState));
+      stateNodes.forEach((stateNode)=>{
+          let state:StateMachine={};
+          state.key=stateNode.id;
+          state.text=stateNode.label;
+          state.algorithm=new Array();
+          state.output_event=new Array();
+          state.algAndEvent=new Array();
+          //遍历连线，找到source为本state的ID，并且target为算法的，输出的ID和算法相同，只是前缀不同
+          edges.forEach((edgeNode)=>{
+              //如果找到了
+              if(edgeNode.source==stateNode.id&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
+                  let algId=edgeNode.target;
+                  let eventId=prefEvent+algId.substring(prefAlg.length,algId.length)
+                  //从node找出该targeid对应的item,就是这个状态机连上的算法，在通过该ID做相应处理后找出对应的输出事件
+                  let algNode:INode=nodes.find((data)=>data.id==algId);
+                  let eventNode:INode=nodes.find((data)=>data.id==eventId);
+                  //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
+                  if(algNode&&eventNode){
+                      let alg:AlgSimple={key:algNode.id,text:algNode.label};
+                      let eve:Eve={id:eventNode.id,name:eventNode.label};
+                      state.algorithm.push(alg);
+                      state.output_event.push(eve);
+                      let algAndEvent={alg:alg,event:eve}
+                      state.algAndEvent.push(algAndEvent)
+                  }
+              }
+          })
+          stateList.push(state);
+      })
     }else{
-      return  {
+      //如果不存在数据，就用初始数据
+      graphJson=  {
         nodes: [
           { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
         ]
       };
     }
+  //返回图形数据
+    return graphJson;
 }
 const addCombo=(stateNodeX,stateNodey)=>{
   const nodeId=uuidv4();
@@ -481,7 +572,6 @@ const submitEdgeForm = () => {
   saveOrUpdateEdge(project,module,data);
   //详情双向绑定
   currentEdge.value=data
-  console.log(data)
   //antv回显
   let edge=graph.findById(data.key)
   if(edge){
@@ -502,12 +592,13 @@ const getEdgesById=(data)=>{
     currentEdge.value.to=data.to;
   }
 }
+//打开编辑控制图属性对话框
 const handleUpdateCanvas=()=>{
   Object.assign(canvasForm.value, currentCanvas.value);
   dialogCanvas.visible = true;
   dialogCanvas.title = "修改控制图属性";
 }
-//从currentEdge赋值给form回显
+//从currentEdge赋值给form回显，打开编辑连接线对话框
 const handleUpdateEdge=()=>{
   resetEdgeForm();
   let id=edgeForm.value.key;
@@ -521,6 +612,10 @@ const handleUpdateEdge=()=>{
   dialogEdge.visible = true;
   dialogEdge.title = "修改连接线属性";
 }
+//打开编辑条件对话框
+const handleUpdateCondition=(()=>{
+
+})
 const resetEdgeForm = () => {
   edgeForm.value={ ...initEdgeFormData };
   edgeFormRef.value?.resetFields();
