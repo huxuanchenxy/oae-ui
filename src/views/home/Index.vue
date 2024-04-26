@@ -5,10 +5,17 @@
       <NavTree></NavTree>
       <el-container>
         <el-header>
+          <div style="position: absolute">
+            <div style="margin-left: 8px">
+              <el-button type="primary" size="small" @click="save()"
+                >保存</el-button
+              >
+            </div>
+          </div>
           <!-- <div class="logo"></div> -->
-            <div class="center">
+          <div class="center">
             <Tags></Tags>
-          </div> 
+          </div>
           <!-- <div class="right" style="display: none">
             <div style="width: 100px"></div>
 
@@ -25,14 +32,14 @@
               </template>
               <div style="float: left; margin: 6px 15px 0 0">
                 <el-avatar style="float: left; cursor: pointer" /> -->
-                <!-- :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" -->
-                <!-- <div style="float: left; color: #fff; margin: 10px 0 0 10px">
+          <!-- :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" -->
+          <!-- <div style="float: left; color: #fff; margin: 10px 0 0 10px">
                   {{ curUserInfo?.userName }}
                 </div>
               </div>
             </el-tooltip> -->
 
-            <!-- <el-button style="margin-top: 9px" class="exit" type="primary">注销</el-button> -->
+          <!-- <el-button style="margin-top: 9px" class="exit" type="primary">注销</el-button> -->
           <!-- </div> -->
         </el-header>
 
@@ -54,7 +61,7 @@
 
           <router-view class="routerView" />
 
-          <pwdChangeDialog
+          <!-- <pwdChangeDialog
             v-model:pwdChangeDialogVisible="pwdChangeDialogVisible"
           ></pwdChangeDialog>
 
@@ -67,17 +74,17 @@
           >
             <div
               style="margin: 0 auto; text-align: center; margin: 0 0 15px -5px"
-            >
-              <!-- <el-avatar :size="147" :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" /> -->
+            > -->
+          <!-- <el-avatar :size="147" :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)" /> -->
 
-              <!-- <el-image
+          <!-- <el-image
                 :preview-src-list="[ImageUrlFilter(curUserInfo.avatarLinkUrl)]"
                 :preview-teleported="true"
                 style="width: 147px; vertical-align: middle"
                 :src="ImageUrlFilter(curUserInfo.avatarLinkUrl)"
                 class="avatar"
               /> -->
-            </div>
+          <!-- </div>
             <div style="margin-left: 5px">
               <el-form
                 label-width="100px"
@@ -106,8 +113,8 @@
                   <div v-html="postListStr"></div>
                 </el-form-item>
               </el-form>
-            </div>
-          </el-drawer>
+            </div> 
+          </el-drawer>-->
         </el-main>
       </el-container>
     </el-container>
@@ -116,10 +123,10 @@
 
 <script setup>
 import Tags from "@/components/Tags.vue";
-import NavMenu from "@/components/NavMenu.vue"; //导航
+//import NavMenu from "@/components/NavMenu.vue"; //导航
 import NavTree from "@/components/NavTree.vue";
 //import Breadcrumb from "@/components/Breadcrumb.vue"; //引入组件
-import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
+//import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
 //import { useRouter } from "vue-router"; //导入路由
 //import { Fold, Expand } from "@element-plus/icons-vue";
 //import { ref, reactive, onMounted, computed } from "vue";
@@ -127,71 +134,97 @@ import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
 //import sysApi from "@/api/sysApi";
 import cache from "@/plugins/cache.ts";
 import { getInitData } from "@/api/common/init.ts";
-const router = useRouter(); //实例化路由
-const pwdChangeDialogVisible = ref(false);
-const resetPwd = () => {
-  pwdChangeDialogVisible.value = true;
-};
-const pCenterVisible = ref(false);
 
-const formLabelAlign = reactive({
-  name: "",
-  region: "",
-  type: "",
-});
-// const curUserInfo = ref({
-//   avatarLinkUrl: "",
-//   sex: 1,
-//   userLoginName: "",
-//   userName: "",
-//   userId: "",
-//   jobNumber: "",
+import sysApi from "@/api/sysApi";
+//const router = useRouter(); //实例化路由
+//const pwdChangeDialogVisible = ref(false);
+
+// const pCenterVisible = ref(false);
+
+// const formLabelAlign = reactive({
+//   name: "",
+//   region: "",
+//   type: "",
 // });
 
-// const ImageUrlFilter = computed(() => (item) => {
-//   return `${baseUrl}/${item}`;
-// });
-//退出
-function goBack() {
-  router.push("/login");
-}
-// const isCollapse = ref(true);
-// const clickExpand = () => {
-//   isCollapse.value = !isCollapse.value;
-// };
-// const deptListStr = ref("");
-// const postListStr = ref("");
-const cacheKey = "json";
-//location.reload();
 onMounted(() => {
-  // location.reload();
-  // router.push("/rolelist");
-  // if (window.location.href.indexOf("#reloaded") == -1) {
-  //   window.location.href = window.location.href + "#reloaded";
-  //   window.location.reload();
-  // }
-  // const curDeptList = JSON.parse(sessionStorage.getItem("curDeptList"));
-  // if (curDeptList && curDeptList.length > 0) {
-  //   let deptStr = "";
-  //   curDeptList.forEach((obj) => {
-  //     deptStr += obj.orgName + "<br />";
-  //   });
-  //   //deptListStr.value = deptStr;
-  // }
-  // const curPostList = JSON.parse(sessionStorage.getItem("curPostList"));
-  // if (curPostList && curPostList.length > 0) {
-  //   let postStr = "";
-  //   curPostList.forEach((obj) => {
-  //     postStr += obj.orgName + "<br />";
-  //   });
-  //   postListStr.value = postStr;
-  // }
-  // curUserInfo.value = JSON.parse(sessionStorage.getItem("curUserInfo"));
-
-  // sysApi.getFuncList().then((res) => {
-  //   console.log("sysApi--1", res);
-  // });
+  // const cacheKey = "json";
+  // let cacheJson = cache.local.getJSON(cacheKey);
+  // console.log("cacheJson", cacheJson);
 });
+
+const save = () => {
+  // var aa1 = {
+  //   namespace: "Light",
+  //   folder: "",
+  //   type: "BasicFunctionBlock",
+  //   properties: {
+  //     comment: " ",
+  //     auth: {},
+  //     compile_information: [],
+  //     version_information: [{}],
+  //   },
+  //   interface: {
+  //     input_events: [],
+  //     output_events: [],
+  //     inputs: [],
+  //     outputs: [],
+  //     internals: [],
+  //     temps: [],
+  //   },
+  //   ecc: {},
+
+  //   algorithms: [],
+  //   dynamic: false,
+  //   lock: false,
+  //   updated_time: 1710213247000,
+  //   id: "",
+  // };
+
+  // var json = [
+  //   {
+  //     id: 4,
+  //     name: "模块一",
+  //     nameSpace: "111",
+  //     type: "",
+  //     properties: JSON.stringify(aa1.properties),
+  //     algorithms: JSON.stringify(aa1.algorithms),
+  //     interface: JSON.stringify(aa1.interface),
+  //     ecc: JSON.stringify(aa1.ecc),
+  //   },
+  //   {
+  //     id: 8,
+  //     name: "模块二",
+  //     nameSpace: "",
+  //     type: "",
+  //     properties: JSON.stringify(aa1.properties),
+  //     algorithms: JSON.stringify(aa1.algorithms),
+  //     interface: JSON.stringify(aa1.interface),
+  //     ecc: JSON.stringify(aa1.ecc),
+  //   },
+  // ];
+  const cacheKey = "json";
+  let cacheJson = cache.local.getJSON(cacheKey);
+  if (cacheJson) {
+    cacheJson.forEach((j) => {
+      j.properties = JSON.stringify(j.properties);
+      j.algorithms = JSON.stringify(j.algorithms);
+      j.interface = JSON.stringify(j.interface);
+      j.ecc = JSON.stringify(j.ecc);
+    });
+    sysApi.saveAll(cacheJson).then((res) => {
+      //console.log("saveAll:::", res);
+      ElMessage({
+        message: "保存成功",
+        type: "success",
+      });
+    });
+  }
+
+  // sysApi.saveAll(json).then((res) => {
+  //   console.log("saveAll:::", res);
+  // });
+};
 </script>
 
 <style >

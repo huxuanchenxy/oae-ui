@@ -149,7 +149,8 @@ html {
     padding: 0;
     height: 50px;
     /*  background-color: #0079ec; */
-    background: #666 linear-gradient(345deg, rgba(13, 14, 14, 0.5), #fff)
+    /* background: #666 linear-gradient(345deg, rgba(13, 14, 14, 0.5), #fff) */
+    background-color: #eee;
 }
 
 #module .el-container .el-header .logo {
