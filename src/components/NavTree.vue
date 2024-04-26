@@ -90,7 +90,7 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from 'element-plus'
-// import { getCurrentObj } from "@/utils/cache/inter";
+import { getCurrentObj, changeData } from "@/utils/cache/common";
 import  cache  from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 const tagsStore = pagetagsStore();
@@ -108,9 +108,9 @@ const validateName = (rule, value, callback) => {
   if (!reg.test(value)) {
     callback(new Error('使用字母数字和下划线,首个字符必须是字母'))
   } else {
-    let cacheJson = cache.local.getJSON('json');
-    let tmp = cacheJson[0].algorithms.filter((item) => {return item.text === value})
-    if (!tmp) callback()
+    let moduleJson = getCurrentObj(currentProject,currentModule);
+    let tmp = moduleJson.algorithms.filter((item) => {return item.text === value})
+    if (tmp.length === 0) callback()
     else callback(new Error('同一个模块中算法名称不可重复'))
   }
 }
@@ -185,7 +185,9 @@ const processMenuData = (list) => {
 };
 
 const router = useRouter();
-const route = useRoute();
+// const route = useRoute();
+const currentProject = 'project1';
+const currentModule = useRoute().params.id;
 const handleNodeClick = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
@@ -297,11 +299,12 @@ const onSubmit = async (formEl) => {
   await formEl.validate((valid, fields) => {
     if (valid) {
       dialogVisible.value = false;
-      let cacheJson = cache.local.getJSON('json');
-      // 暂时先默认从第一个模块里读写数据
-      // cacheJson[0].algorithms.push(newAlgorithm)
-      // cache.local.setJSON('json',cacheJson);
-      console.log(newAlgorithm)
+      let moduleJson = getCurrentObj(currentProject,currentModule)
+      moduleJson.algorithms.push(newAlgorithm)
+      changeData(currentProject,currentModule,moduleJson)
+      // console.log(newAlgorithm)
+      // 打开调用接口，但可能还需要组装下data参数，或者直接调用王渝友另一个接口
+      // handleNodeClick(data)
     } else {
       // console.log('error submit!', fields)
     }
@@ -310,11 +313,12 @@ const onSubmit = async (formEl) => {
 
 const delAlgorithm = (data) => {
   // 暂时不作关联判断
-  let cacheJson = cache.local.getJSON('json');
-  cacheJson[0].algorithms = cacheJson[0].algorithms.filter((item) => {return item.text !== data.funcName})
-  // cache.local.setJSON('json',cacheJson);
+  // let cacheJson = cache.local.getJSON('json');
+  let moduleJson = getCurrentObj(currentProject,currentModule)
+  moduleJson.algorithms = moduleJson.algorithms.filter((item) => {return item.text !== data.funcName})
   popStatus.value = false;
-  console.log(cacheJson[0].algorithms)
+  // console.log(moduleJson)
+  changeData(currentProject,currentModule,moduleJson)
 }
 
 const renameAlgorithm = (data) => {
