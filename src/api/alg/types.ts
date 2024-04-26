@@ -1,4 +1,4 @@
-export interface Alg {
+export interface AlgSimple {
     key:string,
     text:string
 }

@@ -20,11 +20,15 @@
         </div>
         <div v-if="showProp==2">
           <div>
-            状态机属性
-          </div>
-          <hr/>
-          <div>
-            动态添加算法和事件
+            <div>
+              状态机属性
+            </div>
+            <hr/>
+            <div v-for="algAndEvent in currentState.algAndEvent">
+              <div>{{algAndEvent.alg?.text}}</div>
+              <div>{{algAndEvent.event?.name}}</div>
+              <hr/>
+            </div>
           </div>
         </div>
         <div v-if="showProp==3">
@@ -110,15 +114,15 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import  cache  from "@/plugins/cache.ts";
 import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/ecc/edge/type';
 import type { CanvasForm,CanvasQuery,CanvasVO} from '@/api/ecc/canvas/type';
-import type { Alg} from '@/api/alg/type';
+import type { AlgSimple} from '@/api/alg/type';
 import { Eve } from "@/api/inter/event/types";
 import {getRelateEveList} from "@/api/inter/event";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
-import type { StateForm,StateVO} from '@/api/ecc/state/type';
+import type { StateMachine,StateForm,StateVO} from '@/api/ecc/state/type';
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
-let stateList=ref<StateForm[]>([]);
+let stateList:StateForm[]=new Array();
 let currentState:StateVO=ref(null);
 //初始值
 const initEdgeFormData:EdgeForm = {
@@ -193,7 +197,6 @@ const contextMenu = new G6.Menu({
       return str;
   },
   handleMenuClick: (target, item) => {
-    // console.log(`自定义右键菜单\nX: ${x}\nY: ${y}`);
     if(item){
       //如果右键的是节点或其他
       deleteNode(item);
@@ -208,10 +211,13 @@ const contextMenu = new G6.Menu({
 });
 const deleteNode=async (item)=> {
     const nodes = graph.findAllByState('node', 'selected');
+    const edges = graph.findAllByState('edge', 'selected');
     const nodeIds = nodes.map((node) => node.get('id'));
-    if (nodeIds.length != 0) {
+    const edgeIds = edges.map((edge) => edge.get('id'));
+    if (nodeIds.length != 0||edgeIds.length != 0) {
       await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
       graph.removeItem(item);
+      saveDataToServer();
     }else{
       proxy?.$modal.msgWarning("您没有选中任何节点");
     }
@@ -285,10 +291,18 @@ const initGraph=(data,graphWidth,graphHeight)=>{
   graph.on('node:click', (evt) => {
     const { item } = evt;
     let id=item.get("id");
-    if(!id.startsWith(prefState)){
-      showProp.value=1;
+    //如果节点是状态机
+    if(id.startsWith(prefState)){
+      showProp.value=2;
+      //设置被选中的状态机
+      console.log("stateList",stateList)
+      let state:StateMachine=stateList.find((x)=>x.key==id);
+      console.log("state",state);
+      currentState.value={...state}
+      console.log("currentState",currentState.value);
     }else{
-      showProp.value=2
+      //如果节点不是状态机，那就算画布
+      showProp.value=1
     }
   });
   graph.on('node:dblclick', nodeDbClick);
@@ -393,27 +407,29 @@ const initGraphData=()=>{
       //找到所有状态机
       let stateNodes:INode[]=nodes.filter((data)=>data.id.startsWith(prefState));
       stateNodes.forEach((stateNode)=>{
-          let state:StateForm={};
+          let state:StateMachine={};
           state.key=stateNode.id;
           state.text=stateNode.label;
           state.algorithm=new Array();
           state.output_event=new Array();
+          state.algAndEvent=new Array();
           //遍历连线，找到source为本state的ID，并且target为算法的，输出的ID和算法相同，只是前缀不同
           edges.forEach((edgeNode)=>{
               //如果找到了
-              if(edgeNode.source==stateNode.id&&edgeNode.target.startsWith(prefAlg)){
+              if(edgeNode.source==stateNode.id&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
                   let algId=edgeNode.target;
-
                   let eventId=prefEvent+algId.substring(prefAlg.length,algId.length)
                   //从node找出该targeid对应的item,就是这个状态机连上的算法，在通过该ID做相应处理后找出对应的输出事件
                   let algNode:INode=nodes.find((data)=>data.id==algId);
                   let eventNode:INode=nodes.find((data)=>data.id==eventId);
-                //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
+                  //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
                   if(algNode&&eventNode){
-                      let alg:Alg={key:algNode.id,text:edgeNode.label};
+                      let alg:AlgSimple={key:algNode.id,text:algNode.label};
                       let eve:Eve={id:eventNode.id,name:eventNode.label};
                       state.algorithm.push(alg);
                       state.output_event.push(eve);
+                      let algAndEvent={alg:alg,event:eve}
+                      state.algAndEvent.push(algAndEvent)
                   }
               }
           })
@@ -520,7 +536,6 @@ const submitEdgeForm = () => {
   saveOrUpdateEdge(project,module,data);
   //详情双向绑定
   currentEdge.value=data
-  console.log(data)
   //antv回显
   let edge=graph.findById(data.key)
   if(edge){
