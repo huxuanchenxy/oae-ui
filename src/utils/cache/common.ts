@@ -8,20 +8,20 @@ export const getCurrentObj = (project, module) => {
     let rlt = jsonAll.find(
         (x) => x.project == project && x.id == module
     );
-    if(!rlt){
+    if (!rlt) {
         //如果缓存里找不到对应模块数据，也用初始数据
-        return getInitData(project,module);
+        return getInitData(project, module);
     }
     return rlt;
 }
-export const getJsonAll=(project,module)=>{
-    if (!module){
-        return ;
+export const getJsonAll = (project, module) => {
+    if (!module) {
+        return;
     }
-    let jsonAll= cache.local.getJSON(cacheKey);
+    let jsonAll = cache.local.getJSON(cacheKey);
     //如果连缓存都没有，直接return初始数据
-    if(!jsonAll){
-        jsonAll= getInitArr(project,module);
+    if (!jsonAll) {
+        jsonAll = getInitArr(project, module);
     }
     return jsonAll;
 }
@@ -38,42 +38,42 @@ export const changeData = (project, module, moduleJson) => {
     cache.local.setJSON(cacheKey, jsonAll);
 }
 
-
-
-//缓存没有数据，从后台数据库取数据，然后设置到缓存中
-export const setModuleData = (project, module) => {
+//从后台获取module数据
+export const getModuleData = (id, project) => {
     let jsonAll = cache.local.getJSON(cacheKey);
     //如果连缓存都没有，直接[]值
     if (!jsonAll) {
         jsonAll = [];
         cache.local.setJSON(cacheKey, jsonAll);
     }
-    let params = { id: module };
-    sysApi.getModule(params).then((res) => {
-        if (res) {
-            let newObj = {
-                project: project,
-                namespace: "",
-                folder: "",
-                type: "",
-                properties: {},
-                interface: {},
-                ecc: {},
-                algorithms: [],
-                id: ''
-            };
-            newObj.id = res.id
-            newObj.namespace = res.namespace
-            newObj.type = res.type;
-            newObj.interface = JSON.parse(JSON.parse(JSON.stringify(res.interface)));
-            newObj.properties = JSON.parse(res.properties);
-            newObj.ecc = JSON.parse(res.ecc);
-            newObj.algorithms = JSON.parse(res.algorithms);
-            jsonAll = removeCurrentModule(jsonAll, project, module);//移除当前模块
-            jsonAll.push(newObj);//再把模块新JSON加进去
-            cache.local.setJSON(cacheKey, jsonAll);
-        }
-    });
+    let rlt = jsonAll?.find((x) => x.project == project && x.id == id);
+    if (!rlt) {
+        let params = { id };
+        sysApi.getModule(params).then((res) => {
+            if (res) {
+                let newObj = {
+                    project: project,
+                    namespace: "",
+                    folder: "",
+                    type: "",
+                    properties: {},
+                    interface: {},
+                    ecc: {},
+                    algorithms: [],
+                    id: "",
+                };
+                newObj.id = res.id;
+                newObj.namespace = res.namespace;
+                newObj.type = res.type;
+                newObj.interface = JSON.parse(res.interface);
+                newObj.properties = JSON.parse(res.properties);
+                newObj.ecc = JSON.parse(res.ecc);
+                newObj.algorithms = JSON.parse(res.algorithms);
+                jsonAll.push(newObj); //再把模块新JSON加进去 
+                cache.local.setJSON(cacheKey, jsonAll);
+            }
+        });
+    }
+};
 
-}
 

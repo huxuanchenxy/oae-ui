@@ -21,7 +21,6 @@
     </div>
     <div class="routerHeight">
       <!-- <router-view class="routerView"></router-view> -->
-
       <Ecc v-if="showType == 'ecc'"></Ecc>
       <Algorithm
         v-if="showType == 'algorithm'"
@@ -38,7 +37,9 @@ import Algorithm from "@/views/home/project/module/algorithm/Algorithm.vue";
 import Ecc from "@/views/home/project/module/ecc/index.vue";
 import Cusinterface from "@/views/home/project/module/cusinterface/index.vue";
 //import TagsModule from "@/components/TagsModule.vue";
-import { getCurrentObj, setModuleData } from "@/utils/cache/common";
+import { getCurrentObj, getModuleData } from "@/utils/cache/common";
+import sysApi from "@/api/sysApi";
+import cache from "@/plugins/cache.ts";
 const route = useRoute();
 const router = useRouter();
 // let path = ref("");
@@ -86,10 +87,10 @@ const initLoad = () => {
   showType.value = route.params?.type?.toLowerCase() ?? "";
   let rlt = getCurrentObj(project, cid.value);
   if (!rlt) {
-    setModuleData(project, cid.value);
+    getModuleData(project, cid.value);
     rlt = getCurrentObj(project, cid.value);
   }
-  console.log("rlt", rlt);
+  //console.log("rlt", rlt);
 };
 const footTabIndex = ref(0);
 provide("changeTabIndex", footTabIndex);

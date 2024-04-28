@@ -16,8 +16,8 @@ export const getRelateEveList = (no?: string | number): Eve[] => {
 };
 export const getInputEvents = (project, module) => {
     let rlt = getCurrentObj(project, module);
-    let inputEvents = rlt.interface.input_events;
-    inputEvents.forEach(inputEvent => {
+    let inputEvents = rlt?.interface?.input_events;
+    inputEvents?.forEach(inputEvent => {
         let no = 1;
         if (!inputEvent.no) {
             inputEvent.no = no;
@@ -29,8 +29,8 @@ export const getInputEvents = (project, module) => {
 export const getOutputEvents = (project, module) => {
     let rlt = getCurrentObj(project, module);
     let outputEvents;
-    outputEvents = rlt.interface.output_events;
-    outputEvents.forEach(outputEvent => {
+    outputEvents = rlt?.interface?.output_events;
+    outputEvents?.forEach(outputEvent => {
         let no = 1;
         if (!outputEvent.no) {
             outputEvent.no = no;
