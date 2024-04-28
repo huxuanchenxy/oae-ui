@@ -339,21 +339,17 @@ const delAlgorithm = (data) => {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
-  }).then(() => {
-    //处理逻辑
-    delTree();
+  })
+    .then(() => {
+      //处理逻辑
+      delTree();
 
-    ElMessage({
-      type: "success",
-      message: "删除成功",
-    });
-  });
-  // .catch(() => {
-  //   ElMessage({
-  //     type: "info",
-  //     message: "删除",
-  //   });
-  // });
+      ElMessage({
+        type: "success",
+        message: "删除成功",
+      });
+    })
+    .catch(() => {});
 
   // 暂时不作关联判断
   let cacheJson = cache.local.getJSON("json");
@@ -486,8 +482,8 @@ const getCacheFuncList = () => {
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
       };
-      console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
-      console.log("e.name,obj", newObj);
+      //console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
+      //console.log("e.name,obj", newObj);
       var isExistobj = curFuncList.value.find(
         (x) =>
           x.funcName == newObj.funcName &&
