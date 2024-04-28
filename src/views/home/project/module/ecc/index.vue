@@ -217,8 +217,10 @@ const initStateFormData:StateForm = {
   text:'',
 }
 const initAlgAndEventFormData:StateForm = {
-  algorithm:{},
-  output_event:{},
+  alg:'',
+  event:'',
+  algName:'',
+  eventName:''
 }
 const edgeData = reactive<PageData<EdgeForm, EdgeQuery>>({
   edgeForm: { ...initEdgeFormData },
@@ -725,7 +727,37 @@ const submitStateForm=(()=>{
   dialogState.visible = false;
 })
 const submitAlgAndEventForm=(()=>{
-
+  // let data=algAndEventForm.value;
+  // // edgeForm.value
+  // let eventVo:Eve={};
+  // if(data.relatedEventId){
+  //   eventVo={id:data.alg,name:""}
+  // }
+  // relateEveList.value.forEach( dict=> {
+  //   if(dict.id==eventVo.id){
+  //     eventVo.name=dict.name;
+  //     data.algName=dict.name;
+  //   }
+  // });
+  // data.event_condition=eventVo;
+  // //双向绑定数据更新
+  // Object.assign(currentState.value,algAndEventForm.value);
+  // //antv回显
+  // let algNode=graph.findById(algName)
+  // let eventNode=graph.findById(eventName)
+  // if(algNode){
+  //   graph.update(algNode, {
+  //     label: algName
+  //   });
+  // }
+  // if(eventNode){
+  //   graph.update(eventNode, {
+  //     label: eventName
+  //   });
+  // }
+  // //大JSON更新
+  // proxy?.$modal.msgSuccess("操作成功");
+  // dialogAlgAndEvent.visible = false;
 })
 //打开编辑控制图属性对话框
 const handleUpdateCanvas=()=>{
