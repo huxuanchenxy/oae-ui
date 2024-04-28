@@ -377,12 +377,122 @@ onMounted(() => {
   //     return obj.funcParentId == "";
   //   });
   // });
-  curFuncList.value = JSON.parse(sessionStorage.getItem("curFuncLists"));
-  console.log("curFuncList:::", curFuncList.value);
+  // curFuncList.value = JSON.parse(sessionStorage.getItem("curFuncLists"));
+  // console.log("curFuncList:::", curFuncList.value);
+  // listOneFuncList.value = curFuncList.value?.filter((obj) => {
+  //   return obj.funcParentId == 0;
+  // });
+  // processMenuData(listOneFuncList.value);
+});
+
+const addTree = (treeName) => {
+  let curLevel = curData.value.funcLevelId;
+  let curFuncName = curData.value.funcName;
+
+  var newObj = {
+    id: 0,
+    funcName: "",
+    funcUrl: "",
+    funcParentId: 0,
+    funcLevelId: 0,
+    isEdit: false,
+  };
+  if (curLevel == 4 && curFuncName == "算法") {
+    newObj.funcName = treeName;
+    newObj.funcLevelId = curLevel + 1;
+    var ppObj = curFuncList.value.find(
+      (x) => x.id == curData.value.funcParentId
+    );
+    newObj.funcUrl = `${ppObj.funcUrl}/algorithm/${treeName}`;
+    let newId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
+    newObj.id = newId;
+    newObj.funcParentId = curData.value.id;
+    if (curData.value.child) {
+      curData.value.child.push(newObj);
+    } else {
+      curData.value.child = [];
+      curData.value.child.push(newObj);
+    }
+    listOneFuncList.value = [...listOneFuncList.value];
+  }
+  //console.log("curLevel:::", curLevel);
+  //console.log("curFuncName:::", curFuncName);
+};
+
+const getCacheFuncList = () => {
+  let newTempFuncList = [];
+  let maxId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
+
+  let cacheJson = cache.local.getJSON("json");
+  if (cacheJson && cacheJson.length > 0) {
+    cacheJson.forEach((c) => {
+      let moduleId = c.id;
+      let name = "";
+      if (c.algorithms && c.algorithms.length > 0) {
+        c.algorithms.forEach((el) => {
+          name = el.text;
+          newTempFuncList.push({ moduleId, name });
+        });
+      }
+    });
+  }
+
+  if (newTempFuncList.length > 0) {
+    newTempFuncList.forEach((e) => {
+      var ppObj = curFuncList.value.find((x) => x.id == e.moduleId);
+      var pObj = curFuncList.value.find(
+        (x) => x.funcParentId == e.moduleId && x.funcName == "算法"
+      );
+      var newObj = {
+        id: maxId,
+        funcName: e.name,
+        funcUrl: `${ppObj?.funcUrl}/algorithm/${e.name}`,
+        funcParentId: pObj?.id,
+        funcLevelId: pObj?.funcLevelId + 1,
+        isEdit: false,
+      };
+      console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
+      console.log("e.name,obj", newObj);
+      var isExistobj = curFuncList.value.find(
+        (x) =>
+          x.funcName == newObj.funcName &&
+          x.funcParentId == newObj.funcParentId &&
+          x.funcLevelId == newObj.funcLevelId
+      );
+      if (!isExistobj) {
+        curFuncList.value.push(newObj);
+        maxId++;
+      }
+    });
+  }
+};
+
+const loadData = (list) => {
+  //console.log(4);
+  curFuncList.value = list; //JSON.parse(sessionStorage.getItem("curFuncLists"));
+  //console.log("curFuncList:::111---", curFuncList.value);
+  getCacheFuncList();
+  //console.log("curFuncList:::222---", curFuncList.value);
   listOneFuncList.value = curFuncList.value?.filter((obj) => {
     return obj.funcParentId == 0;
   });
   processMenuData(listOneFuncList.value);
+};
+
+onBeforeMount(() => {
+  //console.log("1");
+  var curFuncList = sessionStorage.getItem("curFuncLists");
+  if (!curFuncList) {
+    sysApi.getFuncList().then((res) => {
+      //console.log(3);
+      let list = res;
+      sessionStorage.setItem("curFuncLists", JSON.stringify(list));
+      loadData(list);
+    });
+  } else {
+    let list = JSON.parse(sessionStorage.getItem("curFuncLists"));
+    loadData(list);
+  }
 });
 
 const getModuleData = (id, path) => {

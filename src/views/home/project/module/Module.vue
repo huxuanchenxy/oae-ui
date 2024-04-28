@@ -85,6 +85,7 @@ const initLoad = () => {
   pid.value = route.params.pid;
   cid.value = route.params.id;
   showType.value = route.params?.type?.toLowerCase() ?? "";
+  algorithmName.value = route.params?.algorithms ?? "";
   let rlt = getCurrentObj(project, cid.value);
   if (!rlt) {
     getModuleData(project, cid.value);
