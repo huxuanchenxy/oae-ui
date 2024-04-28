@@ -24,11 +24,11 @@
               状态机属性
             </div>
             <div>
-              状态机名称 {{currentState?.text}}
+              {{currentState?.text}}<el-button type="success" plain icon="Edit" @click="handleUpdateState"></el-button>
             </div>
             <hr/>
             <div v-for="algAndEvent in currentState.algAndEvent">
-              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition()"></el-button>
+              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition(algAndEvent.alg.key)"></el-button>
               <el-button type="danger" plain icon="Delete"  @click="handleDeleteCondition(currentState.key,algAndEvent.alg.key)"></el-button><br/>
               <br/>
               <div>{{algAndEvent.alg.text}}</div>
@@ -111,6 +111,55 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog :title="dialogState.title" v-model="dialogState.visible" width="500px" append-to-body>
+      <el-form ref="stateFormRef" :model="stateForm"  label-width="80px">
+        <el-form-item prop="key" v-if="false" >
+          <el-input v-model="stateForm.key" />
+        </el-form-item>
+        <el-form-item label="名称" prop="text">
+          <el-input v-model="stateForm.text" placeholder="请输入名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitStateForm">确 定</el-button>
+          <el-button @click="cancelStateDialog">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" append-to-body>
+      <el-form ref="algAndEventFormRef" :model="algAndEventForm"  label-width="80px">
+        <el-form-item prop="key" v-if="false" >
+          <el-input v-model="algAndEventForm.key" />
+        </el-form-item>
+        <el-form-item label="算法">
+          <el-select v-model="algAndEventForm.alg" placeholder="请选择">
+            <el-option
+                v-for="item in relateEveList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="输出事件">
+          <el-select v-model="algAndEventForm.event" placeholder="请选择">
+            <el-option
+                v-for="item in relateEveList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitAlgAndEventForm">确 定</el-button>
+          <el-button @click="cancelAlgAndEventDialog">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -127,12 +176,29 @@ import {getRelateEveList} from "@/api/inter/event";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
 import {removeAlgAndEvent,saveOrUpdateState,getOneState,saveOrUpdateStateList} from "@/api/ecc/state";
-import type { StateMachine,StateForm,StateVO} from '@/api/ecc/state/type';
+import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
+import type { AlgAndEventQuery,AlgAndEventForm,AlgAndEventVO} from '@/api/ecc/algandevent/type';
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
 let currentState:StateVO=ref(null);
 const algLabel='算法';
 const eveLabel='输出';
+const dialogEdge = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+const dialogCanvas = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+const dialogState = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+const dialogAlgAndEvent = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
 //初始值
 const initEdgeFormData:EdgeForm = {
   from:'',
@@ -143,20 +209,40 @@ const initEdgeFormData:EdgeForm = {
   guard_condition:'',
   comment:''
 }
+
+const initCanvasFormData:CanvasForm = {
+  comment:'',
+}
+const initStateFormData:StateForm = {
+  text:'',
+}
+const initAlgAndEventFormData:StateForm = {
+  alg:'',
+  event:'',
+  algName:'',
+  eventName:''
+}
 const edgeData = reactive<PageData<EdgeForm, EdgeQuery>>({
   edgeForm: { ...initEdgeFormData },
   queryParams: {}
 });
-const initCanvasFormData:CanvasForm = {
-  key:'',
-  comment:'',
-}
 const canvasData = reactive<PageData<CanvasForm, CanvasQuery>>({
   canvasForm: { ...initCanvasFormData },
   queryParams: {}
 });
+const stateData = reactive<PageData<StateForm, StateQuery>>({
+  stateForm: { ...initStateFormData },
+  queryParams: {}
+});
+const algAndEventData = reactive<PageData<AlgAndEventForm, AlgAndEventQuery>>({
+  algAndEventForm: { ...initAlgAndEventFormData },
+  queryParams: {}
+});
+
 const {  edgeForm } = toRefs(edgeData);
 const {  canvasForm } = toRefs(canvasData);
+const {  stateForm } = toRefs(stateData);
+const {  algAndEventForm } = toRefs(algAndEventData);
 const cacheKey="graph";
 const project="project1";
 const tagsStore = pagetagsStore();
@@ -190,6 +276,8 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 let mouseX,mouseY;
 const edgeFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
+const stateFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
+const algAndEventFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const relateEveList = ref<Eve[]>([]);
 
@@ -625,6 +713,52 @@ const getEdgesById=(data)=>{
     currentEdge.value.to=data.to;
   }
 }
+const submitStateForm=(()=>{
+  let data=stateForm.value;
+  Object.assign(currentState.value,stateForm.value);
+  //antv回显
+  let stateNode=graph.findById(data.key)
+  if(stateNode){
+    graph.update(stateNode, {
+      label: data.text
+    });
+  }
+  proxy?.$modal.msgSuccess("操作成功");
+  dialogState.visible = false;
+})
+const submitAlgAndEventForm=(()=>{
+  // let data=algAndEventForm.value;
+  // // edgeForm.value
+  // let eventVo:Eve={};
+  // if(data.relatedEventId){
+  //   eventVo={id:data.alg,name:""}
+  // }
+  // relateEveList.value.forEach( dict=> {
+  //   if(dict.id==eventVo.id){
+  //     eventVo.name=dict.name;
+  //     data.algName=dict.name;
+  //   }
+  // });
+  // data.event_condition=eventVo;
+  // //双向绑定数据更新
+  // Object.assign(currentState.value,algAndEventForm.value);
+  // //antv回显
+  // let algNode=graph.findById(algName)
+  // let eventNode=graph.findById(eventName)
+  // if(algNode){
+  //   graph.update(algNode, {
+  //     label: algName
+  //   });
+  // }
+  // if(eventNode){
+  //   graph.update(eventNode, {
+  //     label: eventName
+  //   });
+  // }
+  // //大JSON更新
+  // proxy?.$modal.msgSuccess("操作成功");
+  // dialogAlgAndEvent.visible = false;
+})
 //打开编辑控制图属性对话框
 const handleUpdateCanvas=()=>{
   Object.assign(canvasForm.value, currentCanvas.value);
@@ -646,8 +780,19 @@ const handleUpdateEdge=()=>{
   dialogEdge.title = "修改连接线属性";
 }
 //打开编辑条件对话框
-const handleUpdateCondition=(()=>{
-
+const handleUpdateCondition=((algId:string)=>{
+  resetAlgAndEventForm();
+  let algAndEvent=currentState.value.algAndEvent;
+  algAndEventForm.alg=algAndEvent.alg;
+  algAndEventForm.event=algAndEvent.event;
+  dialogAlgAndEvent.visible = true;
+  dialogAlgAndEvent.title = "修改算法和事件";
+})
+const handleUpdateState=(()=>{
+  resetStateForm();
+  Object.assign(stateForm.value,currentState.value);
+  dialogState.visible = true;
+  dialogState.title = "修改状态机";
 })
 const handleDeleteCondition=async(stateId,algId)=>{
   await proxy?.$modal.confirm('是否确认删除？');
@@ -675,19 +820,25 @@ const resetCanvasForm = () => {
   canvasForm.value={ ...initCanvasFormData };
   canvasFormRef.value?.resetFields();
 }
-const dialogEdge = reactive<DialogOption>({
-  visible: false,
-  title: ''
-});
-const dialogCanvas = reactive<DialogOption>({
-  visible: false,
-  title: ''
-});
+const resetStateForm = () => {
+  stateForm.value={ ...initStateFormData };
+  stateFormRef.value?.resetFields();
+}
+const resetAlgAndEventForm = () => {
+  algAndEventForm.value={ ...initAlgAndEventFormData };
+  algAndEventFormRef.value?.resetFields();
+}
 const cancelEdgeDialog = () => {
   dialogEdge.visible = false;
 }
 const cancelCanvasDialog = () => {
   dialogCanvas.visible = false;
+}
+const cancelStateDialog = () => {
+  dialogState.visible = false;
+}
+const cancelAlgAndEventDialog = () => {
+  dialogAlgAndEvent.visible = false;
 }
 watch(
   () => router.currentRoute.value,

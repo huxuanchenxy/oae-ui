@@ -133,7 +133,6 @@ import NavTree from "@/components/NavTree.vue";
 //import { baseUrl } from "@/api/baseUrl";
 //import sysApi from "@/api/sysApi";
 import cache from "@/plugins/cache.ts";
-import { getInitData } from "@/api/common/init.ts";
 
 import sysApi from "@/api/sysApi";
 //const router = useRouter(); //实例化路由

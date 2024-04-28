@@ -168,7 +168,7 @@ const updateRuleByLanguage = (moduleJson) => {
   })
 }
 const initEditor = () => {
-  // console.log(currentAlgorithm.value)
+  console.log(currentAlgorithm.value)
   let moduleJson = getCurrentObj(currentProject,currentModule)
   let algorithm;
   // 点模块 再点tag算法时，路由中不含当前算法名

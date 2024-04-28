@@ -1,6 +1,5 @@
-import {Alg} from "@/api/alg/types";
 import {Eve} from "@/api/inter/event/types";
-import {AlgSimple} from "../../alg/types";
+import {AlgSimple} from "@/api/alg/types";
 
 export interface StateMachine {
     key:string,
@@ -19,12 +18,12 @@ export interface StateQuery extends PageQuery {
 export interface StateForm {
     key:string,
     text:string,
-    x:number,
-    y:number,
-    relatedEvents:{ id: string; name: string };
-    comment:string
+    algorithm:{ id: string; name: string };
+    output_event:{ id: string; name: string };
 }
-
+export interface StateQuery extends PageQuery {
+    name: string;
+}
 export interface StateVO extends BaseEntity {
     key:string,
     text:string,

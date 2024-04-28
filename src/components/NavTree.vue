@@ -111,7 +111,11 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from "element-plus";
-import { getCurrentObj, changeData} from "@/utils/cache/common";
+// import {
+//   getCurrentObj,
+//   setModuleData1,
+//   setServerData,
+// } from "@/utils/cache/common";
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 const tagsStore = pagetagsStore();
@@ -124,10 +128,6 @@ let currentData = reactive({ funcLevelId: 0 });
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
 const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
-const router = useRouter();
-const route = useRoute();
-const currentProject = 'project1'
-const currentModule = route.params.id;
 
 const validateName = (rule, value, callback) => {
   if (!reg.test(value)) {
@@ -211,7 +211,10 @@ const processMenuData = (list) => {
     // }
   });
 };
-
+let curNode = ref();
+let curData = ref();
+const router = useRouter();
+const route = useRoute();
 const handleNodeClickOld = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
@@ -280,6 +283,7 @@ const handleNodeClick = async (data) => {
       getModuleData(id, data.funcUrl);
     } else {
       //router.push({ path: data.funcUrl });
+      console.log("data.funcUrl", data.funcUrl);
       router.push(data.funcUrl);
     }
   }
@@ -309,6 +313,8 @@ const showContextMenu = (e, data, node, n) => {
     popStatus.value = true;
     currentData = data;
     // console.log(currentData)
+    curData.value = data;
+    curNode.value = node;
   }
 };
 
@@ -329,14 +335,27 @@ const onSubmit = async (formEl) => {
 };
 
 const delAlgorithm = (data) => {
-  let moduleJson = getCurrentObj(currentProject, currentModule);
-  moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
-    return item.text !== data.funcName;
-  });
-  changeData(currentProject,currentModule,moduleJson);
-  // cache.local.setJSON('json',cacheJson);
-  popStatus.value = false;
-  // console.log(cacheJson[0].algorithms);
+  ElMessageBox.confirm(`确定要删除${data.funcName}?`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      //处理逻辑
+      delTree();
+      popStatus.value = false;
+      // 暂时不作关联判断
+      let moduleJson = getCurrentObj(currentProject, currentModule);
+        moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
+          return item.text !== data.funcName;
+        });
+      changeData(currentProject,currentModule,moduleJson);
+      ElMessage({
+        type: "success",
+        message: "删除成功",
+      });
+    })
+    .catch(() => {});
 };
 
 const renameAlgorithm = (data) => {
@@ -363,7 +382,6 @@ const saveName = (data) => {
       }
     }
     changeData(currentProject,currentModule,moduleJson);
-    // console.log(cacheJson[0].algorithms)
   }
   // console.log(data)
 };
@@ -418,10 +436,21 @@ const addTree = (treeName) => {
   //console.log("curFuncName:::", curFuncName);
 };
 
+const delTree = () => {
+  const parent = curNode.value.parent;
+  const children = parent.data.child;
+  const index = children.findIndex((d) => d.id === curData.value.id);
+  children.splice(index, 1);
+  listOneFuncList.value = [...listOneFuncList.value];
+};
+
+const RenameTree = (newName) => {
+  curData.value.funcName = newName;
+  listOneFuncList.value = [...listOneFuncList.value];
+};
 const getCacheFuncList = () => {
   let newTempFuncList = [];
   let maxId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
-
   let cacheJson = cache.local.getJSON("json");
   if (cacheJson && cacheJson.length > 0) {
     cacheJson.forEach((c) => {
@@ -450,8 +479,8 @@ const getCacheFuncList = () => {
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
       };
-      // console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
-      // console.log("e.name,obj", newObj);
+      console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
+      console.log("e.name,obj", newObj);
       var isExistobj = curFuncList.value.find(
         (x) =>
           x.funcName == newObj.funcName &&
@@ -479,11 +508,9 @@ const loadData = (list) => {
 };
 
 onBeforeMount(() => {
-  //console.log("1");
   var curFuncList = sessionStorage.getItem("curFuncLists");
   if (!curFuncList) {
     sysApi.getFuncList().then((res) => {
-      //console.log(3);
       let list = res;
       sessionStorage.setItem("curFuncLists", JSON.stringify(list));
       loadData(list);

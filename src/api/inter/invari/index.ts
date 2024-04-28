@@ -1,5 +1,4 @@
 import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
-import {getInitData} from "@/api/common/init";
 
 export const getInVaris=(project,module)=>{
     let rlt=getCurrentObj(project,module);
