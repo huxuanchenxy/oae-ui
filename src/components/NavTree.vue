@@ -335,6 +335,7 @@ const onSubmit = async (formEl) => {
 };
 
 const delAlgorithm = (data) => {
+  delTree();
   // 暂时不作关联判断
   let cacheJson = cache.local.getJSON("json");
   cacheJson[0].algorithms = cacheJson[0].algorithms.filter((item) => {
@@ -423,10 +424,19 @@ const addTree = (treeName) => {
   //console.log("curFuncName:::", curFuncName);
 };
 
-const delTree = (treeName) => {
-  let curLevel = curData.value.funcLevelId;
-  let curFuncName = curData.value.funcName;
+const delTree = () => {
+  const parent = curNode.value.parent;
+  const children = parent.data.child;
+  const index = children.findIndex((d) => d.id === curData.value.id);
+  children.splice(index, 1);
+  listOneFuncList.value = [...listOneFuncList.value];
 };
+
+const RenameTree = (newName) => {
+  curData.value.funcName = newName;
+  listOneFuncList.value = [...listOneFuncList.value];
+};
+
 const getCacheFuncList = () => {
   let newTempFuncList = [];
   let maxId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
