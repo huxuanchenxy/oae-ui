@@ -31,6 +31,5 @@ export interface StateVO extends BaseEntity {
     x:number,
     y:number,
     algAndEvent:Array<{alg:AlgSimple,event:Eve}>
-    algAndEventName:Array<{alg:string,event:string}>
     comment:string
 }
