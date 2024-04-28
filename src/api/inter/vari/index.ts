@@ -1,11 +1,10 @@
 import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
-import {getInitData} from "@/api/common/init";
 export const getInputVaris=(project,module)=>{
     let rlt=getCurrentObj(project,module);
     let inputVaris;
-    if(!rlt){
-        rlt=getInitData(project,module)[0];
-    }
+    // if(!rlt){
+    //     rlt=getInitData(project,module)[0];
+    // }
     if(rlt){
         inputVaris= rlt.interface.inputs;
         inputVaris.forEach(inputVari => {
