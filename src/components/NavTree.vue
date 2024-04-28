@@ -111,11 +111,7 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from "element-plus";
-// import {
-//   getCurrentObj,
-//   setModuleData1,
-//   setServerData,
-// } from "@/utils/cache/common";
+import { getCurrentObj, changeData} from "@/utils/cache/common";
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 const tagsStore = pagetagsStore();
@@ -128,13 +124,17 @@ let currentData = reactive({ funcLevelId: 0 });
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
 const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
+const router = useRouter();
+const route = useRoute();
+const currentProject = 'project1'
+const currentModule = route.params.id;
 
 const validateName = (rule, value, callback) => {
   if (!reg.test(value)) {
     callback(new Error("使用字母数字和下划线,首个字符必须是字母"));
   } else {
-    let cacheJson = cache.local.getJSON("json");
-    let tmp = cacheJson[0].algorithms.filter((item) => {
+    let moduleJson = getCurrentObj(currentProject, currentModule);
+    let tmp = moduleJson.algorithms.filter((item) => {
       return item.text === value;
     });
     if (!tmp) callback();
@@ -212,8 +212,6 @@ const processMenuData = (list) => {
   });
 };
 
-const router = useRouter();
-const route = useRoute();
 const handleNodeClickOld = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
@@ -319,11 +317,11 @@ const onSubmit = async (formEl) => {
   await formEl.validate((valid, fields) => {
     if (valid) {
       dialogVisible.value = false;
-      let cacheJson = cache.local.getJSON("json");
-      // 暂时先默认从第一个模块里读写数据
-      // cacheJson[0].algorithms.push(newAlgorithm)
-      // cache.local.setJSON('json',cacheJson);
-      console.log(newAlgorithm);
+      let moduleJson = getCurrentObj(currentProject, currentModule);
+      moduleJson.algorithms.push(newAlgorithm)
+      changeData(currentProject,currentModule,moduleJson);
+      addTree(newAlgorithm.text);
+      // console.log(newAlgorithm);
     } else {
       // console.log('error submit!', fields)
     }
@@ -331,14 +329,14 @@ const onSubmit = async (formEl) => {
 };
 
 const delAlgorithm = (data) => {
-  // 暂时不作关联判断
-  let cacheJson = cache.local.getJSON("json");
-  cacheJson[0].algorithms = cacheJson[0].algorithms.filter((item) => {
+  let moduleJson = getCurrentObj(currentProject, currentModule);
+  moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
     return item.text !== data.funcName;
   });
+  changeData(currentProject,currentModule,moduleJson);
   // cache.local.setJSON('json',cacheJson);
   popStatus.value = false;
-  console.log(cacheJson[0].algorithms);
+  // console.log(cacheJson[0].algorithms);
 };
 
 const renameAlgorithm = (data) => {
@@ -357,13 +355,14 @@ const saveName = (data) => {
       type: "error",
     });
   } else {
-    let cacheJson = cache.local.getJSON("json");
-    for (let item of cacheJson[0].algorithms) {
+    let moduleJson = getCurrentObj(currentProject, currentModule);
+    for (let item of moduleJson.algorithms) {
       if (item.text === data.oldFuncName) {
         item.text = data.funcName;
         break;
       }
     }
+    changeData(currentProject,currentModule,moduleJson);
     // console.log(cacheJson[0].algorithms)
   }
   // console.log(data)
@@ -451,8 +450,8 @@ const getCacheFuncList = () => {
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
       };
-      console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
-      console.log("e.name,obj", newObj);
+      // console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
+      // console.log("e.name,obj", newObj);
       var isExistobj = curFuncList.value.find(
         (x) =>
           x.funcName == newObj.funcName &&

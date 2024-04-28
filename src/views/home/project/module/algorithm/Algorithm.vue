@@ -67,6 +67,7 @@ const route = useRoute();
 const currentProject = 'project1';
 const currentModule = route.params.id;
 let currentAlgorithm = ref(route.params.algorithms);
+let currentLanguage = ref();
 const drawer = ref(false);
 let funcDB = ref();
 const emit = defineEmits(["getName"]);
@@ -124,7 +125,49 @@ const initRegRule = (val) => {
   // console.log(ret.slice(0,-1));
   return new RegExp(ret.slice(0,-1), 'ig');
 }
-function initEditor () {
+const updateEditor = () => {
+  currentAlgorithm.value = route.params.algorithms;
+  emit('getName', currentAlgorithm.value);
+  let moduleJson = getCurrentObj(currentProject,currentModule)
+  let algorithm = moduleJson.algorithms.filter((item) => {return item.text === currentAlgorithm.value})[0]
+  monacoEditor.setValue(algorithm.content);
+  if (currentLanguage !== algorithm.type.toLowerCase()) {
+    currentLanguage = algorithm.type.toLowerCase();
+    updateRuleByLanguage(moduleJson);
+    monacoEditor.setModelLanguage(monacoEditor.getModel(), currentLanguage);//toRaw(codeEditor.value).getModel()
+  }
+}
+const updateRuleByLanguage = (moduleJson) => {
+  let vals = moduleJson.interface;
+  let tokenizerRoot = [];
+  if (vals.inputs.length > 0) {
+    tokenizerRoot.push([initRegRule(vals.inputs), {token: 'inputs'}]);
+  }
+  if (vals.outputs.length > 0) {
+    tokenizerRoot.push([initRegRule(vals.outputs), {token: 'outputs'}]);
+  }
+  if (vals.internals.length > 0) {
+    tokenizerRoot.push([initRegRule(vals.internals), {token: 'internals'}]);
+  }
+  if (vals.temps.length > 0) {
+    tokenizerRoot.push([initRegRule(vals.temps), {token: 'temps'}]);
+  }
+  // console.log(tokenizerRoot);
+  // let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
+  monaco.languages.setMonarchTokensProvider(currentLanguage, {
+    // ignoreCase: true, // 忽略大小写
+    tokenizer: {
+      // root:[
+      //   // [/ttt|ppp|ccc/, {token: "inputs"}],
+      //   [inputsReg, {token: "inputs"}],
+      //   // [/-X|-H|-d/, {token: "keyword"}],
+      //   // [/POST|GET|DELETE|PATCH|PUT/, {token: "comment.doc"}],
+      // ],
+      root: tokenizerRoot
+    }
+  })
+}
+const initEditor = () => {
   // console.log(currentAlgorithm.value)
   let moduleJson = getCurrentObj(currentProject,currentModule)
   let algorithm;
@@ -137,8 +180,8 @@ function initEditor () {
   }
   emit('getName', currentAlgorithm.value);
   // console.log(algorithm)
-  let algorithmType = algorithm.type.toLowerCase();
-  api.GetFunctions({lang: algorithmType}).then((res) => {
+  currentLanguage = algorithm.type.toLowerCase();
+  api.GetFunctions({lang: currentLanguage}).then((res) => {
     funcDB.value = res;
     // console.log(funcDB);
   });
@@ -158,40 +201,13 @@ function initEditor () {
     // 必须有否则无法生效
     colors: {}
   });
-  let vals = moduleJson.interface;
-  let tokenizerRoot = [];
-  if (vals.inputs.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.inputs), {token: 'inputs'}]);
-  }
-  if (vals.outputs.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.outputs), {token: 'outputs'}]);
-  }
-  if (vals.internals.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.internals), {token: 'internals'}]);
-  }
-  if (vals.temps.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.temps), {token: 'temps'}]);
-  }
-  // console.log(tokenizerRoot);
-  // let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
-  monaco.languages.setMonarchTokensProvider(algorithmType, {
-    // ignoreCase: true, // 忽略大小写
-    tokenizer: {
-      // root:[
-      //   // [/ttt|ppp|ccc/, {token: "inputs"}],
-      //   [inputsReg, {token: "inputs"}],
-      //   // [/-X|-H|-d/, {token: "keyword"}],
-      //   // [/POST|GET|DELETE|PATCH|PUT/, {token: "comment.doc"}],
-      // ],
-      root: tokenizerRoot
-    }
-  })
+  
   // 创建 Monaco Editor 实例
   monacoEditor = monaco.editor.create(editor.value, {
     // 设置初始代码值
     value: algorithm.content,
     // 设置语言为自定义语言
-    language: algorithmType,
+    language: currentLanguage,
     theme: 'myTheme', //官方自带三种主题vs, hc-black, or vs-dark
     // suggest: {
     //   preview: true
@@ -257,6 +273,7 @@ watch(
   () => router.currentRoute.value,
   (newValue) => {
     initLoad();
+    updateEditor();
   }
 );
 
