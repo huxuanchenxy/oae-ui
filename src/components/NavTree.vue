@@ -211,7 +211,8 @@ const processMenuData = (list) => {
     // }
   });
 };
-
+let curNode = ref();
+let curData = ref();
 const router = useRouter();
 const route = useRoute();
 const handleNodeClickOld = (data) => {
@@ -282,6 +283,7 @@ const handleNodeClick = async (data) => {
       getModuleData(id, data.funcUrl);
     } else {
       //router.push({ path: data.funcUrl });
+      console.log("data.funcUrl", data.funcUrl);
       router.push(data.funcUrl);
     }
   }
@@ -311,6 +313,8 @@ const showContextMenu = (e, data, node, n) => {
     popStatus.value = true;
     currentData = data;
     // console.log(currentData)
+    curData.value = data;
+    curNode.value = node;
   }
 };
 
@@ -419,6 +423,10 @@ const addTree = (treeName) => {
   //console.log("curFuncName:::", curFuncName);
 };
 
+const delTree = (treeName) => {
+  let curLevel = curData.value.funcLevelId;
+  let curFuncName = curData.value.funcName;
+};
 const getCacheFuncList = () => {
   let newTempFuncList = [];
   let maxId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
