@@ -335,7 +335,26 @@ const onSubmit = async (formEl) => {
 };
 
 const delAlgorithm = (data) => {
-  delTree();
+  ElMessageBox.confirm(`确定要删除${data.funcName}?`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(() => {
+    //处理逻辑
+    delTree();
+
+    ElMessage({
+      type: "success",
+      message: "删除成功",
+    });
+  });
+  // .catch(() => {
+  //   ElMessage({
+  //     type: "info",
+  //     message: "删除",
+  //   });
+  // });
+
   // 暂时不作关联判断
   let cacheJson = cache.local.getJSON("json");
   cacheJson[0].algorithms = cacheJson[0].algorithms.filter((item) => {
@@ -436,11 +455,9 @@ const RenameTree = (newName) => {
   curData.value.funcName = newName;
   listOneFuncList.value = [...listOneFuncList.value];
 };
-
 const getCacheFuncList = () => {
   let newTempFuncList = [];
   let maxId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
-
   let cacheJson = cache.local.getJSON("json");
   if (cacheJson && cacheJson.length > 0) {
     cacheJson.forEach((c) => {
@@ -498,11 +515,9 @@ const loadData = (list) => {
 };
 
 onBeforeMount(() => {
-  //console.log("1");
   var curFuncList = sessionStorage.getItem("curFuncLists");
   if (!curFuncList) {
     sysApi.getFuncList().then((res) => {
-      //console.log(3);
       let list = res;
       sessionStorage.setItem("curFuncLists", JSON.stringify(list));
       loadData(list);
