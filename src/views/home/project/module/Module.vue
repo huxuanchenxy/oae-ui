@@ -88,7 +88,9 @@ const initLoad = () => {
   algorithmName.value = route.params?.algorithms ?? "";
   tagList.value.forEach((t) => (t.funcStatus = "plain"));
   var curTag = tagList.value.find((x) => x.showType == showType.value);
-  curTag.funcStatus = "dark";
+  if (curTag) {
+    curTag.funcStatus = "dark";
+  }
   if (cid.value) {
     let rlt = getCurrentObj(project, cid.value);
     if (!rlt) {
