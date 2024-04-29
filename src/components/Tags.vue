@@ -25,6 +25,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { pagetagsStore } from "@/store/pageTags.js";
+import sysApi from "@/api/sysApi";
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const curRouteObj = useRoute();
@@ -56,12 +57,22 @@ const goToPath = (path) => {
 };
 onMounted(() => {
   if (tagsStore.TagArrs.length == 0) {
-    var path = curRouteObj.path;
-    //console.log("tags path", path, path.length);
-    var pathArrays = path.split("/");
-    //console.log("tags path", path, pathArrays.length);
-    //var funcUrl = "/" + pathArrays[1];
     let curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
+    if (curFuncList) {
+      loadTagData(curFuncList);
+    } else {
+      sysApi.getFuncList().then((res) => {
+        let list = res;
+        loadTagData(list);
+      });
+    }
+  }
+});
+
+const loadTagData = (curFuncList) => {
+  if (curFuncList) {
+    var path = curRouteObj.path;
+    var pathArrays = path.split("/");
     let id = 0;
     let name = "";
     let addPath = "";
@@ -85,7 +96,7 @@ onMounted(() => {
     };
     tagsStore.AddTag(info);
   }
-});
+};
 </script>
 
 <style  scoped>
