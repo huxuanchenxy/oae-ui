@@ -32,7 +32,7 @@
               <el-button type="danger" plain icon="Delete"  @click="handleDeleteCondition(currentState.key,algAndEvent.alg.key)"></el-button><br/>
               <br/>
               <div>{{algAndEvent?.alg.text}}</div>
-              <div>{{algAndEvent?.event.name}}</div>
+              <div>{{algAndEvent?.event.text}}</div>
               <hr/>
             </div>
             <el-button type="success"  @click="addCondition">新增条件</el-button>
@@ -85,10 +85,10 @@
         <el-form-item label="输入事件">
           <el-select v-model="edgeForm.relatedEventId" placeholder="请选择">
             <el-option
-                v-for="item in relateEveList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
+                v-for="item in inputEventList"
+                :key="item.key"
+                :label="item.text"
+                :value="item.key"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -138,20 +138,20 @@
         <el-form-item label="算法">
           <el-select v-model="algAndEventForm.alg" placeholder="请选择">
             <el-option
-                v-for="item in relateEveList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
+                v-for="item in inputEventList"
+                :key="item.key"
+                :label="item.text"
+                :value="item.key"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="输出事件">
           <el-select v-model="algAndEventForm.event" placeholder="请选择">
             <el-option
-                v-for="item in relateEveList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
+                v-for="item in outputEventList"
+                :key="item.key"
+                :label="item.text"
+                :value="item.key"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -175,7 +175,7 @@ import type { EdgeForm,EdgeQuery,EdgeVO} from '@/api/ecc/edge/type';
 import type { CanvasForm,CanvasQuery,CanvasVO} from '@/api/ecc/canvas/type';
 import type { AlgSimple} from '@/api/alg/type';
 import { Eve } from "@/api/inter/event/types";
-import {getRelateEveList} from "@/api/inter/event";
+import {getInputEvents,getOutputEvents} from "@/api/inter/event";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
 import {removeAlgAndEvent,saveOrUpdateState,getOneState,saveOrUpdateStateList} from "@/api/ecc/state";
@@ -280,8 +280,8 @@ const canvasFormRef = ref<ElFormInstance>();//用于重置，还可以用于验�
 const stateFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const algAndEventFormRef = ref<ElFormInstance>();//用于重置，还可以用于验证
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
-const relateEveList = ref<Eve[]>([]);
-
+const inputEventList = ref<Eve[]>([]);
+const outputEventList = ref<Eve[]>([]);
 
 const contextMenu = new G6.Menu({
   getContent(evt) {
@@ -506,7 +506,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
   }
   currentState.value.algAndEvent.push({
     alg: {key:algNodeId,text:algLabel},
-    event:{id:eveNodeId,name:eveLabel}
+    event:{key:eveNodeId,text:eveLabel}
   })
   //大JSON更新
   let state:StateMachine=getOneState(project,module,stateId);
@@ -514,7 +514,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
   if(!algAndEvents){
     algAndEvents=new Array();
   }
-  algAndEvents.push({ alg: {key:algNode.id,text:algNode.label},event: {id:eveNode.id,name:eveNode.label} });
+  algAndEvents.push({ alg: {key:algNode.id,text:algNode.label},event: {key:eveNode.id,text:eveNode.label} });
   let algorithm=state.algorithm;
   if(!algorithm){
     algorithm=new Array();
@@ -529,7 +529,8 @@ const addAlgAndEventNode=(item,canvasY)=>{
 }
 onMounted(() => {
   //得到事件列表
-  relateEveList.value=getRelateEveList();
+  inputEventList.value=getInputEvents(project,module);
+  outputEventList.value=getOutputEvents(project,module);
   initLoad();
   //用ref获取DOM元素必须在onMounted中赋值,否则取不到
   graphWidth=container.value.offsetWidth;
@@ -574,7 +575,7 @@ const initGraphData=()=>{
                       state.output_event.push({key:eventNode.id,text:eventNode.label});
                       let algAndEvent={
                         alg:alg,
-                        event:{id:eventNode.id,name:eventNode.label}
+                        event:{key:eventNode.id,text:eventNode.label}
                       };
                       state.algAndEvent.push(algAndEvent)
                   }
@@ -657,7 +658,7 @@ const addCombo=(stateNodeX,stateNodeY)=>{
     y:stateNodeY,
     algorithm:[{ key: algNode.id,text: algNode.label }],
     output_event:[{ key: eveNode.id,text: eveNode.label }],
-    algAndEvent:[{ alg: {key:algNode.id,text:algNode.label},event: {id:eveNode.id,name:eveNode.label} }] ,
+    algAndEvent:[{ alg: {key:algNode.id,text:algNode.label},event: {key:eveNode.id,text:eveNode.label} }] ,
     comment:''
   });
 }
@@ -682,12 +683,12 @@ const submitEdgeForm = () => {
   // edgeForm.value
   let eventVo:Eve={};
   if(data.relatedEventId){
-    eventVo={id:data.relatedEventId,name:""}
+    eventVo={key:data.relatedEventId,text:""}
   }
-  relateEveList.value.forEach( dict=> {
-    if(dict.id==eventVo.id){
-      eventVo.name=dict.name;
-      data.relateEveName=dict.name;
+  inputEventList.value.forEach( dict=> {
+    if(dict.key==eventVo.key){
+      eventVo.text=dict.text;
+      data.relateEveName=dict.text;
     }
   });
   data.event_condition=eventVo;
@@ -700,7 +701,7 @@ const submitEdgeForm = () => {
   let edge=graph.findById(data.key)
   if(edge){
     graph.update(edge, {
-      label: eventVo.name+"-"+data.guard_condition
+      label: eventVo.text+"-"+data.guard_condition
     });
   }
   proxy?.$modal.msgSuccess("操作成功");
@@ -739,21 +740,21 @@ const submitAlgAndEventForm=(()=>{
     algVO={key:data.alg,text:""}
   }
   if(data.event){
-    eventVO={id:data.event,name:""}
+    eventVO={key:data.event,text:""}
   }
-  relateEveList.value.forEach( dict=> {
-    if(dict.id==eventVO.id){
-      eventVO.name=dict.name;
+  outputEventList.value.forEach( dict=> {
+    console.log(dict.key,eventVO.key)
+    if(dict.key==eventVO.key){
+      eventVO.text=dict.text;
     }
   });
-  console.log(currentState.value)
   //双向绑定数据更新
   let algAndEvents:Array<{alg:AlgSimple,event:Eve}>=currentState.value.algAndEvent;
   algAndEvents.forEach((algAndEvent)=>{
     if(algAndEvent.alg.key==algId){
       algAndEvent.alg=algVO;
     }
-    if(algAndEvent.event.id==eventId){
+    if(algAndEvent.event.key==eventId){
       algAndEvent.event=eventVO;
     }
   })
@@ -768,7 +769,7 @@ const submitAlgAndEventForm=(()=>{
   }
   if(eventNode){
     graph.update(eventNode, {
-      label: eventVO.name
+      label: eventVO.text
     });
   }
   let jsonData:StateMachine={};
@@ -778,7 +779,7 @@ const submitAlgAndEventForm=(()=>{
   let jsonDataEventArr=new Array();
   algAndEvents.forEach((algAndEvent)=>{
     jsonDataAlgArr.push({key:algAndEvent.alg.key,text:algAndEvent.alg.text});
-    jsonDataEventArr.push({key:algAndEvent.event.id,text:algAndEvent.event.name});
+    jsonDataEventArr.push({key:algAndEvent.event.key,text:algAndEvent.event.text});
   })
   jsonData.algorithm=jsonDataAlgArr;
   jsonData.output_event=jsonDataEventArr;
@@ -833,7 +834,7 @@ const handleDeleteCondition=async(stateId,algId)=>{
   //更新双向绑定的数据
   let algAndEvent=currentState.value.algAndEvent;
   algAndEvent=algAndEvent.filter(x=>x.alg.key!=algId);
-  algAndEvent=algAndEvent.filter(x=>x.event.id!=eveId);
+  algAndEvent=algAndEvent.filter(x=>x.event.key!=eveId);
   currentState.value.algAndEvent=algAndEvent;
   //更新图JSON
   saveDataToServer();
