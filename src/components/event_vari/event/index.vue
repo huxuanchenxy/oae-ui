@@ -19,7 +19,7 @@
                                 <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="关联事件" width="180"  prop="relateEveName"/>
+<!--                        <el-table-column label="关联事件" width="180"  prop="relateEveName"/>-->
                         <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
@@ -44,7 +44,7 @@
                                 <dict-tag :options="eveType" :value="scope.row.type" />
                             </template>
                         </el-table-column>
-                        <el-table-column label="关联事件" prop="relateEveName" width="180" />
+<!--                        <el-table-column label="关联事件" prop="relateEveName" width="180" />-->
                         <el-table-column label="注释" prop="comment"/>
                     </el-table>
                 </div>
@@ -61,16 +61,16 @@
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="关联事件">
-                    <el-select v-model="eveInputForm.relatedEventIds" multiple placeholder="请选择关联事件">
-                        <el-option
-                        v-for="item in relateEveList"
-                        :key="item.id"
-                        :label="item.name"
-                        :value="item.id"
-                        ></el-option>
-                    </el-select>
-                </el-form-item>
+<!--                <el-form-item label="关联事件">-->
+<!--                    <el-select v-model="eveInputForm.relatedEventIds" multiple placeholder="请选择关联事件">-->
+<!--                        <el-option-->
+<!--                        v-for="item in relateEveList"-->
+<!--                        :key="item.id"-->
+<!--                        :label="item.name"-->
+<!--                        :value="item.id"-->
+<!--                        ></el-option>-->
+<!--                    </el-select>-->
+<!--                </el-form-item>-->
                 <el-form-item label="注释" prop="comment">
                     <el-input v-model="eveInputForm.comment" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
@@ -93,16 +93,16 @@
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="关联事件">
-                    <el-select v-model="eveOutputForm.relatedEventIds" multiple placeholder="请选择关联事件">
-                        <el-option
-                        v-for="item in relateEveList"
-                        :key="item.id"
-                        :label="item.name"
-                        :value="item.id"
-                        ></el-option>
-                    </el-select>
-                </el-form-item>
+<!--                <el-form-item label="关联事件">-->
+<!--                    <el-select v-model="eveOutputForm.relatedEventIds" multiple placeholder="请选择关联事件">-->
+<!--                        <el-option-->
+<!--                        v-for="item in relateEveList"-->
+<!--                        :key="item.id"-->
+<!--                        :label="item.name"-->
+<!--                        :value="item.id"-->
+<!--                        ></el-option>-->
+<!--                    </el-select>-->
+<!--                </el-form-item>-->
                 <el-form-item label="注释" prop="comment">
                     <el-input v-model="eveOutputForm.comment" type="textarea" placeholder="请输入内容"/>
                 </el-form-item>
@@ -159,7 +159,7 @@
         no:undefined,
         key:'',
         text:'',
-        relatedEvents:[],
+        // relatedEvents:[],
         type:'',
         comment:''
     }
@@ -189,18 +189,18 @@
         resetInput();
         dialogInput.visible = true;
         dialogInput.title = "添加输入事件";
-        relateEveList.value=getRelateEveList();
+        // relateEveList.value=getRelateEveList();
     }
     const handleUpdateInput = (row?: EveInputVO) => {
         resetInput();
         const no = row?.no||nosInput.value[0];
         const res = inputEventList.value[no-1];
-        let relatedEventIds=[];
-        res.relatedEvents?.forEach(element => {
-            relatedEventIds.push(element.id);
-        });
-        relateEveList.value=getRelateEveList();
-        eveInputForm.value.relatedEventIds=relatedEventIds;
+        // let relatedEventIds=[];
+        // res.relatedEvents?.forEach(element => {
+        //     relatedEventIds.push(element.id);
+        // });
+        // relateEveList.value=getRelateEveList();
+        // eveInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveInputForm.value, res);
         dialogInput.visible = true;
         dialogInput.title = "修改输入事件";
@@ -229,27 +229,27 @@
     }
     const addEveInput=(data:EveInputForm)=>{ 
         uuidv4(); 
-        let relateEveName="";
+        // let relateEveName="";
         let key = uuidv4()
         if(!inputEventList.value){
             inputEventList.value=new Array();
         }
-        let dataRelatedEvents=data.relatedEventIds;
-        let eventsVo:Eve=[];
-        dataRelatedEvents?.forEach(element => {
-            eventsVo.push({id:element,name:""})
-        });
-        eventsVo.forEach(relateEve => {
-            relateEveList.value.forEach( dict=> {
-                if(dict.id==relateEve.id){
-                    relateEve.name=dict.name;
-                    relateEveName+=dict.name+",";
-                }
-            });
-        });
-        data.relatedEvents=eventsVo;
-        relateEveName=relateEveName.substring(0,relateEveName.length-1);
-        data.relateEveName=relateEveName;
+        // let dataRelatedEvents=data.relatedEventIds;
+        // let eventsVo:Eve=[];
+        // dataRelatedEvents?.forEach(element => {
+        //     eventsVo.push({id:element,name:""})
+        // });
+        // eventsVo.forEach(relateEve => {
+        //     relateEveList.value.forEach( dict=> {
+        //         if(dict.id==relateEve.id){
+        //             relateEve.name=dict.name;
+        //             relateEveName+=dict.name+",";
+        //         }
+        //     });
+        // });
+        // data.relatedEvents=eventsVo;
+        // relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        // data.relateEveName=relateEveName;
         //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
         data.no=(inputEventList.value.length+1);
         data.key=key;
@@ -258,24 +258,24 @@
         changeInputEvents(project,module,inputEventList.value);
     }
     const updateEveInput=(data:EveInputForm)=>{
-        let relateEveName="";
-        let dataRelatedEvents=data.relatedEventIds;
-        let eventsVo:Eve=[];
-        dataRelatedEvents.forEach(element => {
-            eventsVo.push({id:element,name:""})
-        });
-        
-        eventsVo.forEach(relateEve => {
-            relateEveList.value.forEach( dict=> {
-                if(dict.id==relateEve.id){
-                    relateEve.name=dict.name;
-                    relateEveName+=dict.name+",";
-                }
-            });
-        });
-        data.relatedEvents=eventsVo;
-        relateEveName=relateEveName.substring(0,relateEveName.length-1);
-        data.relateEveName=relateEveName;
+        // let relateEveName="";
+        // let dataRelatedEvents=data.relatedEventIds;
+        // let eventsVo:Eve=[];
+        // dataRelatedEvents.forEach(element => {
+        //     eventsVo.push({id:element,name:""})
+        // });
+        //
+        // eventsVo.forEach(relateEve => {
+        //     relateEveList.value.forEach( dict=> {
+        //         if(dict.id==relateEve.id){
+        //             relateEve.name=dict.name;
+        //             relateEveName+=dict.name+",";
+        //         }
+        //     });
+        // });
+        // data.relatedEvents=eventsVo;
+        // relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        // data.relateEveName=relateEveName;
         inputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
         changeInputEvents(project,module,inputEventList.value);
@@ -283,17 +283,17 @@
     //加载输入事件数据 
     const getEveInputList = () => {
         inputEventList.value=getInputEvents(project,module);
-        inputEventList.value?.forEach(data => {
-            let relateEveName="";
-            let relatedEvents=data.relatedEvents
-            if(relatedEvents){
-                relatedEvents?.forEach(eve => {
-                    relateEveName+=eve.name+",";
-                });
-                relateEveName=relateEveName.substring(0,relateEveName.length-1);
-                data.relateEveName=relateEveName;
-            }
-        });
+        // inputEventList.value?.forEach(data => {
+        //     let relateEveName="";
+        //     let relatedEvents=data.relatedEvents
+        //     if(relatedEvents){
+        //         relatedEvents?.forEach(eve => {
+        //             relateEveName+=eve.name+",";
+        //         });
+        //         relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        //         data.relateEveName=relateEveName;
+        //     }
+        // });
     }
     const handleDeleteInput = async (row?: EveInputVO) => {
         const deleteNos = row?.no||nosInput.value;
@@ -316,7 +316,7 @@
         no:undefined,
         key:'',
         text:'',
-        relatedEvents:[],
+        // relatedEvents:[],
         type:'',
         comment:''
     }
@@ -346,18 +346,18 @@
         resetOutput();
         dialogOutput.visible = true;
         dialogOutput.title = "添加输出事件";
-        relateEveList.value=getRelateEveList();
+        // relateEveList.value=getRelateEveList();
     }
     const handleUpdateOutput = (row?: EveOutputVO) => {
         resetOutput();
         const no = row?.no||nosOutput.value[0];
         const res = outputEventList.value[no-1];
-        let relatedEventIds=[];
-        res.relatedEvents?.forEach(element => {
-            relatedEventIds.push(element.id);
-        });
-        relateEveList.value=getRelateEveList();
-        eveOutputForm.value.relatedEventIds=relatedEventIds;
+        // let relatedEventIds=[];
+        // res.relatedEvents?.forEach(element => {
+        //     relatedEventIds.push(element.id);
+        // });
+        // relateEveList.value=getRelateEveList();
+        // eveOutputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(eveOutputForm.value, res);
         dialogOutput.visible = true;
         dialogOutput.title = "修改输出事件";
@@ -386,27 +386,27 @@
     }
     const addEveOutput=(data:EveOutputForm)=>{ 
         uuidv4(); 
-        let relateEveName="";
+        // let relateEveName="";
         let key = uuidv4()
         if(!outputEventList.value){
             outputEventList.value=new Array();
         }
-        let dataRelatedEvents=data.relatedEventIds;
-        let eventsVo:Eve=[];
-        dataRelatedEvents?.forEach(element => {
-            eventsVo.push({id:element,name:""})
-        });
-        eventsVo.forEach(relateEve => {
-            relateEveList.value.forEach( dict=> {
-                if(dict.id==relateEve.id){
-                    relateEve.name=dict.name;
-                    relateEveName+=dict.name+",";
-                }
-            });
-        });
-        data.relatedEvents=eventsVo;
-        relateEveName=relateEveName.substring(0,relateEveName.length-1);
-        data.relateEveName=relateEveName;
+        // let dataRelatedEvents=data.relatedEventIds;
+        // let eventsVo:Eve=[];
+        // dataRelatedEvents?.forEach(element => {
+        //     eventsVo.push({id:element,name:""})
+        // });
+        // eventsVo.forEach(relateEve => {
+        //     relateEveList.value.forEach( dict=> {
+        //         if(dict.id==relateEve.id){
+        //             relateEve.name=dict.name;
+        //             relateEveName+=dict.name+",";
+        //         }
+        //     });
+        // });
+        // data.relatedEvents=eventsVo;
+        // relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        // data.relateEveName=relateEveName;
         //找到选择的事件名称，遍历后api里得到的集合后，用name属性获取
         data.no=(outputEventList.value.length+1);
         data.key=key;
@@ -415,23 +415,23 @@
         changeOutputEvents(project,module,outputEventList.value);
     }
     const updateEveOutput=(data:EveOutputForm)=>{
-        let relateEveName="";
-        let dataRelatedEvents=data.relatedEventIds;
-        let eventsVo:Eve=[];
-        dataRelatedEvents.forEach(element => {
-            eventsVo.push({id:element,name:""})
-        });
-        eventsVo.forEach(relateEve => {
-            relateEveList.value.forEach( dict=> {
-                if(dict.id==relateEve.id){
-                    relateEve.name=dict.name;
-                    relateEveName+=dict.name+",";
-                }
-            });
-        });
-        data.relatedEvents=eventsVo;
-        relateEveName=relateEveName.substring(0,relateEveName.length-1);
-        data.relateEveName=relateEveName;
+        // let relateEveName="";
+        // let dataRelatedEvents=data.relatedEventIds;
+        // let eventsVo:Eve=[];
+        // dataRelatedEvents.forEach(element => {
+        //     eventsVo.push({id:element,name:""})
+        // });
+        // eventsVo.forEach(relateEve => {
+        //     relateEveList.value.forEach( dict=> {
+        //         if(dict.id==relateEve.id){
+        //             relateEve.name=dict.name;
+        //             relateEveName+=dict.name+",";
+        //         }
+        //     });
+        // });
+        // data.relatedEvents=eventsVo;
+        // relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        // data.relateEveName=relateEveName;
         outputEventList.value.splice(data.no-1,1,{...data})
         //保存到localstorage里
         changeOutputEvents(project,module,outputEventList.value);
@@ -439,17 +439,17 @@
     //加载输出事件数据 
     const getEveOutputList = () => {
         outputEventList.value=getOutputEvents(project,module);
-        outputEventList.value?.forEach(data => {
-            let relateEveName="";
-            let relatedEvents=data.relatedEvents
-            if(relatedEvents){
-                relatedEvents.forEach(eve => {
-                    relateEveName+=eve.name+",";
-                });
-                relateEveName=relateEveName.substring(0,relateEveName.length-1);
-                data.relateEveName=relateEveName;
-            }
-        });
+        // outputEventList.value?.forEach(data => {
+        //     let relateEveName="";
+        //     let relatedEvents=data.relatedEvents
+        //     if(relatedEvents){
+        //         relatedEvents.forEach(eve => {
+        //             relateEveName+=eve.name+",";
+        //         });
+        //         relateEveName=relateEveName.substring(0,relateEveName.length-1);
+        //         data.relateEveName=relateEveName;
+        //     }
+        // });
     }
     const handleDeleteOutput = async (row?: EveOutputVO) => {
         const deleteNos = row?.no||nosOutput.value;

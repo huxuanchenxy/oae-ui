@@ -13,7 +13,7 @@ export const getRelateEveList = (no?: string | number): Eve[] => {
         { id: 4, name: '事件4' }
     ]
 };
-export const getInputEvents = (project, module) => {
+export const getInputEvents = (project:string, module:number) => {
     let rlt = getCurrentObj(project, module);
     let inputEvents = rlt?.interface?.input_events;
     inputEvents?.forEach(inputEvent => {
@@ -25,7 +25,7 @@ export const getInputEvents = (project, module) => {
     });
     return inputEvents;
 }
-export const getOutputEvents = (project, module) => {
+export const getOutputEvents = (project:string, module:number) => {
     let rlt = getCurrentObj(project, module);
     let outputEvents;
     outputEvents = rlt?.interface?.output_events;
