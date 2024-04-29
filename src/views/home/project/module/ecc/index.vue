@@ -138,7 +138,7 @@
         <el-form-item label="算法">
           <el-select v-model="algAndEventForm.alg" placeholder="请选择">
             <el-option
-                v-for="item in inputEventList"
+                v-for="item in algList"
                 :key="item.key"
                 :label="item.text"
                 :value="item.key"
@@ -176,6 +176,7 @@ import type { CanvasForm,CanvasQuery,CanvasVO} from '@/api/ecc/canvas/type';
 import type { AlgSimple} from '@/api/alg/type';
 import { Eve } from "@/api/inter/event/types";
 import {getInputEvents,getOutputEvents} from "@/api/inter/event";
+import {getAlgList} from "@/api/alg";
 import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
 import {removeAlgAndEvent,saveOrUpdateState,getOneState,saveOrUpdateStateList} from "@/api/ecc/state";
@@ -282,7 +283,7 @@ const algAndEventFormRef = ref<ElFormInstance>();//用于重置，还可以用�
 const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const inputEventList = ref<Eve[]>([]);
 const outputEventList = ref<Eve[]>([]);
-
+const algList = ref<AlgSimple[]>([]);
 const contextMenu = new G6.Menu({
   getContent(evt) {
       let str="";
@@ -531,6 +532,7 @@ onMounted(() => {
   //得到事件列表
   inputEventList.value=getInputEvents(project,module);
   outputEventList.value=getOutputEvents(project,module);
+  algList.value=getAlgList(project,module);
   initLoad();
   //用ref获取DOM元素必须在onMounted中赋值,否则取不到
   graphWidth=container.value.offsetWidth;
@@ -742,8 +744,12 @@ const submitAlgAndEventForm=(()=>{
   if(data.event){
     eventVO={key:data.event,text:""}
   }
+  algList.value.forEach( dict=> {
+    if(dict.key==algVO.key){
+      algVO.text=dict.text;
+    }
+  });
   outputEventList.value.forEach( dict=> {
-    console.log(dict.key,eventVO.key)
     if(dict.key==eventVO.key){
       eventVO.text=dict.text;
     }
@@ -758,7 +764,7 @@ const submitAlgAndEventForm=(()=>{
       algAndEvent.event=eventVO;
     }
   })
-  console.log(currentState.value)
+  currentState.value.algAndEvent=algAndEvents;
   // //antv回显
   let algNode=graph.findById(algId)
   let eventNode=graph.findById(eventId)

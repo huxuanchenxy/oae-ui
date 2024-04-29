@@ -119,7 +119,8 @@
 
 <script setup name="Event" lang="ts">
     import type { EveInputForm,EveInputQuery,EveInputVO,EveOutputForm,EveOutputQuery,EveOutputVO} from '@/api/inter/event/type';
-    import {getRelateEveList,getInputEvents,getOutputEvents} from "@/api/inter/event";
+    import {getInputEvents,getOutputEvents} from "@/api/inter/event";
+    import {getAlgList} from "@/api/alg";
     import { Eve } from "@/api/inter/event/types";
     import {changeInputEvents,changeOutputEvents} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
@@ -469,6 +470,7 @@
     onMounted(() => {
         getEveInputList();
         getEveOutputList();
+        getAlgList()
     })
 </script>
 

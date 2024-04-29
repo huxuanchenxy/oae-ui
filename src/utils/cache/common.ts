@@ -4,7 +4,7 @@ import sysApi from "@/api/sysApi";
 export const cacheKey = "json";
 export const getCurrentObj = (project, module) => {
     let jsonAll = getJsonAll(project, module);
-    let rlt = jsonAll.find(
+    let rlt = jsonAll?.find(
         (x) => x.project == project && x.id == module
     );
     // if (!rlt) {
