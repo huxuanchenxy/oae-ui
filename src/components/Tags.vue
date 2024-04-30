@@ -77,6 +77,7 @@ const loadTagData = (curFuncList) => {
     var pathArrays = path.split("/");
     let id = 0;
     let name = "";
+    let parName = "";
     let addPath = "";
     let thirdName = "";
     if (pathArrays.length == 2) {
@@ -91,10 +92,25 @@ const loadTagData = (curFuncList) => {
       let cObj = curFuncList.find((l) => l.id == id);
       addPath = cObj.funcUrl;
       name = cObj.funcName;
+      parName = name;
+      if (pathArrays.length >= 5) {
+        let types = pathArrays[4];
+        switch (types) {
+          case "ecc":
+            parName = "ECC";
+            break;
+          case "interface":
+            parName = "接口";
+            break;
+          case "algorithm":
+            parName = "算法";
+            break;
+        }
+      }
       if (pathArrays.length == 6) {
         thirdName = pathArrays[5];
       }
-      commonstore.changeCurTreeNode(id, name, thirdName);
+      commonstore.changeCurTreeNode(id, parName, thirdName);
     }
     let info = {
       id: id,
