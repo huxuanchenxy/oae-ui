@@ -38,10 +38,12 @@ import Ecc from "@/views/home/project/module/ecc/index.vue";
 import Cusinterface from "@/views/home/project/module/cusinterface/index.vue";
 //import TagsModule from "@/components/TagsModule.vue";
 import { getCurrentObj, getModuleData } from "@/utils/cache/common";
-import sysApi from "@/api/sysApi";
-import cache from "@/plugins/cache.ts";
+//import sysApi from "@/api/sysApi";
+//import cache from "@/plugins/cache.ts";
+import { commonStore } from "@/store/commonStore.js";
 const route = useRoute();
 const router = useRouter();
+const commonstore = commonStore();
 // let path = ref("");
 // path.value = route.path;
 let pid = ref(0);
@@ -69,8 +71,9 @@ const tagList = ref([
 
 const getAlgorithmName = (value) => {
   tagList.value[1].name = "算法" + value;
-  if (showType.value === 'algorithm') tagList.value[1].funcStatus = "dark";
-  if (value === '') tagList.value[1].funcStatus = 'plain'
+  if (showType.value === "algorithm") tagList.value[1].funcStatus = "dark";
+  if (value === "") tagList.value[1].funcStatus = "plain";
+  algorithmName.value = value;
 };
 
 const goToTag = (tag) => {
@@ -80,6 +83,15 @@ const goToTag = (tag) => {
   tag.funcStatus = "dark";
 
   showType.value = tag.showType;
+  let tagName = tag.name;
+  let algorithmNames = "";
+  if (tagName.includes("算法")) {
+    tagName = "算法";
+    algorithmNames = "INIT"; // algorithmName.value;
+  } else {
+    algorithmNames = "";
+  }
+  commonstore.changeCurTreeNode(cid.value, tagName, algorithmNames);
 };
 
 const initLoad = () => {

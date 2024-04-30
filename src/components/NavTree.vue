@@ -112,12 +112,11 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from "element-plus";
-import {
-  getCurrentObj,
-  changeData
-} from "@/utils/cache/common";
+import { getCurrentObj, changeData } from "@/utils/cache/common";
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
+import { commonStore } from "@/store/commonStore.js";
+const commonstore = commonStore();
 const tagsStore = pagetagsStore();
 //let defaultOpeneds = ref([]);
 //let leftX = ref(10);
@@ -317,13 +316,11 @@ const showContextMenu = (e, data, node, n) => {
     currentData = data;
     // console.log(currentData)
     let url = currentData.funcUrl;
-    if (url === '') {
-      var ppObj = curFuncList.value.find(
-        (x) => x.id == data.funcParentId
-      );
+    if (url === "") {
+      var ppObj = curFuncList.value.find((x) => x.id == data.funcParentId);
       url = `${ppObj.funcUrl}`;
     }
-    currentModule.value = url.split('/')[3];
+    currentModule.value = url.split("/")[3];
     // console.log(currentModule.value)
     curData.value = data;
     curNode.value = node;
@@ -336,8 +333,8 @@ const onSubmit = async (formEl) => {
     if (valid) {
       dialogVisible.value = false;
       let moduleJson = getCurrentObj(project, currentModule.value);
-      moduleJson.algorithms.push(newAlgorithm)
-      changeData(project,currentModule.value,moduleJson);
+      moduleJson.algorithms.push(newAlgorithm);
+      changeData(project, currentModule.value, moduleJson);
       addTree(newAlgorithm.text);
       // console.log(newAlgorithm);
     } else {
@@ -358,10 +355,10 @@ const delAlgorithm = (data) => {
       popStatus.value = false;
       // 暂时不作关联判断
       let moduleJson = getCurrentObj(project, currentModule.value);
-        moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
-          return item.text !== data.funcName;
-        });
-      changeData(project,currentModule.value,moduleJson);
+      moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
+        return item.text !== data.funcName;
+      });
+      changeData(project, currentModule.value, moduleJson);
       ElMessage({
         type: "success",
         message: "删除成功",
@@ -398,7 +395,7 @@ const saveName = (data) => {
       }
     }
     // console.log(moduleJson);
-    changeData(project,currentModule.value,moduleJson);
+    changeData(project, currentModule.value, moduleJson);
     RenameTree(data.funcName);
   }
   // console.log(data)
@@ -467,9 +464,7 @@ const delTree = () => {
   // console.log('parent',parent.data);
   if (children.length > 0) handleNodeClick(children[0]);
   else {
-    var ppObj = curFuncList.value.find(
-      (x) => x.id == parent.data.funcParentId
-    );
+    var ppObj = curFuncList.value.find((x) => x.id == parent.data.funcParentId);
     handleNodeClick(ppObj);
   }
   // let path = `${ppObj.funcUrl}`;
@@ -484,12 +479,12 @@ const delTree = () => {
 
 const RenameTree = (newName) => {
   curData.value.funcName = newName;
-  let url = '';
-  let arr = curData.value.funcUrl.split('/');
+  let url = "";
+  let arr = curData.value.funcUrl.split("/");
   arr.splice(-1);
   arr.forEach((item) => {
-    url = url + item + '/'
-  })
+    url = url + item + "/";
+  });
   curData.value.funcUrl = url + newName;
   // console.log(curData.value.funcUrl);
   listOneFuncList.value = [...listOneFuncList.value];
@@ -611,11 +606,50 @@ const getModuleData = (id, path) => {
 watch(isEdit, (newValue, oldValue) => {
   if (newValue) {
     nextTick(() => {
-      console.log(isAutoFocus.value)
-      isAutoFocus.value.focus()
-    })
+      console.log(isAutoFocus.value);
+      isAutoFocus.value.focus();
+    });
   }
-})
+});
+
+const externalTriggerTree = (curTreeNodeObj) => {
+  queryTriggerData(listOneFuncList.value, curTreeNodeObj); 
+};
+const queryTriggerData = (list, curTreeNodeObj) => {
+  let id = curTreeNodeObj.id;
+  let name = curTreeNodeObj.name;
+  let algorithmName = curTreeNodeObj.algorithmName;
+  list.forEach((obj) => {
+    obj.isPenultimate = false;
+    if (name == "") {
+      if (obj.id == id) {
+        obj.isPenultimate = true;
+      }
+    } else if (name != "" && algorithmName == "") {
+      if (obj.funcParentId == id && obj.funcName == name) {
+        obj.isPenultimate = true;
+      }
+    } else if (name != "" && algorithmName != "") {
+      var pObj = curFuncList.value.find(
+        (v) => v.funcParentId == id && v.funcName == name
+      );
+      if (obj.funcParentId == pObj.id && obj.funcName == algorithmName) {
+        obj.isPenultimate = true;
+      }
+    }
+    if (obj.child) {
+      queryTriggerData(obj.child, curTreeNodeObj);
+    }
+  });
+};
+const curTreeNode = computed(() => {
+  return commonstore.curTreeNode;
+});
+watch(curTreeNode, (n, o) => {
+  if (n.id != o.id || n.name != o.name || n.algorithmName != o.algorithmName) {
+    externalTriggerTree(n);
+  }
+});
 </script> 
 
 <style scope>
