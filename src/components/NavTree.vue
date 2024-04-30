@@ -29,6 +29,7 @@
       >
         <template #default="{ node, data }">
           <el-input
+            ref="isAutoFocus"
             v-model="data.funcName"
             autofocus
             v-if="data.isEdit"
@@ -111,33 +112,36 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from "element-plus";
-// import {
-//   getCurrentObj,
-//   setModuleData1,
-//   setServerData,
-// } from "@/utils/cache/common";
+import { getCurrentObj, changeData } from "@/utils/cache/common";
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
+import { commonStore } from "@/store/commonStore.js";
+const commonstore = commonStore();
 const tagsStore = pagetagsStore();
 //let defaultOpeneds = ref([]);
 //let leftX = ref(10);
 //let topY = ref(10);
 let popStatus = ref(false);
 let dialogVisible = ref(false);
+let isEdit = ref(false);
 let currentData = reactive({ funcLevelId: 0 });
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
+const router = useRouter();
+const route = useRoute();
+let currentModule = ref(route.params.id);
 const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
+const isAutoFocus = ref(null);
 
 const validateName = (rule, value, callback) => {
   if (!reg.test(value)) {
     callback(new Error("使用字母数字和下划线,首个字符必须是字母"));
   } else {
-    let cacheJson = cache.local.getJSON("json");
-    let tmp = cacheJson[0].algorithms.filter((item) => {
+    let moduleJson = getCurrentObj(project, currentModule.value);
+    let tmp = moduleJson.algorithms.filter((item) => {
       return item.text === value;
     });
-    if (!tmp) callback();
+    if (tmp.length === 0) callback();
     else callback(new Error("同一个模块中算法名称不可重复"));
   }
 };
@@ -213,8 +217,6 @@ const processMenuData = (list) => {
 };
 let curNode = ref();
 let curData = ref();
-const router = useRouter();
-const route = useRoute();
 const handleNodeClickOld = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
@@ -313,6 +315,13 @@ const showContextMenu = (e, data, node, n) => {
     popStatus.value = true;
     currentData = data;
     // console.log(currentData)
+    let url = currentData.funcUrl;
+    if (url === "") {
+      var ppObj = curFuncList.value.find((x) => x.id == data.funcParentId);
+      url = `${ppObj.funcUrl}`;
+    }
+    currentModule.value = url.split("/")[3];
+    // console.log(currentModule.value)
     curData.value = data;
     curNode.value = node;
   }
@@ -323,11 +332,11 @@ const onSubmit = async (formEl) => {
   await formEl.validate((valid, fields) => {
     if (valid) {
       dialogVisible.value = false;
-      let cacheJson = cache.local.getJSON("json");
-      // 暂时先默认从第一个模块里读写数据
-      // cacheJson[0].algorithms.push(newAlgorithm)
-      // cache.local.setJSON('json',cacheJson);
-      console.log(newAlgorithm);
+      let moduleJson = getCurrentObj(project, currentModule.value);
+      moduleJson.algorithms.push(newAlgorithm);
+      changeData(project, currentModule.value, moduleJson);
+      addTree(newAlgorithm.text);
+      // console.log(newAlgorithm);
     } else {
       // console.log('error submit!', fields)
     }
@@ -343,31 +352,32 @@ const delAlgorithm = (data) => {
     .then(() => {
       //处理逻辑
       delTree();
-
+      popStatus.value = false;
+      // 暂时不作关联判断
+      let moduleJson = getCurrentObj(project, currentModule.value);
+      moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
+        return item.text !== data.funcName;
+      });
+      changeData(project, currentModule.value, moduleJson);
       ElMessage({
         type: "success",
         message: "删除成功",
       });
     })
     .catch(() => {});
-
-  // 暂时不作关联判断
-  let cacheJson = cache.local.getJSON("json");
-  cacheJson[0].algorithms = cacheJson[0].algorithms.filter((item) => {
-    return item.text !== data.funcName;
-  });
-  // cache.local.setJSON('json',cacheJson);
-  popStatus.value = false;
-  console.log(cacheJson[0].algorithms);
 };
 
 const renameAlgorithm = (data) => {
   data.isEdit = true;
+  isEdit.value = true;
   popStatus.value = false;
   // 临时保留老名字
   data.oldFuncName = data.funcName;
 };
 const saveName = (data) => {
+  // console.log(data)
+  data.isEdit = false;
+  isEdit.value = false;
   if (data.funcName === data.oldFuncName) return;
   if (!reg.test(data.funcName)) {
     ElNotification({
@@ -377,17 +387,20 @@ const saveName = (data) => {
       type: "error",
     });
   } else {
-    let cacheJson = cache.local.getJSON("json");
-    for (let item of cacheJson[0].algorithms) {
+    let moduleJson = getCurrentObj(project, currentModule.value);
+    for (let item of moduleJson.algorithms) {
       if (item.text === data.oldFuncName) {
         item.text = data.funcName;
         break;
       }
     }
-    // console.log(cacheJson[0].algorithms)
+    // console.log(moduleJson);
+    changeData(project, currentModule.value, moduleJson);
+    RenameTree(data.funcName);
   }
   // console.log(data)
 };
+
 onMounted(() => {
   // sysApi.getFuncList().then((res) => {
   //  console.log("sysApi--2", res);
@@ -435,6 +448,8 @@ const addTree = (treeName) => {
     }
     listOneFuncList.value = [...listOneFuncList.value];
   }
+  handleNodeClick(newObj);
+  // router.push(newObj.funcUrl);
   //console.log("curLevel:::", curLevel);
   //console.log("curFuncName:::", curFuncName);
 };
@@ -445,11 +460,35 @@ const delTree = () => {
   const index = children.findIndex((d) => d.id === curData.value.id);
   children.splice(index, 1);
   listOneFuncList.value = [...listOneFuncList.value];
+  // console.log('children:',children);
+  // console.log('parent',parent.data);
+  if (children.length > 0) handleNodeClick(children[0]);
+  else {
+    var ppObj = curFuncList.value.find((x) => x.id == parent.data.funcParentId);
+    handleNodeClick(ppObj);
+  }
+  // let path = `${ppObj.funcUrl}`;
+  // let moduleJson = getCurrentObj(project, currentModule.value);
+  // console.log(moduleJson)
+  // if (moduleJson.algorithms.length > 0) {
+  //   path = path + '/algorithm/' + moduleJson.algorithms[0].text;
+  // }
+  // console.log(path)
+  // router.push(path);
 };
 
 const RenameTree = (newName) => {
   curData.value.funcName = newName;
+  let url = "";
+  let arr = curData.value.funcUrl.split("/");
+  arr.splice(-1);
+  arr.forEach((item) => {
+    url = url + item + "/";
+  });
+  curData.value.funcUrl = url + newName;
+  // console.log(curData.value.funcUrl);
   listOneFuncList.value = [...listOneFuncList.value];
+  if (route.params.algorithms) handleNodeClick(curData.value);
 };
 const getCacheFuncList = () => {
   let newTempFuncList = [];
@@ -482,8 +521,8 @@ const getCacheFuncList = () => {
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
       };
-      //console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
-      //console.log("e.name,obj", newObj);
+      console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
+      console.log("e.name,obj", newObj);
       var isExistobj = curFuncList.value.find(
         (x) =>
           x.funcName == newObj.funcName &&
@@ -563,6 +602,54 @@ const getModuleData = (id, path) => {
     router.push({ path });
   }
 };
+
+watch(isEdit, (newValue, oldValue) => {
+  if (newValue) {
+    nextTick(() => {
+      console.log(isAutoFocus.value);
+      isAutoFocus.value.focus();
+    });
+  }
+});
+
+const externalTriggerTree = (curTreeNodeObj) => {
+  queryTriggerData(listOneFuncList.value, curTreeNodeObj); 
+};
+const queryTriggerData = (list, curTreeNodeObj) => {
+  let id = curTreeNodeObj.id;
+  let name = curTreeNodeObj.name;
+  let algorithmName = curTreeNodeObj.algorithmName;
+  list.forEach((obj) => {
+    obj.isPenultimate = false;
+    if (name == "") {
+      if (obj.id == id) {
+        obj.isPenultimate = true;
+      }
+    } else if (name != "" && algorithmName == "") {
+      if (obj.funcParentId == id && obj.funcName == name) {
+        obj.isPenultimate = true;
+      }
+    } else if (name != "" && algorithmName != "") {
+      var pObj = curFuncList.value.find(
+        (v) => v.funcParentId == id && v.funcName == name
+      );
+      if (obj.funcParentId == pObj.id && obj.funcName == algorithmName) {
+        obj.isPenultimate = true;
+      }
+    }
+    if (obj.child) {
+      queryTriggerData(obj.child, curTreeNodeObj);
+    }
+  });
+};
+const curTreeNode = computed(() => {
+  return commonstore.curTreeNode;
+});
+watch(curTreeNode, (n, o) => {
+  if (n.id != o.id || n.name != o.name || n.algorithmName != o.algorithmName) {
+    externalTriggerTree(n);
+  }
+});
 </script> 
 
 <style scope>

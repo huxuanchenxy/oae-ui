@@ -2,7 +2,9 @@
   <div id="module">
     <el-container>
       <!-- <NavMenu id="leftMenu" :isCollapse="!isCollapse" /> -->
+      <!-- <NavTree ref="childTreeRef"></NavTree> -->
       <NavTree></NavTree>
+
       <el-container>
         <el-header>
           <div style="position: absolute">
@@ -146,11 +148,7 @@ import sysApi from "@/api/sysApi";
 //   type: "",
 // });
 
-onMounted(() => {
-  // const cacheKey = "json";
-  // let cacheJson = cache.local.getJSON(cacheKey);
-  // console.log("cacheJson", cacheJson);
-});
+onMounted(() => {});
 
 const save = () => {
   // var aa1 = {
@@ -219,7 +217,6 @@ const save = () => {
       });
     });
   }
-
   // sysApi.saveAll(json).then((res) => {
   //   console.log("saveAll:::", res);
   // });

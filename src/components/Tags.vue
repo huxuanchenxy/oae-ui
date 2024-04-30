@@ -9,7 +9,7 @@
       :type="tag.effect == 'plain' ? 'info' : ''"
       :effect="tag.effect"
       @close="handleClose(tag)"
-      @click="goToPath(tag.path)"
+      @click="goToPath(tag)"
       size="default"
     >
       <el-link :underline="false"
@@ -25,7 +25,9 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { pagetagsStore } from "@/store/pageTags.js";
+import { commonStore } from "@/store/commonStore.js";
 import sysApi from "@/api/sysApi";
+const commonstore = commonStore();
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const curRouteObj = useRoute();
@@ -42,18 +44,18 @@ const handleClose = (tag) => {
   }
 };
 
-const goToPath = (path) => {
+const goToPath = (tag) => {
   if (dynamicTags.value.length > 0) {
     dynamicTags.value.forEach((e) => {
-      if (e.path == path) {
+      if (e.path == tag.path) {
         e.effect = "dark";
       } else {
         e.effect = "plain";
       }
     });
   }
-
-  router.push({ path });
+  commonstore.changeCurTreeNode(tag.id, "", "");
+  router.push({ path: tag.path });
 };
 onMounted(() => {
   if (tagsStore.TagArrs.length == 0) {
@@ -76,17 +78,23 @@ const loadTagData = (curFuncList) => {
     let id = 0;
     let name = "";
     let addPath = "";
+    let thirdName = "";
     if (pathArrays.length == 2) {
       var objFunc = curFuncList.find((obj) => obj.funcUrl == path);
       id = objFunc.id;
       name = objFunc.funcName;
       addPath = objFunc.funcUrl;
+      commonstore.changeCurTreeNode(id, "", "");
     } else if (pathArrays.length >= 4) {
       //pId = pathArrays[2];
       id = pathArrays[3];
       let cObj = curFuncList.find((l) => l.id == id);
       addPath = cObj.funcUrl;
       name = cObj.funcName;
+      if (pathArrays.length == 6) {
+        thirdName = pathArrays[5];
+      }
+      commonstore.changeCurTreeNode(id, name, thirdName);
     }
     let info = {
       id: id,
