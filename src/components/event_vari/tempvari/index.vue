@@ -63,6 +63,8 @@
     import {changeTempVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import {getTempVaris} from "@/api/inter/tempvari";
+    import useTempVariStore from "@/store/modules/tempVari.ts";
+    const tempVariStore=useTempVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
@@ -135,9 +137,11 @@
     const submitTempVariForm = () => {
         tempVariFormRef.value?.validate((valid: boolean) => {
             if (valid) {
-                tempVariForm.value.no?updateVariInput(tempVariForm.value):addVariInput(tempVariForm.value);
-                proxy?.$modal.msgSuccess("操作成功");
-                dialog.visible = false;
+              tempVariForm.value.no?updateVariInput(tempVariForm.value):addVariInput(tempVariForm.value);
+              proxy?.$modal.msgSuccess("操作成功");
+              dialog.visible = false;
+              tempVariStore.flag=true;
+              tempVariStore.flag=false;
             }
         });
     }
@@ -164,16 +168,18 @@
         tempVariList.value=getTempVaris(project,module);
     }
     const handleDelete = async (row?: TempVariVO) => {
-        const deleteNos = row?.no||nos.value;
-        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
-        let newList=tempVariList.value.filter(x=>!deleteNos.includes(x.no));
-        for (let i=0; i< newList.length; i++){
-            newList[i].no=i+1;
-        }
-        tempVariList.value=[];
-        Object.assign(tempVariList.value,newList);
-        changeTempVaris(project,module,tempVariList.value);
-        proxy?.$modal.msgSuccess("删除成功");
+      const deleteNos = row?.no||nos.value;
+      await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+      let newList=tempVariList.value.filter(x=>!deleteNos.includes(x.no));
+      for (let i=0; i< newList.length; i++){
+          newList[i].no=i+1;
+      }
+      tempVariList.value=[];
+      Object.assign(tempVariList.value,newList);
+      changeTempVaris(project,module,tempVariList.value);
+      proxy?.$modal.msgSuccess("删除成功");
+      tempVariStore.flag=true;
+      tempVariStore.flag=false;
     }
     onMounted(() => {
         getTempVariList();

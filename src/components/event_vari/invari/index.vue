@@ -63,6 +63,8 @@
     import {getInVaris} from "@/api/inter/invari";
     import {changeInVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
+    import useInVariStore from "@/store/modules/inVari.ts";
+    const inVariStore=useInVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
@@ -138,6 +140,8 @@
                 inVariForm.value.no?updateVariInput(inVariForm.value):addVariInput(inVariForm.value);
                 proxy?.$modal.msgSuccess("操作成功");
                 dialog.visible = false;
+                inVariStore.flag=false;
+                inVariStore.flag=true;
             }
         });
     }
@@ -164,16 +168,18 @@
         inVariList.value=getInVaris(project,module);
     }
     const handleDelete = async (row?: InVariVO) => {
-        const deleteNos = row?.no||nos.value;
-        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
-        let newList=inVariList.value.filter(x=>!deleteNos.includes(x.no));
-        for (let i=0; i< newList.length; i++){
-            newList[i].no=i+1;
-        }
-        inVariList.value=[];
-        Object.assign(inVariList.value,newList);
-        changeInVaris(project,module,inVariList.value);
-        proxy?.$modal.msgSuccess("删除成功");
+      const deleteNos = row?.no||nos.value;
+      await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+      let newList=inVariList.value.filter(x=>!deleteNos.includes(x.no));
+      for (let i=0; i< newList.length; i++){
+          newList[i].no=i+1;
+      }
+      inVariList.value=[];
+      Object.assign(inVariList.value,newList);
+      changeInVaris(project,module,inVariList.value);
+      proxy?.$modal.msgSuccess("删除成功");
+      inVariStore.flag=false;
+      inVariStore.flag=true;
     }
     onMounted(() => {
         getInVariList();
