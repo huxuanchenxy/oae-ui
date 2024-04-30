@@ -29,6 +29,7 @@
       >
         <template #default="{ node, data }">
           <el-input
+            ref="isAutoFocus"
             v-model="data.funcName"
             autofocus
             v-if="data.isEdit"
@@ -111,11 +112,10 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from "element-plus";
-// import {
-//   getCurrentObj,
-//   setModuleData1,
-//   setServerData,
-// } from "@/utils/cache/common";
+import {
+  getCurrentObj,
+  changeData
+} from "@/utils/cache/common";
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 const tagsStore = pagetagsStore();
@@ -124,20 +124,25 @@ const tagsStore = pagetagsStore();
 //let topY = ref(10);
 let popStatus = ref(false);
 let dialogVisible = ref(false);
+let isEdit = ref(false);
 let currentData = reactive({ funcLevelId: 0 });
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
+const router = useRouter();
+const route = useRoute();
+let currentModule = ref(route.params.id);
 const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
+const isAutoFocus = ref(null);
 
 const validateName = (rule, value, callback) => {
   if (!reg.test(value)) {
     callback(new Error("使用字母数字和下划线,首个字符必须是字母"));
   } else {
-    let moduleJson = getCurrentObj(currentProject, currentModule);
+    let moduleJson = getCurrentObj(project, currentModule.value);
     let tmp = moduleJson.algorithms.filter((item) => {
       return item.text === value;
     });
-    if (!tmp) callback();
+    if (tmp.length === 0) callback();
     else callback(new Error("同一个模块中算法名称不可重复"));
   }
 };
@@ -213,8 +218,6 @@ const processMenuData = (list) => {
 };
 let curNode = ref();
 let curData = ref();
-const router = useRouter();
-const route = useRoute();
 const handleNodeClickOld = (data) => {
   queryData(listOneFuncList.value);
   if (data.funcUrl) {
@@ -313,6 +316,15 @@ const showContextMenu = (e, data, node, n) => {
     popStatus.value = true;
     currentData = data;
     // console.log(currentData)
+    let url = currentData.funcUrl;
+    if (url === '') {
+      var ppObj = curFuncList.value.find(
+        (x) => x.id == data.funcParentId
+      );
+      url = `${ppObj.funcUrl}`;
+    }
+    currentModule.value = url.split('/')[3];
+    // console.log(currentModule.value)
     curData.value = data;
     curNode.value = node;
   }
@@ -323,9 +335,9 @@ const onSubmit = async (formEl) => {
   await formEl.validate((valid, fields) => {
     if (valid) {
       dialogVisible.value = false;
-      let moduleJson = getCurrentObj(currentProject, currentModule);
+      let moduleJson = getCurrentObj(project, currentModule.value);
       moduleJson.algorithms.push(newAlgorithm)
-      changeData(currentProject,currentModule,moduleJson);
+      changeData(project,currentModule.value,moduleJson);
       addTree(newAlgorithm.text);
       // console.log(newAlgorithm);
     } else {
@@ -345,11 +357,11 @@ const delAlgorithm = (data) => {
       delTree();
       popStatus.value = false;
       // 暂时不作关联判断
-      let moduleJson = getCurrentObj(currentProject, currentModule);
+      let moduleJson = getCurrentObj(project, currentModule.value);
         moduleJson.algorithms = moduleJson.algorithms.filter((item) => {
           return item.text !== data.funcName;
         });
-      changeData(currentProject,currentModule,moduleJson);
+      changeData(project,currentModule.value,moduleJson);
       ElMessage({
         type: "success",
         message: "删除成功",
@@ -360,11 +372,15 @@ const delAlgorithm = (data) => {
 
 const renameAlgorithm = (data) => {
   data.isEdit = true;
+  isEdit.value = true;
   popStatus.value = false;
   // 临时保留老名字
   data.oldFuncName = data.funcName;
 };
 const saveName = (data) => {
+  // console.log(data)
+  data.isEdit = false;
+  isEdit.value = false;
   if (data.funcName === data.oldFuncName) return;
   if (!reg.test(data.funcName)) {
     ElNotification({
@@ -374,17 +390,20 @@ const saveName = (data) => {
       type: "error",
     });
   } else {
-    let moduleJson = getCurrentObj(currentProject, currentModule);
+    let moduleJson = getCurrentObj(project, currentModule.value);
     for (let item of moduleJson.algorithms) {
       if (item.text === data.oldFuncName) {
         item.text = data.funcName;
         break;
       }
     }
-    changeData(currentProject,currentModule,moduleJson);
+    // console.log(moduleJson);
+    changeData(project,currentModule.value,moduleJson);
+    RenameTree(data.funcName);
   }
   // console.log(data)
 };
+
 onMounted(() => {
   // sysApi.getFuncList().then((res) => {
   //  console.log("sysApi--2", res);
@@ -432,6 +451,8 @@ const addTree = (treeName) => {
     }
     listOneFuncList.value = [...listOneFuncList.value];
   }
+  handleNodeClick(newObj);
+  // router.push(newObj.funcUrl);
   //console.log("curLevel:::", curLevel);
   //console.log("curFuncName:::", curFuncName);
 };
@@ -442,11 +463,37 @@ const delTree = () => {
   const index = children.findIndex((d) => d.id === curData.value.id);
   children.splice(index, 1);
   listOneFuncList.value = [...listOneFuncList.value];
+  // console.log('children:',children);
+  // console.log('parent',parent.data);
+  if (children.length > 0) handleNodeClick(children[0]);
+  else {
+    var ppObj = curFuncList.value.find(
+      (x) => x.id == parent.data.funcParentId
+    );
+    handleNodeClick(ppObj);
+  }
+  // let path = `${ppObj.funcUrl}`;
+  // let moduleJson = getCurrentObj(project, currentModule.value);
+  // console.log(moduleJson)
+  // if (moduleJson.algorithms.length > 0) {
+  //   path = path + '/algorithm/' + moduleJson.algorithms[0].text;
+  // }
+  // console.log(path)
+  // router.push(path);
 };
 
 const RenameTree = (newName) => {
   curData.value.funcName = newName;
+  let url = '';
+  let arr = curData.value.funcUrl.split('/');
+  arr.splice(-1);
+  arr.forEach((item) => {
+    url = url + item + '/'
+  })
+  curData.value.funcUrl = url + newName;
+  // console.log(curData.value.funcUrl);
   listOneFuncList.value = [...listOneFuncList.value];
+  if (route.params.algorithms) handleNodeClick(curData.value);
 };
 const getCacheFuncList = () => {
   let newTempFuncList = [];
@@ -560,6 +607,15 @@ const getModuleData = (id, path) => {
     router.push({ path });
   }
 };
+
+watch(isEdit, (newValue, oldValue) => {
+  if (newValue) {
+    nextTick(() => {
+      console.log(isAutoFocus.value)
+      isAutoFocus.value.focus()
+    })
+  }
+})
 </script> 
 
 <style scope>

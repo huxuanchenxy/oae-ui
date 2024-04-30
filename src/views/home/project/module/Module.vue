@@ -69,7 +69,8 @@ const tagList = ref([
 
 const getAlgorithmName = (value) => {
   tagList.value[1].name = "算法" + value;
-  tagList.value[1].funcStatus = "dark";
+  if (showType.value === 'algorithm') tagList.value[1].funcStatus = "dark";
+  if (value === '') tagList.value[1].funcStatus = 'plain'
 };
 
 const goToTag = (tag) => {
