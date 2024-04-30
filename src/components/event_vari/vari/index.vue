@@ -64,9 +64,9 @@
                     <el-select v-model="variInputForm.relatedEventIds" multiple placeholder="请选择关联事件">
                         <el-option
                         v-for="item in relateEveList"
-                        :key="item.id"
-                        :label="item.name"
-                        :value="item.id"
+                        :key="item.key"
+                        :label="item.text"
+                        :value="item.key"
                         ></el-option>
                     </el-select>
                 </el-form-item>
@@ -100,12 +100,12 @@
                 </el-form-item>
                 <el-form-item label="关联事件">
                     <el-select v-model="variOutputForm.relatedEventIds" multiple placeholder="请选择关联事件">
-                        <el-option
-                        v-for="item in relateEveList"
-                        :key="item.id"
-                        :label="item.name"
-                        :value="item.id"
-                        ></el-option>
+                      <el-option
+                          v-for="item in relateEveList"
+                          :key="item.key"
+                          :label="item.text"
+                          :value="item.key"
+                      ></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="数组长度" prop="arrayLength">
@@ -135,7 +135,7 @@
 
 <script setup name="Vari" lang="ts">
     import type { VariInputForm,VariInputQuery,VariInputVO,VariOutputForm,VariOutputQuery,VariOutputVO} from '@/api/inter/vari/type';
-    import {getRelateEveList} from "@/api/inter/event";
+    import {getRelateEveList,getInputEvents,getOutputEvents} from "@/api/inter/event";
     import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
     import { Eve } from "@/api/inter/event/types";
     import {changeInputVaris,changeOutputVaris} from "@/utils/cache/inter";
@@ -208,7 +208,7 @@
         resetInput();
         dialogInput.visible = true;
         dialogInput.title = "添加输入事件";
-        relateEveList.value=getRelateEveList();
+        relateEveList.value=getInputEvents(project,module);
     }
     const handleUpdateInput = (row?: VariInputVO) => {
         resetInput();
@@ -218,7 +218,7 @@
         res.relatedEvents?.forEach(element => {
           relatedEventIds.push(element.id);
         });
-        relateEveList.value=getRelateEveList();
+        relateEveList.value=getInputEvents(project,module);
         variInputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(variInputForm.value, res);
         dialogInput.visible = true;
@@ -256,13 +256,13 @@
         let dataRelatedEvents=data.relatedEventIds;
         let eventsVo:Eve=[];
         dataRelatedEvents?.forEach(element => {
-          eventsVo.push({id:element,name:""})
+          eventsVo.push({key:element,text:""})
         });
         eventsVo.forEach(relateEve => {
           relateEveList.value.forEach( dict=> {
-            if(dict.id==relateEve.id){
-              relateEve.name=dict.name;
-              relateEveName+=dict.name+",";
+            if(dict.key==relateEve.key){
+              relateEve.text=dict.text;
+              relateEveName+=dict.text+",";
             }
           });
         });
@@ -281,14 +281,13 @@
         let dataRelatedEvents=data.relatedEventIds;
         let eventsVo:Eve=[];
         dataRelatedEvents.forEach(element => {
-          eventsVo.push({id:element,name:""})
+          eventsVo.push({key:element,text:""})
         });
-
         eventsVo.forEach(relateEve => {
           relateEveList.value.forEach( dict=> {
-            if(dict.id==relateEve.id){
-              relateEve.name=dict.name;
-              relateEveName+=dict.name+",";
+            if(dict.key==relateEve.key){
+              relateEve.text=dict.text;
+              relateEveName+=dict.text+",";
             }
           });
         });
@@ -307,7 +306,7 @@
             let relatedEvents=data.relatedEvents
             if(relatedEvents){
               relatedEvents.forEach(eve => {
-                relateEveName+=eve.name+",";
+                relateEveName+=eve.text+",";
               });
               relateEveName=relateEveName.substring(0,relateEveName.length-1);
               data.relateEveName=relateEveName;
@@ -367,7 +366,7 @@
         resetOutput();
         dialogOutput.visible = true;
         dialogOutput.title = "添加输出事件";
-        relateEveList.value=getRelateEveList();
+        relateEveList.value=getOutputEvents(project,module);
     }
     const handleUpdateOutput = (row?: VariOutputVO) => {
         resetOutput();
@@ -377,7 +376,7 @@
         res.relatedEvents?.forEach(element => {
           relatedEventIds.push(element.id);
         });
-        relateEveList.value=getRelateEveList();
+        relateEveList.value=getOutputEvents(project,module);
         variOutputForm.value.relatedEventIds=relatedEventIds;
         Object.assign(variOutputForm.value, res);
         dialogOutput.visible = true;
@@ -415,13 +414,13 @@
         let dataRelatedEvents=data.relatedEventIds;
         let eventsVo:Eve=[];
         dataRelatedEvents?.forEach(element => {
-          eventsVo.push({id:element,name:""})
+          eventsVo.push({key:element,text:""})
         });
         eventsVo.forEach(relateEve => {
           relateEveList.value.forEach( dict=> {
-            if(dict.id==relateEve.id){
-              relateEve.name=dict.name;
-              relateEveName+=dict.name+",";
+            if(dict.key==relateEve.key){
+              relateEve.text=dict.text;
+              relateEveName+=dict.text+",";
             }
           });
         });
@@ -440,13 +439,13 @@
         let dataRelatedEvents=data.relatedEventIds;
         let eventsVo:Eve=[];
         dataRelatedEvents.forEach(element => {
-          eventsVo.push({id:element,name:""})
+          eventsVo.push({key:element,text:""})
         });
         eventsVo.forEach(relateEve => {
           relateEveList.value.forEach( dict=> {
-            if(dict.id==relateEve.id){
-              relateEve.name=dict.name;
-              relateEveName+=dict.name+",";
+            if(dict.key==relateEve.key){
+              relateEve.text=dict.text;
+              relateEveName+=dict.text+",";
             }
           });
         });
@@ -465,7 +464,7 @@
             let relatedEvents=data.relatedEvents
             if(relatedEvents){
               relatedEvents.forEach(eve => {
-                relateEveName+=eve.name+",";
+                relateEveName+=eve.text+",";
               });
               relateEveName=relateEveName.substring(0,relateEveName.length-1);
               data.relateEveName=relateEveName;

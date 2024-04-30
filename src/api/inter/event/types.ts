@@ -45,6 +45,6 @@
   }
   //-------输出结束
   export interface Eve{
-    id:number,
-    name:string
+    key:number,
+    text:string
   }

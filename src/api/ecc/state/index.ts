@@ -15,13 +15,13 @@ export const getOneState=(project,module,id):StateMachine=>{
     return states?.find((data)=>data.key==id);
 }
 //增加或修改集合
-export const saveOrUpdateStateList=(project,module,data)=>{
+export const saveOrUpdateStateList=(project,module,data:StateMachine[])=>{
     let rlt=getCurrentObj(project,module);
     rlt.ecc.nodeDataArray=data;
     changeData(project,module,rlt)
 }
 //增加或修改单个
-export const saveOrUpdateState=(project,module,data)=>{
+export const saveOrUpdateState=(project,module,data:StateMachine)=>{
     let rlt=getCurrentObj(project,module);
     let states=listStates(project,module);
     if(states){
