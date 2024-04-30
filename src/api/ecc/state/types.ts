@@ -1,14 +1,15 @@
 import {Eve} from "@/api/inter/event/types";
 import {AlgSimple} from "@/api/alg/types";
+import {AlgAndEventForm} from "../algandevent/types";
 
 export interface StateMachine {
     key:string,
     text:string,
     x:number,
     y:number,
-    algorithm:Array<{ key: string; text: string }>;//大JSON用
-    output_event:Array<{ key: string; text: string }>;//大JSON用
-    algAndEvent:Array<{alg:AlgSimple,event:Eve}>//实际业务用
+    algorithm:AlgSimple[];//大JSON用
+    output_event:Eve[];//大JSON用
+    algAndEvent:AlgAndEventForm[]//实际业务用
     comment:string
 }
 
@@ -18,8 +19,6 @@ export interface StateQuery extends PageQuery {
 export interface StateForm {
     key:string,
     text:string,
-    algorithm:{ id: string; name: string };
-    output_event:{ id: string; name: string };
 }
 export interface StateQuery extends PageQuery {
     name: string;
@@ -29,6 +28,6 @@ export interface StateVO extends BaseEntity {
     text:string,
     x:number,
     y:number,
-    algAndEvent:Array<{alg:AlgSimple,event:Eve}>
+    algAndEvent:AlgAndEventForm[]
     comment:string
 }

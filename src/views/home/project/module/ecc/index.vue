@@ -27,9 +27,9 @@
               {{currentState?.text}}<el-button type="success" plain icon="Edit" @click="handleUpdateState"></el-button>
             </div>
             <hr/>
-            <div v-for="algAndEvent in currentState.algAndEvent">
-              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition(currentState.key,algAndEvent.alg.key)"></el-button>
-              <el-button type="danger" plain icon="Delete"  @click="handleDeleteCondition(currentState.key,algAndEvent.alg.key)"></el-button><br/>
+            <div v-for="algAndEvent in currentState?.algAndEvent">
+              <el-button type="success" plain icon="Edit" @click="handleUpdateCondition(currentState.key,algAndEvent.id)"></el-button>
+              <el-button type="danger" plain icon="Delete"  @click="handleDeleteCondition(currentState.key,algAndEvent.id)"></el-button><br/>
               <br/>
               <div>{{algAndEvent?.alg.text}}</div>
               <div>{{algAndEvent?.event.text}}</div>
@@ -53,14 +53,14 @@
       </el-card>
     </div>
     <el-dialog :title="dialogCanvas.title" v-model="dialogCanvas.visible" width="500px" append-to-body>
-    <el-form ref="canvasFormRef" :model="canvasForm"  label-width="80px">
-      <el-form-item prop="key" v-if="false" >
-        <el-input v-model="canvasForm.key" />
-      </el-form-item>
-      <el-form-item label="描述" prop="comment">
-        <el-input v-model="canvasForm.comment" type="textarea" placeholder="请输入说明文字"/>
-      </el-form-item>
-    </el-form>
+      <el-form ref="canvasFormRef" :model="canvasForm"  label-width="80px">
+        <el-form-item prop="key" v-if="false" >
+          <el-input v-model="canvasForm.key" />
+        </el-form-item>
+        <el-form-item label="描述" prop="comment">
+          <el-input v-model="canvasForm.comment" type="textarea" placeholder="请输入说明文字"/>
+        </el-form-item>
+      </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button type="primary" @click="saveCanvasForm">确 定</el-button>
@@ -132,8 +132,14 @@
         <el-form-item prop="stateId" v-if="false" >
           <el-input v-model="algAndEventForm.stateId" />
         </el-form-item>
-        <el-form-item prop="key" v-if="false" >
-          <el-input v-model="algAndEventForm.key" />
+        <el-form-item prop="id" v-if="false" >
+          <el-input v-model="algAndEventForm.id" />
+        </el-form-item>
+        <el-form-item prop="algGraphId" v-if="false" >
+          <el-input v-model="algAndEventForm.algGraphId" />
+        </el-form-item>
+        <el-form-item prop="eventGraphId" v-if="false" >
+          <el-input v-model="algAndEventForm.eventGraphId" />
         </el-form-item>
         <el-form-item label="算法">
           <el-select v-model="algAndEventForm.alg" placeholder="请选择">
@@ -177,16 +183,17 @@ import type { AlgSimple} from '@/api/alg/type';
 import { Eve } from "@/api/inter/event/types";
 import {getInputEvents,getOutputEvents} from "@/api/inter/event";
 import {getAlgList} from "@/api/alg";
-import {getOneEdge,saveOrUpdateEdge,removeEdge} from "@/api/ecc/edge";
+import {getOneEdge,saveOrUpdateEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
-import {removeAlgAndEvent,saveOrUpdateState,getOneState,saveOrUpdateStateList} from "@/api/ecc/state";
+import {removeAlgAndEvent,saveOrUpdateState,getOneState} from "@/api/ecc/state";
+import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
-import type { AlgAndEventQuery,AlgAndEventForm,AlgAndEventVO} from '@/api/ecc/algandevent/type';
+import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
 let currentState:StateVO=ref(null);
-const algLabel='算法';
-const eveLabel='输出';
+let defaultEvent:Eve=ref(null);
+let defaultAlg:AlgSimple=ref(null);
 const dialogEdge = reactive<DialogOption>({
   visible: false,
   title: ''
@@ -220,7 +227,7 @@ const initCanvasFormData:CanvasForm = {
 const initStateFormData:StateForm = {
   text:'',
 }
-const initAlgAndEventFormData:StateForm = {
+const initAlgAndEventFormData:AlgAndEventForm = {
   alg:'',
   event:''
 }
@@ -286,15 +293,15 @@ const outputEventList = ref<Eve[]>([]);
 const algList = ref<AlgSimple[]>([]);
 const contextMenu = new G6.Menu({
   getContent(evt) {
-      let str="";
-      if (evt.target && evt.target.isCanvas && evt.target.isCanvas()) {
-        mouseX = evt.clientX;
-        mouseY = evt.clientY;
-        str= "<ul><li>新建</li>";
-      } else if (evt.item) {
-        str= "<ul><li>删除</li>";
-      }
-      return str;
+    let str="";
+    if (evt.target && evt.target.isCanvas && evt.target.isCanvas()) {
+      mouseX = evt.clientX;
+      mouseY = evt.clientY;
+      str= "<ul><li>新建</li>";
+    } else if (evt.item) {
+      str= "<ul><li>删除</li>";
+    }
+    return str;
   },
   handleMenuClick: (target, item) => {
     if(item){
@@ -310,17 +317,17 @@ const contextMenu = new G6.Menu({
   itemTypes: ['node', 'edge', 'canvas'],
 });
 const deleteNode=async (item)=> {
-    const nodes = graph.findAllByState('node', 'selected');
-    const edges = graph.findAllByState('edge', 'selected');
-    const nodeIds = nodes.map((node) => node.get('id'));
-    const edgeIds = edges.map((edge) => edge.get('id'));
-    if (nodeIds.length != 0||edgeIds.length != 0) {
-      await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
-      graph.removeItem(item);
-      saveDataToServer();
-    }else{
-      proxy?.$modal.msgWarning("您没有选中任何节点");
-    }
+  const nodes = graph.findAllByState('node', 'selected');
+  const edges = graph.findAllByState('edge', 'selected');
+  const nodeIds = nodes.map((node) => node.get('id'));
+  const edgeIds = edges.map((edge) => edge.get('id'));
+  if (nodeIds.length != 0||edgeIds.length != 0) {
+    await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
+    graph.removeItem(item);
+    saveDataToServer();
+  }else{
+    proxy?.$modal.msgWarning("您没有选中任何节点");
+  }
 }
 const initGraph=(data,graphWidth,graphHeight)=>{
   graph = new G6.Graph({
@@ -330,15 +337,15 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     plugins: [contextMenu],
     modes: {
       default: [
-          'click-select',
-          'drag-combo',
-          // 'drag-node',
-          {
-            type: 'create-edge',
-            trigger: 'drag', // 'click' by default. options: 'drag', 'click'
-            key: 'shift',
-          },
-        ],
+        'click-select',
+        'drag-combo',
+        // 'drag-node',
+        {
+          type: 'create-edge',
+          trigger: 'drag', // 'click' by default. options: 'drag', 'click'
+          key: 'shift',
+        },
+      ],
     },
     defaultNode: {
       type: 'rect',
@@ -396,10 +403,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     if(id.startsWith(prefState)){
       showProp.value=2;
       //设置被选中的状态机
-      let state:StateMachine=getOneState(project,module,id);
-      currentState.value={...state}
-      delete currentState.value.algorithm;
-      delete currentState.value.output_event;
+      getCurrentState(project,module,id)
     }else{
       //如果节点不是状态机，那就算画布
       showProp.value=1
@@ -419,7 +423,13 @@ const saveDataToServer=()=>{
   const data = graph.save(); // 获取图实例的数据
   cache.local.setJSON(graphCacheKey,data);
 }
-
+const getCurrentState=((project,module,id)=>{
+  let state:StateMachine=getOneState(project,module,id);
+  currentState.value={...state}
+  delete currentState.value.algorithm;
+  delete currentState.value.output_event;
+  return currentState.value;
+});
 /**
  * 双击事件
  * @param e
@@ -446,18 +456,24 @@ const getStateConditionNumber=((stateId)=>{
   let number=0;
   let graphJson=cache.local.getJSON(graphCacheKey);
   let edges:IEdge[]=graphJson.edges;
-    edges.forEach((edgeNode)=>{
-      if(edgeNode.source==stateId&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
-        number++;
-      }
-    });
-    return number;
+  edges.forEach((edgeNode)=>{
+    if(edgeNode.source==stateId&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
+      number++;
+    }
+  });
+  return number;
 })
 /**
  * 添加算法和事件节点
  * @param e
  */
 const addAlgAndEventNode=(item,canvasY)=>{
+  defaultAlg=algList.value[0];
+  defaultEvent=outputEventList.value[0];
+  if(!defaultAlg||!defaultEvent){
+    proxy?.$modal.alertError("必须至少有一个算法和输出事件");
+    return;
+  }
   // const item = e.item;
   const stateId=item.get("id")
   //连线数量
@@ -474,7 +490,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
   const algNodeY=canvasY+getStateConditionNumber(stateId)*(algGraphSize[1]+nodeVertiPadding);
   const algNode={
     id:algNodeId,
-    label: algLabel,
+    label: defaultAlg.text,
     x: algNodeX,
     y: algNodeY,
     size:algEveSize,
@@ -483,7 +499,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
   //事件的初始距离为算法的x+算法的长度,y是和左边的算法一致
   const eveNode={
     id:eveNodeId,
-    label: eveLabel,
+    label: defaultEvent.text,
     x: algNodeX+algGraphSize[0],
     y: algNodeY,
     size:algEveSize,
@@ -506,16 +522,25 @@ const addAlgAndEventNode=(item,canvasY)=>{
     currentState.value.algAndEvent=new Array();
   }
   currentState.value.algAndEvent.push({
-    alg: {key:algNodeId,text:algLabel},
-    event:{key:eveNodeId,text:eveLabel}
+    id:uuid,
+    alg: {key:algNodeId,text:defaultAlg.text},
+    event:{key:eveNodeId,text:defaultEvent.text}
   })
   //大JSON更新
   let state:StateMachine=getOneState(project,module,stateId);
-  let algAndEvents=state.algAndEvent;
+  let algAndEvents:AlgAndEventForm[]=state.algAndEvent;
   if(!algAndEvents){
     algAndEvents=new Array();
   }
-  algAndEvents.push({ alg: {key:algNode.id,text:algNode.label},event: {key:eveNode.id,text:eveNode.label} });
+  algAndEvents.push({
+    id:uuid,
+    alg: {
+      key:algNode.id,text:algNode.label,graphId:algNodeId
+    },
+    event: {
+      key:eveNode.id,text:eveNode.label,graphId:eveNodeId
+    }
+  });
   let algorithm=state.algorithm;
   if(!algorithm){
     algorithm=new Array();
@@ -543,61 +568,67 @@ onMounted(() => {
 const getCurrentCanvas=()=>{
   currentCanvas.value= getCanvas(project,module);
 }
-//初始化图形
+//初始化图形数据
 const initGraphData=()=>{
-    let stateList:StateMachine[]=new Array();
-    let graphJson=cache.local.getJSON(graphCacheKey);
-    if(graphJson){
-      stateList=new Array();
-      //从数据中得到状态机列表放进stateList里。
-      let nodes:INode[]=graphJson.nodes;
-      let edges:IEdge[]=graphJson.edges;
-      //找到所有状态机
-      let stateNodes:INode[]=nodes.filter((data)=>data.id.startsWith(prefState));
-      stateNodes.forEach((stateNode)=>{
-          let state:StateMachine={};
-          state.key=stateNode.id;
-          state.text=stateNode.label;
-          state.algorithm=new Array();
-          state.output_event=new Array();
-          state.algAndEvent=new Array();
-          //遍历连线，找到source为本state的ID，并且target为算法的，输出的ID和算法相同，只是前缀不同
-          edges.forEach((edgeNode)=>{
-              //如果找到了
-              if(edgeNode.source==stateNode.id&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
-                  let algId=edgeNode.target;
-                  let eventId=prefEvent+algId.substring(prefAlg.length,algId.length)
-                  //从node找出该targeid对应的item,就是这个状态机连上的算法，在通过该ID做相应处理后找出对应的输出事件
-                  let algNode:INode=nodes.find((data)=>data.id==algId);
-                  let eventNode:INode=nodes.find((data)=>data.id==eventId);
-                  //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
-                  if(algNode&&eventNode){
-                      let alg:AlgSimple={key:algNode.id,text:algNode.label};
-                      state.algorithm.push(alg);
-                      state.output_event.push({key:eventNode.id,text:eventNode.label});
-                      let algAndEvent={
-                        alg:alg,
-                        event:{key:eventNode.id,text:eventNode.label}
-                      };
-                      state.algAndEvent.push(algAndEvent)
-                  }
-              }
-          })
-          stateList.push(state);
-      })
-      saveOrUpdateStateList(project,module,stateList);
-    }else{
-      //如果不存在数据，就用初始数据
-      graphJson=  {
-        nodes: [
-          { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
-        ]
-      };
-    }
+  let stateList:StateMachine[]=new Array();
+  let graphJson=cache.local.getJSON(graphCacheKey);
+  if(graphJson){
+    // stateList=new Array();
+    // //从数据中得到状态机列表放进stateList里。
+    // let nodes:INode[]=graphJson.nodes;
+    // let edges:IEdge[]=graphJson.edges;
+    // //找到所有状态机
+    // let stateNodes:INode[]=nodes.filter((data)=>data.id.startsWith(prefState));
+    // stateNodes.forEach((stateNode)=>{
+    //   let state:StateMachine={};
+    //   state.key=stateNode.id;
+    //   state.text=stateNode.label;
+    //   state.algorithm=new Array();
+    //   state.output_event=new Array();
+    //   state.algAndEvent=new Array();
+    //   //遍历连线，找到source为本state的ID，并且target为算法的，输出的ID和算法相同，只是前缀不同
+    //   edges.forEach((edgeNode)=>{
+    //     //如果找到了
+    //     if(edgeNode.source==stateNode.id&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
+    //       let algId=edgeNode.target;
+    //       let eventId=prefEvent+algId.substring(prefAlg.length,algId.length)
+    //       //从node找出该targeid对应的item,就是这个状态机连上的算法，在通过该ID做相应处理后找出对应的输出事件
+    //       let algNode:INode=nodes.find((data)=>data.id==algId);
+    //       let eventNode:INode=nodes.find((data)=>data.id==eventId);
+    //       //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
+    //       if(algNode&&eventNode){
+    //         let alg:AlgSimple={key:algNode.id,text:algNode.label};
+    //         state.algorithm.push(alg);
+    //         state.output_event.push({key:eventNode.id,text:eventNode.label});
+    //         let algAndEvent={
+    //           alg:alg,
+    //           event:{key:eventNode.id,text:eventNode.label}
+    //         };
+    //         state.algAndEvent.push(algAndEvent)
+    //       }
+    //     }
+    //   })
+    //   stateList.push(state);
+    // })
+    // saveOrUpdateStateList(project,module,stateList);
+  }else{
+    //如果不存在数据，就用初始数据
+    graphJson=  {
+      nodes: [
+        { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
+      ]
+    };
+  }
   //返回图形数据
-    return graphJson;
+  return graphJson;
 }
 const addCombo=(stateNodeX,stateNodeY)=>{
+  defaultAlg=algList.value[0];
+  defaultEvent=outputEventList.value[0];
+  if(!defaultAlg||!defaultEvent){
+    proxy?.$modal.alertError("必须至少有一个算法和输出事件");
+    return;
+  }
   const nodeId=uuidv4();
   const comboId=prefCombo+nodeId;
   const stateNodeId=prefState+nodeId;
@@ -617,7 +648,7 @@ const addCombo=(stateNodeX,stateNodeY)=>{
   const algNodeX=stateNodeX+stateGraphSize[0]+lineWidth
   const algNode={
     id:algNodeId,
-    label: algLabel,
+    label: defaultAlg.text,
     x: algNodeX,
     y: stateNodeY,
     size:algEveSize,
@@ -626,7 +657,7 @@ const addCombo=(stateNodeX,stateNodeY)=>{
   //事件的初始距离为算法的x+算法的长度
   const eveNode={
     id:eveNodeId,
-    label: eveLabel,
+    label: defaultEvent.text,
     x: algNodeX+algGraphSize[0],
     y: stateNodeY,
     size:algEveSize,
@@ -653,16 +684,26 @@ const addCombo=(stateNodeX,stateNodeY)=>{
   graph.addItem('node', eveNode);
   graph.addItem('edge',stateToAlgEdge)
   //保存大JSON
-  saveOrUpdateState(project,module,{
+  const data={
     key:stateNodeId,
     text:stateLabel,
     x:stateNodeX,
     y:stateNodeY,
-    algorithm:[{ key: algNode.id,text: algNode.label }],
-    output_event:[{ key: eveNode.id,text: eveNode.label }],
-    algAndEvent:[{ alg: {key:algNode.id,text:algNode.label},event: {key:eveNode.id,text:eveNode.label} }] ,
+    algorithm:[{ key: defaultAlg.key,text:defaultAlg.text }],
+    output_event:[{ key: defaultEvent.key,text: defaultEvent.text }],
+    //需要有个ID标识是哪一个algAndEvent
+    algAndEvent:[{
+      id:uuidv4(),
+      alg: {
+        key:defaultAlg.key,text:defaultAlg.text,graphId:algNodeId
+      },
+      event: {
+        key:defaultEvent.key,text:defaultEvent.text,graphId:eveNodeId
+      }
+    }] ,
     comment:''
-  });
+  };
+  saveOrUpdateState(project,module,data);
 }
 const initLoad = () => {
   pid.value = route.params.pid;
@@ -733,17 +774,8 @@ const submitStateForm=(()=>{
   dialogState.visible = false;
 })
 const submitAlgAndEventForm=(()=>{
-  let algId=algAndEventForm.key;
-  let eventId=prefEvent+algId.substring(prefAlg.length,algId.length);
-  let data=algAndEventForm.value;
-  let eventVO:Eve={};
-  let algVO:AlgSimple={};
-  if(data.alg){
-    algVO={key:data.alg,text:""}
-  }
-  if(data.event){
-    eventVO={key:data.event,text:""}
-  }
+  let eventVO:Eve={key:algAndEventForm.value.event,text:"",graphId:algAndEventForm.value.eventGraphId};
+  let algVO:AlgSimple={key:algAndEventForm.value.alg,text:"",graphId:algAndEventForm.value.algGraphId};
   algList.value.forEach( dict=> {
     if(dict.key==algVO.key){
       algVO.text=dict.text;
@@ -755,19 +787,17 @@ const submitAlgAndEventForm=(()=>{
     }
   });
   //双向绑定数据更新
-  let algAndEvents:Array<{alg:AlgSimple,event:Eve}>=currentState.value.algAndEvent;
+  let algAndEvents:AlgAndEventForm[]=currentState.value.algAndEvent;
   algAndEvents.forEach((algAndEvent)=>{
-    if(algAndEvent.alg.key==algId){
+    if(algAndEvent.id==algAndEventForm.value.id){
       algAndEvent.alg=algVO;
-    }
-    if(algAndEvent.event.key==eventId){
       algAndEvent.event=eventVO;
     }
   })
   currentState.value.algAndEvent=algAndEvents;
-  // //antv回显
-  let algNode=graph.findById(algId)
-  let eventNode=graph.findById(eventId)
+  //antv回显
+  let algNode=graph.findById(algAndEventForm.value.algGraphId)
+  let eventNode=graph.findById(algAndEventForm.value.eventGraphId)
   if(algNode){
     graph.update(algNode, {
       label: algVO.text
@@ -781,6 +811,7 @@ const submitAlgAndEventForm=(()=>{
   let jsonData:StateMachine={};
   //大JSON更新
   Object.assign(jsonData, currentState.value);
+  console.log(currentState.value)
   let jsonDataAlgArr=new Array();
   let jsonDataEventArr=new Array();
   algAndEvents.forEach((algAndEvent)=>{
@@ -814,15 +845,17 @@ const handleUpdateEdge=()=>{
   dialogEdge.title = "修改连接线属性";
 }
 //打开编辑条件对话框
-const handleUpdateCondition=((stateId:string,algId:string)=>{
-  resetAlgAndEventForm();
-  let algAndEvent=currentState.value.algAndEvent;
-  algAndEventForm.alg=algAndEvent.alg;
-  algAndEventForm.event=algAndEvent.event;
+const handleUpdateCondition=((stateId:string,id:string)=>{
+  let algAndEvent:AlgAndEventForm=getAlgAndEventById(project,module,stateId,id);
   dialogAlgAndEvent.visible = true;
   dialogAlgAndEvent.title = "修改算法和事件";
-  algAndEventForm.key=algId;
-  algAndEventForm.stateId=algId;
+  algAndEventForm.value.id=algAndEvent.id;
+  algAndEventForm.value.stateId=stateId;
+  algAndEventForm.value.alg=algAndEvent.alg.key;
+  algAndEventForm.value.algGraphId=algAndEvent.alg.graphId;
+  algAndEventForm.value.event=algAndEvent.event.key;
+  algAndEventForm.value.eventGraphId=algAndEvent.event.graphId;
+  console.log("点击编辑后"+algAndEventForm.value.eventGraphId)
 })
 const handleUpdateState=(()=>{
   resetStateForm();
@@ -830,22 +863,21 @@ const handleUpdateState=(()=>{
   dialogState.visible = true;
   dialogState.title = "修改状态机";
 })
-const handleDeleteCondition=async(stateId,algId)=>{
+const handleDeleteCondition=async(stateId,id)=>{
   await proxy?.$modal.confirm('是否确认删除？');
-  let idNoPrefix=algId.substring(prefAlg.length,algId.length)
+  let algAndEvents:AlgAndEventForm[]=currentState.value.algAndEvent;
   //删除节点
-  let eveId=prefEvent+idNoPrefix;
-  graph.removeItem(graph.findById(algId));
-  graph.removeItem(graph.findById(eveId));
+  let algAndEvent=algAndEvents.find(x=>x.id==id);
+  graph.removeItem(graph.findById(algAndEvent.alg.key));
+  graph.removeItem(graph.findById(algAndEvent.event.key));
   //更新双向绑定的数据
-  let algAndEvent=currentState.value.algAndEvent;
-  algAndEvent=algAndEvent.filter(x=>x.alg.key!=algId);
-  algAndEvent=algAndEvent.filter(x=>x.event.key!=eveId);
-  currentState.value.algAndEvent=algAndEvent;
+  algAndEvents=algAndEvents.filter(x=>x.alg.key!=algAndEvent.alg.key);
+  algAndEvents=algAndEvents.filter(x=>x.event.key!=algAndEvent.event.key);
+  currentState.value.algAndEvent=algAndEvents;
   //更新图JSON
   saveDataToServer();
   //更新大JSON
-  removeAlgAndEvent(project,module,stateId,algId);
+  removeAlgAndEvent(project,module,stateId,id);
 }
 
 const resetEdgeForm = () => {
@@ -877,30 +909,30 @@ const cancelAlgAndEventDialog = () => {
   dialogAlgAndEvent.visible = false;
 }
 watch(
-  () => router.currentRoute.value,
-  (newValue) => {
-    initLoad();
-  }
+    () => router.currentRoute.value,
+    (newValue) => {
+      initLoad();
+    }
 );
 </script>
 
 <style   scoped>
-  .ecc{
-    display: flex;
-    .main{
-      flex:9;
-    }
-    .right {
-      flex:2;
-      width: 200px;
-      transition: all 0.2s;
+.ecc{
+  display: flex;
+  .main{
+    flex:9;
+  }
+  .right {
+    flex:2;
+    width: 200px;
+    transition: all 0.2s;
+    height: 500px;
+  //display: flex;
+  //flex-direction: column;
+    .box-card{
       height: 500px;
-      //display: flex;
-      //flex-direction: column;
-      .box-card{
-        height: 500px;
-      }
     }
   }
+}
 
 </style>

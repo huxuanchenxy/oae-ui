@@ -1,16 +1,18 @@
 import {Alg} from "@/api/ecc/algandevent/types";
+import {AlgSimple} from "@/api/alg/types";
+import {Eve} from "@/api/inter/event/types";
 
 
 export interface AlgAndEventQuery extends PageQuery {
     name: string;
 }
 export interface AlgAndEventForm {
-    key:string,
-    algorithm:{ id: string; name: string };
-    output_event:{ id: string; name: string };
+    id:string,
+    alg:AlgSimple
+    event:Eve,
 }
 export interface AlgAndEventVO extends BaseEntity {
     key:string,
-    algorithm:{ id: string; name: string };
-    output_event:{ id: string; name: string };
+    alg:AlgSimple
+    event:Eve
 }

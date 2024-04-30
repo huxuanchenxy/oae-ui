@@ -1,5 +1,6 @@
 export interface AlgSimple {
     key:string,
-    text:string
+    text:string,
+    graphId:string
 }
 

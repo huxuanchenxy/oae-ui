@@ -46,5 +46,6 @@
   //-------输出结束
   export interface Eve{
     key:number,
-    text:string
+    text:string,
+    graphId:string
   }
