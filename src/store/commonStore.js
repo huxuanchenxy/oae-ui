@@ -7,9 +7,8 @@ export const commonStore = defineStore("commonStore", {
     },
     actions: {
         changeCurTreeNode(id, name, algorithmName) {
-
             this.curTreeNode = { id, name, algorithmName };
-            console.log("this.curTreeNode:::", this.curTreeNode);
+            //console.log("this.curTreeNode:::", this.curTreeNode);
         }
     }
 })
