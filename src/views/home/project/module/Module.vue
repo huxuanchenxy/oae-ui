@@ -87,7 +87,7 @@ const goToTag = (tag) => {
   let algorithmNames = "";
   if (tagName.includes("算法")) {
     tagName = "算法";
-    algorithmNames = "INIT"; // algorithmName.value;
+    algorithmNames = algorithmName.value;
   } else {
     algorithmNames = "";
   }
