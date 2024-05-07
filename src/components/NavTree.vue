@@ -1,44 +1,49 @@
 <template>
-  <el-aside id="leftTree" class="asideTree">
-    <div
-      style="
-        text-align: center;
-        height: 48px;
-        width: 175px;
-        line-height: 48px;
-        border-bottom: 1px solid #bbb;
-        /* border-left: none;
+  <el-aside id="leftTree" class="asideTree" :style="asideTreeStyle.asideTree">
+    <div style="float: left; width: 165px" v-show="isShowTree">
+      <div
+        style="
+          text-align: center;
+          height: 48px;
+          width: 165px;
+          line-height: 48px;
+          border-bottom: 1px solid #bbb;
+          /* border-left: none;
         border-top: none; */
-      "
-    >
-      <img
-        style="width: 100px; margin: 12px 0 0 -25px"
-        src="../assets/img/logo-shdq.png"
-        alt=""
-      />
-    </div>
-    <div id="navTree">
-      <!-- highlight-current -->
-      <el-tree
-        :data="listOneFuncList"
-        default-expand-all
-        :expand-on-click-node="false"
-        :props="defaultProps"
-        @node-click="handleNodeClick"
-        @node-contextmenu="showContextMenu"
+        "
       >
-        <template #default="{ node, data }">
-          <el-input
-            ref="isAutoFocus"
-            v-model="data.funcName"
-            autofocus
-            v-if="data.isEdit"
-            style="height: 26px"
-            @keyup.enter="saveName(data)"
-          ></el-input>
-          <span v-else>{{ data.funcName }}</span>
-        </template>
-      </el-tree>
+        <img
+          style="width: 100px; margin: 12px 0 0 -25px"
+          src="../assets/img/logo-shdq.png"
+          alt=""
+        />
+      </div>
+      <div id="navTree">
+        <!-- highlight-current -->
+        <el-tree
+          :data="listOneFuncList"
+          default-expand-all
+          :expand-on-click-node="false"
+          :props="defaultProps"
+          @node-click="handleNodeClick"
+          @node-contextmenu="showContextMenu"
+        >
+          <template #default="{ node, data }">
+            <el-input
+              ref="isAutoFocus"
+              v-model="data.funcName"
+              autofocus
+              v-if="data.isEdit"
+              style="height: 26px"
+              @keyup.enter="saveName(data)"
+            ></el-input>
+            <span v-else>{{ data.funcName }}</span>
+          </template>
+        </el-tree>
+      </div>
+    </div>
+    <div class="sp" @click="showOrHidden()" :title="treeTitle">
+      <div :class="{ arrowLeft: isShowTree, arrowRight: !isShowTree }"></div>
     </div>
   </el-aside>
   <div
@@ -613,7 +618,7 @@ watch(isEdit, (newValue, oldValue) => {
 });
 
 const externalTriggerTree = (curTreeNodeObj) => {
-  queryTriggerData(listOneFuncList.value, curTreeNodeObj); 
+  queryTriggerData(listOneFuncList.value, curTreeNodeObj);
 };
 const queryTriggerData = (list, curTreeNodeObj) => {
   let id = curTreeNodeObj.id;
@@ -650,13 +655,32 @@ watch(curTreeNode, (n, o) => {
     externalTriggerTree(n);
   }
 });
+const asideTreeStyle = reactive({
+  asideTree: {
+    width: "172px",
+  },
+});
+let isShowTree = ref(true);
+let treeTitle = ref("单击隐藏菜单");
+const showOrHidden = () => {
+  isShowTree.value = !isShowTree.value;
+  if (asideTreeStyle.asideTree.width == "172px") {
+    asideTreeStyle.asideTree.width = "7px";
+    treeTitle.value = "单击显示菜单";
+  } else {
+    asideTreeStyle.asideTree.width = "172px";
+
+    treeTitle.value = "单击隐藏菜单";
+  }
+};
 </script> 
 
 <style scope>
 #leftTree.asideTree {
   color: #000;
   height: 100%;
-  width: 175px;
+  width: 172px;
+  overflow: hidden;
 }
 
 #navTree {
@@ -692,4 +716,26 @@ watch(curTreeNode, (n, o) => {
 #navTree .is-penultimate > .el-tree-node__children > div {
   width: 25%;
 } */
+
+.sp {
+  width: 7px;
+  height: 100%;
+  float: left;
+  overflow: hidden;
+  background: url(@/assets/img/verticalLineBg.gif) repeat-y;
+}
+
+.arrowLeft {
+  margin-top: 50vh;
+  width: 5px;
+  height: 35px;
+  background: url(@/assets/img/arrowLeft.gif) no-repeat;
+}
+
+.arrowRight {
+  margin-top: 50vh;
+  width: 5px;
+  height: 35px;
+  background: url(@/assets/img/arrowRight.gif) no-repeat;
+}
 </style>
