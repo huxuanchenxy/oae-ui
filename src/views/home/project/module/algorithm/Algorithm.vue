@@ -26,9 +26,10 @@
         accordion
         :filter-node-method="filterNode"
         @node-drag-end="handleDragEnd"
+        :allow-drop="() => {return false;}"
       >
       <template #default="{ node, data }">
-        <el-tooltip v-if="data.children === undefined" :content="data['desc']" placement="top" effect="light">
+        <el-tooltip v-if="data.children.length === 0" :content="data['desc']" placement="top" effect="light">
           <span>{{data.name}}</span>
         </el-tooltip>
         <span v-else>{{data.name}}</span>
@@ -52,8 +53,14 @@
 // import { useRoute } from "vue-router";
 // import { useStore } from "vuex";
 import { pagetagsStore } from "@/store/pageTags.js";
+import useVariInputStore from "@/store/modules/variInput.ts";
+import useVariOutputStore from "@/store/modules/variOutput.ts";
+import useInVariStore from "@/store/modules/inVari.ts";
+import useTempVariStore from "@/store/modules/tempVari.ts";
 import  cache  from "@/plugins/cache.ts";
 import * as monaco from 'monaco-editor'
+import {cpp, cppLen} from '@/jslib/language/cpp.js'
+import {st, stLen} from '@/jslib/language/st.js'
 import { ElTree } from 'element-plus'
 // import { tsModel } from "@/jslib/ts_model.js";
 import api from "@/api/commonApi";
@@ -65,10 +72,14 @@ const tagsStore = pagetagsStore();
 //const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const variInputStore=useVariInputStore();
+const variOutputStore=useVariOutputStore();
+const inVariStore=useInVariStore();
+const tempVariStore=useTempVariStore();
 const currentProject = 'project1';
 let currentModule = ref(route.params.id);
 let currentAlgorithm = ref(route.params.algorithms);
-let currentLanguage = ref();
+let currentLanguage;
 const drawer = ref(false);
 let funcDB = ref();
 const emit = defineEmits(["getName"]);
@@ -128,10 +139,10 @@ const initRegRule = (val) => {
   // console.log(ret.slice(0,-1));
   return new RegExp(ret.slice(0,-1), 'ig');
 }
-// 原本希望语言不同时，更新语言和规则，实测下来，规则不同步更新，只能销毁现有monaco实例，重新创建，但应该还是因为没有研究透彻，故先保留
+// 语言不同时，更新语言和规则
 const updateEditor = () => {
-  currentAlgorithm.value = route.params.algorithms;
-  currentModule.value = route.params.id;
+  // currentAlgorithm.value = route.params.algorithms;
+  // currentModule.value = route.params.id;
   if (currentAlgorithm.value) {
     emit('getName', currentAlgorithm.value);
     let moduleJson = getCurrentObj(currentProject,currentModule.value);
@@ -139,40 +150,67 @@ const updateEditor = () => {
     monacoEditor.setValue(algorithm.content);
     if (currentLanguage !== algorithm.type.toLowerCase()) {
       currentLanguage = algorithm.type.toLowerCase();
+      api.GetFunctions({lang: currentLanguage}).then((res) => {
+        funcDB.value = res;
+      });
       updateRuleByLanguage(moduleJson);
-      monaco.editor.setModelLanguage(toRaw(monacoEditor.value).getModel(), currentLanguage);//toRaw(monacoEditor.value).getModel()
+      monaco.editor.setModelLanguage(toRaw(monacoEditor).getModel(), currentLanguage);//toRaw(monacoEditor.value).getModel()
     }
   }
 }
+const resetArr = (obj, len) => {
+  let arr = obj.tokenizer.root;
+  let newLen = arr.length;
+  if (newLen > len) arr.splice(0, newLen - len);
+  return obj;
+}
 const updateRuleByLanguage = (moduleJson) => {
   let vals = moduleJson.interface;
-  let tokenizerRoot = [];
-  if (vals.inputs.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.inputs), {token: 'inputs'}]);
+  let language = '';
+  switch (currentLanguage) {
+    case 'st':
+      language = resetArr(st,stLen);
+      break;
+    case 'cpp':
+      language = resetArr(cpp,cppLen);
+      break;
+    default:
+      break;
   }
-  if (vals.outputs.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.outputs), {token: 'outputs'}]);
-  }
-  if (vals.internals.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.internals), {token: 'internals'}]);
-  }
-  if (vals.temps.length > 0) {
-    tokenizerRoot.push([initRegRule(vals.temps), {token: 'temps'}]);
-  }
-  // console.log(tokenizerRoot);
-  // let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
-  monaco.languages.setMonarchTokensProvider(currentLanguage, {
-    // ignoreCase: true, // 忽略大小写
-    tokenizer: {
-      // root:[
-      //   // [/ttt|ppp|ccc/, {token: "inputs"}],
-      //   [inputsReg, {token: "inputs"}],
-      //   // [/-X|-H|-d/, {token: "keyword"}],
-      //   // [/POST|GET|DELETE|PATCH|PUT/, {token: "comment.doc"}],
-      // ],
-      root: tokenizerRoot
+  // console.log('init:',language.tokenizer.root)
+  if (language !== '') {
+    let tokenizerRoot = language.tokenizer.root;
+    if (vals.inputs.length > 0) {
+      tokenizerRoot.unshift([initRegRule(vals.inputs), {token: 'inputs'}]);
     }
-  })
+    if (vals.outputs.length > 0) {
+      tokenizerRoot.unshift([initRegRule(vals.outputs), {token: 'outputs'}]);
+    }
+    if (vals.internals.length > 0) {
+      tokenizerRoot.unshift([initRegRule(vals.internals), {token: 'internals'}]);
+    }
+    if (vals.temps.length > 0) {
+      tokenizerRoot.unshift([initRegRule(vals.temps), {token: 'temps'}]);
+    }
+    // console.log(language);
+    // let inputStr = new RegExp('ttt|1_2|ccc', 'ig');
+    // monaco.languages.setMonarchTokensProvider(currentLanguage, {
+    //   // ignoreCase: true, // 忽略大小写
+    //   // defaultToken: 'source',
+    //   encoding: /u|u8|U|L/,
+    //   tokenizer: {
+    //     // root:[
+    //     //   // [/ttt|ppp|ccc/, {token: "inputs"}],
+    //     //   [inputsReg, {token: "inputs"}],
+    //     //   // [/-X|-H|-d/, {token: "keyword"}],
+    //     //   // [/POST|GET|DELETE|PATCH|PUT/, {token: "comment.doc"}],
+    //     // ],
+    //     root: tokenizerRoot
+    //   }
+    // })
+    // console.log('after:',language.tokenizer.root)
+    monaco.languages.setMonarchTokensProvider(currentLanguage,language);
+  }
 }
 const initEditor = () => {
   // console.log(currentAlgorithm.value)
@@ -209,6 +247,7 @@ const initEditor = () => {
       // 必须有否则无法生效
       colors: {}
     });
+    updateRuleByLanguage(moduleJson);    
     if (monacoEditor) monacoEditor.dispose();
     // 创建 Monaco Editor 实例
     monacoEditor = monaco.editor.create(editor.value, {
@@ -237,11 +276,7 @@ const initEditor = () => {
       suggestions: true,
       snippetSuggestions: 'top'
     })
-    let tmp = cache.local.getJSON('monaco_cursor_pos')
-    if (tmp) {
-      monacoEditor.setPosition(tmp);
-    }
-    monacoEditor.focus();
+    setCursorPos();
     // console.log(monacoEditor.getValue())
     // 每分钟自动保存缓存
     if (!intervalId.value) {
@@ -253,16 +288,12 @@ const initEditor = () => {
   } else monacoEditor.setValue(algorithm.content);
 }
 
-const test = () => {
-  // tabIndex.value = 2
-  // 将大json中module的id和路由保持一致
-  let tmp = cache.local.getJSON('json');
-  tmp[0].id = 4
-  tmp[0].name = '模块一'
-  tmp[1].id = 8
-  tmp[1].name = '模块二'
-  // console.log(tmp)
-  cache.local.setJSON('json',tmp);
+const setCursorPos = () => {
+  let tmp = cache.local.getJSON('monaco_cursor_pos')
+  if (tmp && tmp[currentLanguage]) {
+    monacoEditor.setPosition(tmp[currentLanguage]);
+  }
+  monacoEditor.focus();
 }
 
 watch(filterText, (val) => {
@@ -276,8 +307,17 @@ const filterNode = (value, data) => {
 }
 
 onMounted(() => {
+  // console.log(monaco.languages.getLanguages()[10].loader);
   initLoad();
   initEditor();
+  // let moduleJson = getCurrentObj(currentProject,currentModule.value)
+  // updateRuleByLanguage(moduleJson);
+  // // console.log(monacoEditor.value)
+  // monaco.editor.setModelLanguage(monacoEditor.getModel(), currentLanguage);
+  // debugger
+  // console.log(monaco.editor.tokenize('','cpp'))
+  // console.log(monacoEditor.value)
+  // console.log(language.tokenizer.root)
 });
 
 watch(
@@ -288,11 +328,19 @@ watch(
     // console.log(route.params.algorithms)
     if (route.params.algorithms) {
       initLoad();
-      initEditor();
+      updateEditor();
+      setCursorPos();
+      monacoEditor.updateOptions({ readOnly: false });
+      // initEditor();
+      // console.log('save')
     } else emit('getName', '');
-    // updateEditor();
   }
 );
+
+watch([variInputStore,variOutputStore,inVariStore,tempVariStore], (newVal) => {
+  let moduleJson = getCurrentObj(currentProject,currentModule.value);
+  updateRuleByLanguage(moduleJson);
+})
 
 // 想做ctrl+S快捷键，没成功，往后放
 const customizeShortcuts = () => {
@@ -302,7 +350,10 @@ const customizeShortcuts = () => {
 const saveCache = () => {
   if (currentModule.value) {
     // 当前光比位置存入monaco_cursor_pos
-    cache.local.setJSON('monaco_cursor_pos', monacoEditor.getPosition());
+    let pos = cache.local.getJSON('monaco_cursor_pos');
+    if (!pos) pos = {};
+    pos[currentLanguage] = monacoEditor.getPosition();
+    cache.local.setJSON('monaco_cursor_pos', pos);
     // 代码内容存入最终存入数据库的json
     // 新建时直接插入json内，这里只判定编辑修改
     let moduleJson = getCurrentObj(currentProject,currentModule.value);

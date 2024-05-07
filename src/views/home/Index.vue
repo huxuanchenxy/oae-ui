@@ -224,33 +224,4 @@ const save = () => {
 </script>
 
 <style >
-.userUl {
-  color: #333;
-}
-
-.userUl > li {
-  padding: 5px;
-  cursor: pointer;
-}
-
-.userUl > li:hover {
-  /* padding: 5px; */
-  color: #4290f7;
-  font-size: 14px;
-  font-weight: bold;
-  /* background: #b4d5ff; */
-  /* background-color: rgb(236, 245, 255); */
-}
-
-.userUl > li > a:hover {
-  color: #4290f7;
-}
-
-.drawerItem {
-  max-width: 470px;
-}
-
-.drawerItem .el-form-item__label {
-  color: #fff;
-}
 </style>
