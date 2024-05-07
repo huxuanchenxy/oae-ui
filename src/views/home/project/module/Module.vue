@@ -73,7 +73,9 @@ const getAlgorithmName = (value) => {
   tagList.value[1].name = "算法" + value;
   if (showType.value === "algorithm") tagList.value[1].funcStatus = "dark";
   if (value === "") tagList.value[1].funcStatus = "plain";
-  algorithmName.value = value;
+  if (value != "") {
+    algorithmName.value = value;
+  }
 };
 
 const goToTag = (tag) => {
@@ -81,7 +83,6 @@ const goToTag = (tag) => {
     t.funcStatus = "plain";
   });
   tag.funcStatus = "dark";
-
   showType.value = tag.showType;
   let tagName = tag.name;
   let algorithmNames = "";
@@ -109,6 +110,12 @@ const initLoad = () => {
     if (!rlt) {
       getModuleData(project, cid.value);
       rlt = getCurrentObj(project, cid.value);
+    }
+    if (rlt) {
+      if (rlt.algorithms && rlt.algorithms.length > 0) {
+        algorithmName.value = rlt.algorithms[0].text;
+        //console.log("initLoad;", algorithmName.value);
+      }
     }
   }
   //console.log("rlt", rlt);
