@@ -6,7 +6,7 @@ export const processParallelEdgesOnAnchorPoint = (
   edges,
   offsetDiff = 15,
   multiEdgeType = 'quadratic',
-  singleEdgeType = undefined,
+  singleEdgeType = 'quadratic',
   loopEdgeType = undefined
 ) => {
   const len = edges.length;
@@ -72,7 +72,8 @@ export const processParallelEdgesOnAnchorPoint = (
         };
         continue;
       }
-      if (length === 1 && singleEdgeType && (current.source !== current.target || current.sourceAnchor !== current.targetAnchor)) {
+      if (length === 1 && singleEdgeType && (current.source !== current.target || current.sourceAnchor !== current.targetAnchor)&&!current.target.startsWith('alg')) {
+        console.log(current.target)
         current.type = singleEdgeType;
         continue;
       }

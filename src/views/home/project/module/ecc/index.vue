@@ -1,7 +1,7 @@
 <template>
   <div class="ecc">
     <div class="main">
-      <div>按住shift后选中节点拖动以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
+      <div>点击连接点以创建连线，双击状态机新建算法和输出，右键在当前位置新建节点,选中后右键可删除节点</div>
       <div id="container" style="height:1000px" ref="container"></div>
     </div>
     <div class="right">
@@ -342,7 +342,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
         'click-select',
         // 'drag-combo',
         // 'drag-node',
-        'drag-node',
+        // 'drag-node',
         // config the shouldBegin and shouldEnd to make sure the create-edge is began and ended at anchor-point circles
         {
           type: 'create-edge',
@@ -503,7 +503,6 @@ const saveDataToServer=()=>{
 }
 const getCurrentState=((project,module,id)=>{
   let state:StateMachine=getOneState(project,module,id);
-  console.log(state)
   currentState.value={...state}
   delete currentState.value.algorithm;
   delete currentState.value.output_event;
@@ -854,7 +853,6 @@ const submitAlgAndEventForm=(()=>{
   let jsonData:StateMachine={};
   //大JSON更新
   Object.assign(jsonData, currentState.value);
-  console.log(currentState.value)
   let jsonDataAlgArr=new Array();
   let jsonDataEventArr=new Array();
   algAndEvents.forEach((algAndEvent)=>{
@@ -898,7 +896,6 @@ const handleUpdateCondition=((stateId:string,id:string)=>{
   algAndEventForm.value.algGraphId=algAndEvent.alg.graphId;
   algAndEventForm.value.event=algAndEvent.event.key;
   algAndEventForm.value.eventGraphId=algAndEvent.event.graphId;
-  console.log("点击编辑后"+algAndEventForm.value.eventGraphId)
 })
 const handleUpdateState=(()=>{
   resetStateForm();
