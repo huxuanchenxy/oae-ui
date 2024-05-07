@@ -355,7 +355,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
       }
     },
     defaultEdge: {
-      type: 'polyline',
+      type: 'arc',
       style: {
         stroke: '#F6BD16',
         lineWidth: 2,
@@ -425,6 +425,7 @@ const saveDataToServer=()=>{
 }
 const getCurrentState=((project,module,id)=>{
   let state:StateMachine=getOneState(project,module,id);
+  console.log(state)
   currentState.value={...state}
   delete currentState.value.algorithm;
   delete currentState.value.output_event;
@@ -572,46 +573,7 @@ const getCurrentCanvas=()=>{
 const initGraphData=()=>{
   let stateList:StateMachine[]=new Array();
   let graphJson=cache.local.getJSON(graphCacheKey);
-  if(graphJson){
-    // stateList=new Array();
-    // //从数据中得到状态机列表放进stateList里。
-    // let nodes:INode[]=graphJson.nodes;
-    // let edges:IEdge[]=graphJson.edges;
-    // //找到所有状态机
-    // let stateNodes:INode[]=nodes.filter((data)=>data.id.startsWith(prefState));
-    // stateNodes.forEach((stateNode)=>{
-    //   let state:StateMachine={};
-    //   state.key=stateNode.id;
-    //   state.text=stateNode.label;
-    //   state.algorithm=new Array();
-    //   state.output_event=new Array();
-    //   state.algAndEvent=new Array();
-    //   //遍历连线，找到source为本state的ID，并且target为算法的，输出的ID和算法相同，只是前缀不同
-    //   edges.forEach((edgeNode)=>{
-    //     //如果找到了
-    //     if(edgeNode.source==stateNode.id&&typeof edgeNode.target=='string' &&edgeNode.target.startsWith(prefAlg)){
-    //       let algId=edgeNode.target;
-    //       let eventId=prefEvent+algId.substring(prefAlg.length,algId.length)
-    //       //从node找出该targeid对应的item,就是这个状态机连上的算法，在通过该ID做相应处理后找出对应的输出事件
-    //       let algNode:INode=nodes.find((data)=>data.id==algId);
-    //       let eventNode:INode=nodes.find((data)=>data.id==eventId);
-    //       //为减少业务连线错误，只有当两个都有时才放进数组，否则不做处理
-    //       if(algNode&&eventNode){
-    //         let alg:AlgSimple={key:algNode.id,text:algNode.label};
-    //         state.algorithm.push(alg);
-    //         state.output_event.push({key:eventNode.id,text:eventNode.label});
-    //         let algAndEvent={
-    //           alg:alg,
-    //           event:{key:eventNode.id,text:eventNode.label}
-    //         };
-    //         state.algAndEvent.push(algAndEvent)
-    //       }
-    //     }
-    //   })
-    //   stateList.push(state);
-    // })
-    // saveOrUpdateStateList(project,module,stateList);
-  }else{
+  if(!graphJson){
     //如果不存在数据，就用初始数据
     graphJson=  {
       nodes: [
