@@ -189,6 +189,7 @@ import {removeAlgAndEvent,saveOrUpdateState,getOneState} from "@/api/ecc/state";
 import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
 import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
+import {processParallelEdgesOnAnchorPoint} from "@/antvgraph/statemachine/stateMachineNode";
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
 let currentState:StateVO=ref(null);
@@ -291,6 +292,7 @@ const { edgePriority } = toRefs<any>(proxy?.useDict("edgePriority"));
 const inputEventList = ref<Eve[]>([]);
 const outputEventList = ref<Eve[]>([]);
 const algList = ref<AlgSimple[]>([]);
+let sourceAnchorIdx, targetAnchorIdx;
 const contextMenu = new G6.Menu({
   getContent(evt) {
     let str="";
@@ -338,12 +340,41 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     modes: {
       default: [
         'click-select',
-        'drag-combo',
+        // 'drag-combo',
         // 'drag-node',
+        'drag-node',
+        // config the shouldBegin and shouldEnd to make sure the create-edge is began and ended at anchor-point circles
         {
           type: 'create-edge',
+          shouldBegin: e => {
+            // avoid beginning at other shapes on the node
+            if (e.target && e.target.get('name') !== 'anchor-point') return false;
+            sourceAnchorIdx = e.target.get('anchorPointIdx');
+            e.target.set('links', e.target.get('links') + 1); // cache the number of edge connected to this anchor-point circle
+            return true;
+          },
+          shouldEnd: e => {
+            // avoid ending at other shapes on the node
+            if (e.target && e.target.get('name') !== 'anchor-point') return false;
+            if (e.target) {
+              targetAnchorIdx = e.target.get('anchorPointIdx');
+              e.target.set('links', e.target.get('links') + 1);  // cache the number of edge connected to this anchor-point circle
+              return true;
+            }
+            targetAnchorIdx = undefined;
+            return true;
+          },
+          // update the sourceAnchor
+          // getEdgeConfig: () => {
+          //   return {
+          //     sourceAnchor: sourceAnchorIdx
+          //   }
+          // }
+        },
+        {
+          type: 'drag-combo',
           trigger: 'drag', // 'click' by default. options: 'drag', 'click'
-          key: 'shift',
+          // key: 'shift',
         },
       ],
     },
@@ -355,7 +386,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
       }
     },
     defaultEdge: {
-      type: 'arc',
+      type: 'quadratic',
       style: {
         stroke: '#F6BD16',
         lineWidth: 2,
@@ -366,6 +397,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
 
   graph.data(data);
   graph.render();
+  //combo的事件
   graph.on('combo:mouseenter', (evt) => {
     const { item } = evt;
     graph.setItemState(item, 'active', true);
@@ -380,15 +412,25 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     graph.setItemState(item, 'selected', true);
     showProp.value=2;
   });
+
+  //边的事件
   graph.on('edge:click', (evt) => {
     const { item } = evt;
     graph.setItemState(item, 'selected', true);
     showProp.value=3;
     getEdgesById({id:item.get("id"),from:item.getSource().get("id"),to:item.getTarget().get("id")});
   });
+
   graph.on('aftercreateedge', (e) => {
+    // update the sourceAnchor and targetAnchor for the newly added edge
+    graph.updateItem(e.edge, {
+      sourceAnchor: sourceAnchorIdx,
+      targetAnchor: targetAnchorIdx
+    })
+
+    // update the curveOffset for parallel edges
     const edges = graph.save().edges;
-    G6.Util.processParallelEdges(edges);
+    processParallelEdgesOnAnchorPoint(edges);
     graph.getEdges().forEach((edge, i) => {
       graph.updateItem(edge, {
         curveOffset: edges[i].curveOffset,
@@ -396,6 +438,42 @@ const initGraph=(data,graphWidth,graphHeight)=>{
       });
     });
   });
+//鼠标事件
+  // some listeners to control the state of nodes to show and hide anchor-point circles
+  graph.on('node:mouseenter', e => {
+    graph.setItemState(e.item, 'showAnchors', true);
+  })
+  graph.on('node:mouseleave', e => {
+    graph.setItemState(e.item, 'showAnchors', false);
+  })
+
+// if create-edge is canceled before ending, update the 'links' on the anchor-point circles
+  graph.on('afterremoveitem', e => {
+    if (e.item && e.item.source && e.item.target) {
+      const sourceNode = graph.findById(e.item.source);
+      const targetNode = graph.findById(e.item.target);
+      const { sourceAnchor, targetAnchor } = e.item;
+      if (sourceNode && !isNaN(sourceAnchor)) {
+        const sourceAnchorShape = sourceNode.getContainer().find(ele => (ele.get('name') === 'anchor-point' && ele.get('anchorPointIdx') === sourceAnchor));
+        sourceAnchorShape.set('links', sourceAnchorShape.get('links') - 1);
+      }
+      if (targetNode && !isNaN(targetAnchor)) {
+        const targetAnchorShape = targetNode.getContainer().find(ele => (ele.get('name') === 'anchor-point' && ele.get('anchorPointIdx') === targetAnchor));
+        targetAnchorShape.set('links', targetAnchorShape.get('links') - 1);
+      }
+    }
+  })
+
+// after clicking on the first node, the edge is created, update the sourceAnchor
+  graph.on('afteradditem', e => {
+    if (e.item && e.item.getType() === 'edge') {
+      graph.updateItem(e.item, {
+        sourceAnchor: sourceAnchorIdx
+      });
+    }
+  })
+
+  //节点的事件
   graph.on('node:click', (evt) => {
     const { item } = evt;
     let id=item.get("id");
@@ -511,6 +589,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
     source: stateId,
     target: algNodeId,
     comboId:comboId,
+    type:'polyline',
     style: {
       endArrow: false,
     }
@@ -536,22 +615,22 @@ const addAlgAndEventNode=(item,canvasY)=>{
   algAndEvents.push({
     id:uuid,
     alg: {
-      key:algNode.id,text:algNode.label,graphId:algNodeId
+      key:defaultAlg.key,text:defaultAlg.text,graphId:algNodeId
     },
     event: {
-      key:eveNode.id,text:eveNode.label,graphId:eveNodeId
+      key:defaultEvent.key,text:defaultEvent.text,graphId:eveNodeId
     }
   });
   let algorithm=state.algorithm;
   if(!algorithm){
     algorithm=new Array();
   }
-  algorithm.push({ key: algNode.id,text: algNode.label });
+  algorithm.push({ key: defaultAlg.key,text: defaultEvent.text});
   let output_event=state.output_event;
   if(!output_event){
     output_event=new Array();
   }
-  output_event.push({ key: eveNode.id,text: eveNode.label });
+  output_event.push({ key:defaultEvent.key,text: defaultEvent.text });
   saveOrUpdateState(project,module,state);
 }
 onMounted(() => {
@@ -604,7 +683,8 @@ const addCombo=(stateNodeX,stateNodeY)=>{
     x: stateNodeX,
     y: stateNodeY,
     size:algEveSize,
-    comboId:comboId
+    comboId:comboId,
+    type:'rect-node'
   };
   //算法的x向右移初始距离+状态机的width+线的width
   const algNodeX=stateNodeX+stateGraphSize[0]+lineWidth
@@ -630,15 +710,16 @@ const addCombo=(stateNodeX,stateNodeY)=>{
     source: stateNodeId,
     target: algNodeId,
     comboId:comboId,
+    type:'polyline',
     style: {
-      endArrow: false,
+      endArrow: false
     }
   };
   const comboConfig={
     id:comboId,
     type:'rect',
     allowZoom: true, // 允许 Combo 跟随缩放
-    allowDrag: true, // 允许 Combo 跟随平移
+    allowDrag: false, // 允许 Combo 跟随平移
   }
   graph.addItem('combo',comboConfig)
   graph.addItem('node', stateNode);

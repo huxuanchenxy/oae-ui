@@ -51,6 +51,7 @@ declare module '@vue/runtime-core' {
     PwdChange: typeof import('./../components/dialog/PwdChange.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Statemachine: typeof import('./../components/antv/statemachine/index.vue')['default']
     Tags: typeof import('./../components/Tags.vue')['default']
     TagsModule: typeof import('./../components/TagsModule.vue')['default']
     Tempvari: typeof import('./../components/event_vari/tempvari/index.vue')['default']
