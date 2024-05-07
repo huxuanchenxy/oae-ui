@@ -526,8 +526,8 @@ const getCacheFuncList = () => {
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
       };
-      console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
-      console.log("e.name,obj", newObj);
+      //console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
+      //console.log("e.name,obj", newObj);
       var isExistobj = curFuncList.value.find(
         (x) =>
           x.funcName == newObj.funcName &&
