@@ -1,13 +1,7 @@
 <template>
     <div class="inter">
-      <!-- <el-button type="primary" @click="addEventInput">增加一个输入事件</el-button>
-      <el-button type="primary" @click="addEventOutput">增加一个输出事件</el-button>
-      <el-button type="primary" @click="addParamInput">增加一个输入参数</el-button>
-      <el-button type="primary" @click="addParamOutput">增加一个输出参数</el-button>
-      <el-button type="primary" @click="init">重置</el-button> -->
       <div id="mountNode"></div>
     </div>
-    <div></div>
   </template>
   
   <script setup>
@@ -283,24 +277,26 @@
     //画连接点
     afterDraw(cfg, group) {
       const bbox = group.getBBox();
-      const anchorPoints = this.getAnchorPoints(cfg);
-      anchorPoints.forEach((anchorPos, i) => {
-        group.addShape("circle", {
-          attrs: {
-            r: 5,
-            x: bbox.x + bbox.width * anchorPos[0],
-            y: bbox.y + bbox.height * anchorPos[1],
-            fill: "#fff",
-            stroke: "#5F95FF",
-          },
-          // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
-          name: `anchor-point`, // the name, for searching by group.find(ele => ele.get('name') === 'anchor-point')
-          anchorPointIdx: i, // flag the idx of the anchor-point circle
-          links: 0, // cache the number of edges connected to this shape
-          visible: false, // invisible by default, shows up when links > 1 or the node is in showAnchors state
-          draggable: true, // allow to catch the drag events on this shape
+      if(anchor==1){
+        const anchorPoints = this.getAnchorPoints(cfg);
+        anchorPoints.forEach((anchorPos, i) => {
+          group.addShape("circle", {
+            attrs: {
+              r: 5,
+              x: bbox.x + bbox.width * anchorPos[0],
+              y: bbox.y + bbox.height * anchorPos[1],
+              fill: "#fff",
+              stroke: "#5F95FF",
+            },
+            // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
+            name: `anchor-point`, // the name, for searching by group.find(ele => ele.get('name') === 'anchor-point')
+            anchorPointIdx: i, // flag the idx of the anchor-point circle
+            links: 0, // cache the number of edges connected to this shape
+            visible: false, // invisible by default, shows up when links > 1 or the node is in showAnchors state
+            draggable: true, // allow to catch the drag events on this shape
+          });
         });
-      });
+      }
     },
     // 显示隐藏连接点
     setState(name, value, item) {
@@ -375,102 +371,67 @@
         targetAnchor: targetAnchorIdx,
       });
     });
-  
-    // after drag from the first node, the edge is created, update the sourceAnchor
-    graph.on("afteradditem", (e) => {
-      if (e.item && e.item.getType() === "edge") {
-        graph.updateItem(e.item, {
-          sourceAnchor: sourceAnchorIdx,
-        });
-      }
-    });
-  
-    // if create-edge is canceled before ending, update the 'links' on the anchor-point circles
-    graph.on("afterremoveitem", (e) => {
-      if (e.item && e.item.source && e.item.target) {
-        const sourceNode = graph.findById(e.item.source);
-        const targetNode = graph.findById(e.item.target);
-        const { sourceAnchor, targetAnchor } = e.item;
-        if (sourceNode && !isNaN(sourceAnchor)) {
-          const sourceAnchorShape = sourceNode
-            .getContainer()
-            .find(
-              (ele) =>
-                ele.get("name") === "anchor-point" &&
-                ele.get("anchorPointIdx") === sourceAnchor
-            );
-          sourceAnchorShape.set("links", sourceAnchorShape.get("links") - 1);
+    if (anchor==1){
+      // after drag from the first node, the edge is created, update the sourceAnchor
+      graph.on("afteradditem", (e) => {
+        if (e.item && e.item.getType() === "edge") {
+          graph.updateItem(e.item, {
+            sourceAnchor: sourceAnchorIdx,
+          });
         }
-        if (targetNode && !isNaN(targetAnchor)) {
-          const targetAnchorShape = targetNode
-            .getContainer()
-            .find(
-              (ele) =>
-                ele.get("name") === "anchor-point" &&
-                ele.get("anchorPointIdx") === targetAnchor
-            );
-          targetAnchorShape.set("links", targetAnchorShape.get("links") - 1);
+      });
+
+      // if create-edge is canceled before ending, update the 'links' on the anchor-point circles
+      graph.on("afterremoveitem", (e) => {
+        if (e.item && e.item.source && e.item.target) {
+          const sourceNode = graph.findById(e.item.source);
+          const targetNode = graph.findById(e.item.target);
+          const { sourceAnchor, targetAnchor } = e.item;
+          if (sourceNode && !isNaN(sourceAnchor)) {
+            const sourceAnchorShape = sourceNode
+                .getContainer()
+                .find(
+                    (ele) =>
+                        ele.get("name") === "anchor-point" &&
+                        ele.get("anchorPointIdx") === sourceAnchor
+                );
+            sourceAnchorShape.set("links", sourceAnchorShape.get("links") - 1);
+          }
+          if (targetNode && !isNaN(targetAnchor)) {
+            const targetAnchorShape = targetNode
+                .getContainer()
+                .find(
+                    (ele) =>
+                        ele.get("name") === "anchor-point" &&
+                        ele.get("anchorPointIdx") === targetAnchor
+                );
+            targetAnchorShape.set("links", targetAnchorShape.get("links") - 1);
+          }
         }
-      }
-    });
-  
-    // some listeners to control the state of nodes to show and hide anchor-point circles
-    graph.on("node:mouseenter", (e) => {
-      graph.setItemState(e.item, "showAnchors", true);
-    });
-    graph.on("node:mouseleave", (e) => {
-      graph.setItemState(e.item, "showAnchors", false);
-    });
-    graph.on("node:dragenter", (e) => {
-      graph.setItemState(e.item, "showAnchors", true);
-    });
-    graph.on("node:dragleave", (e) => {
-      graph.setItemState(e.item, "showAnchors", false);
-    });
-    graph.on("node:dragstart", (e) => {
-      graph.setItemState(e.item, "showAnchors", true);
-    });
-    graph.on("node:dragout", (e) => {
-      graph.setItemState(e.item, "showAnchors", false);
-    });
-  }
-  function addEventInput(data) {
-    let eventInput = data.nodes[0].eventInput;
-    eventInput.push("eveIn");
-    graph.data(data);
-    graph.render();
-  }
-  function addEventOutput(data) {
-    let eventOutput = data.nodes[0].eventOutput;
-    if (!eventOutput) {
-      eventOutput = new Array();
+      });
+
+      // some listeners to control the state of nodes to show and hide anchor-point circles
+      graph.on("node:mouseenter", (e) => {
+        graph.setItemState(e.item, "showAnchors", true);
+      });
+      graph.on("node:mouseleave", (e) => {
+        graph.setItemState(e.item, "showAnchors", false);
+      });
+      graph.on("node:dragenter", (e) => {
+        graph.setItemState(e.item, "showAnchors", true);
+      });
+      graph.on("node:dragleave", (e) => {
+        graph.setItemState(e.item, "showAnchors", false);
+      });
+      graph.on("node:dragstart", (e) => {
+        graph.setItemState(e.item, "showAnchors", true);
+      });
+      graph.on("node:dragout", (e) => {
+        graph.setItemState(e.item, "showAnchors", false);
+      });
     }
-    eventOutput.push("eveOut");
-    data.nodes[0].eventOutput = eventOutput;
-    graph.data(data);
-    graph.render();
+
   }
-  function addParamInput(data) {
-    let paramInput = data.nodes[0].paramInput;
-    if (!paramInput) {
-      paramInput = new Array();
-    }
-    paramInput.push("eveOut");
-    data.nodes[0].paramInput = paramInput;
-    graph.data(data);
-    graph.render();
-  }
-  function addParamOutput(data) {
-    let paramOutput = data.nodes[0].paramOutput;
-    if (!paramOutput) {
-      paramOutput = new Array();
-    }
-    paramOutput.push("eveOut");
-    data.nodes[0].paramOutput = paramOutput;
-    graph.data(data);
-    graph.render();
-  }
-  
   function reRender(data){
     graph.data(data);
     graph.render();
@@ -493,6 +454,8 @@
   defineExpose({
     reRender
   });
+
+  const {anchor} = defineProps(['anchor']);
   </script>
   
   <style lang="scss" scoped>
