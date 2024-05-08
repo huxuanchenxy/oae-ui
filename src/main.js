@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
 import 'uno.css';
 import '@/assets/css/style.css'
-import '@/assets/iconfont/iconfont.css';
-import '@/assets/iconfont/iconfont.js';
+// import '@/assets/iconfont/iconfont.css';
+// import '@/assets/iconfont/iconfont.js';
 import 'animate.css'
 import App from './App.vue'
 import router from './router'

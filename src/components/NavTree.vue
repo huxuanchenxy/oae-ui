@@ -573,9 +573,14 @@ const delModule = (data) => {
         id: data.id,
       };
       sysApi.delModule(params).then((res) => {
-        ElMessage({
-          type: "success",
-          message: "删除成功",
+        sysApi.getFuncList().then((res) => {
+          let list = res;
+          sessionStorage.setItem("curFuncLists", JSON.stringify(list));
+          loadData(list);
+          ElMessage({
+            type: "success",
+            message: "删除成功",
+          });
         });
       });
     })
