@@ -1,6 +1,6 @@
 <template>
   <div>
-    <eventVariAntv ref="eventVariAntvChild"/>
+    <eventVariAntv ref="eventVariAntvChild" :anchor="0"/>
   </div>
 </template>
 
