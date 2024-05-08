@@ -124,30 +124,11 @@
 </template>
 
 <script setup>
-import Tags from "@/components/Tags.vue";
-//import NavMenu from "@/components/NavMenu.vue"; //导航
-import NavTree from "@/components/NavTree.vue";
-//import Breadcrumb from "@/components/Breadcrumb.vue"; //引入组件
-//import pwdChangeDialog from "../../components/dialog/PwdChange.vue";
-//import { useRouter } from "vue-router"; //导入路由
-//import { Fold, Expand } from "@element-plus/icons-vue";
-//import { ref, reactive, onMounted, computed } from "vue";
-//import { baseUrl } from "@/api/baseUrl";
-//import sysApi from "@/api/sysApi";
-import cache from "@/plugins/cache.ts";
-
+import Tags from "@/components/Tags.vue"; 
+import NavTree from "@/components/NavTree.vue"; 
+import cache from "@/plugins/cache.ts"; 
 import sysApi from "@/api/sysApi";
-//const router = useRouter(); //实例化路由
-//const pwdChangeDialogVisible = ref(false);
-
-// const pCenterVisible = ref(false);
-
-// const formLabelAlign = reactive({
-//   name: "",
-//   region: "",
-//   type: "",
-// });
-
+ 
 onMounted(() => {});
 
 const save = () => {

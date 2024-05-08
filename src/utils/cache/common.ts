@@ -36,7 +36,11 @@ export const changeData = (project, module, moduleJson) => {
     jsonAll.push(moduleJson);//再把模块新JSON加进去
     cache.local.setJSON(cacheKey, jsonAll);
 }
-
+export const removeCurrentModuleByCache = (project, module) => {
+    let jsonAll = getJsonAll(project, module);//拿出全部
+    jsonAll = removeCurrentModule(jsonAll, project, module);//移除当前模块
+    cache.local.setJSON(cacheKey, jsonAll);
+}
 //从后台获取module数据
 export const getModuleData = (id, project) => {
     let jsonAll = cache.local.getJSON(cacheKey);

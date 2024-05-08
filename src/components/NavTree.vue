@@ -29,16 +29,18 @@
           @node-contextmenu="showContextMenu"
         >
           <template #default="{ node, data }">
-            <i v-show="data.funcLevelId == 5" class="algorithm-icon">{{ data.type }}</i>
+            <i v-show="data.funcLevelId == 5" class="algorithm-icon">{{
+              data.type
+            }}</i>
             <el-input
               ref="isAutoFocus"
               v-model="data.funcName"
               autofocus
               v-if="data.isEdit"
-              style="height: 26px;margin-left: 4px;"
+              style="height: 26px; margin-left: 4px"
               @keyup.enter="saveName(data)"
             ></el-input>
-            <span style="margin-left: 4px;" v-else>{{ data.funcName }}</span>
+            <span style="margin-left: 4px" v-else>{{ data.funcName }}</span>
           </template>
         </el-tree>
       </div>
@@ -56,7 +58,18 @@
       style="text-align: center; padding: 10px"
       v-show="currentData.funcLevelId === 2 || currentData.funcName === '算法'"
     >
-      <el-link type="primary" @click="dialogVisible = true">新建</el-link>
+      <el-link
+        type="primary"
+        v-show="currentData.funcName === '算法'"
+        @click="dialogVisible = true"
+        >新建</el-link
+      >
+      <el-link
+        type="primary"
+        v-show="currentData.funcLevelId === 2"
+        @click="dialogModuleVisible = true"
+        >新建</el-link
+      >
     </div>
     <div
       v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5"
@@ -67,7 +80,16 @@
         >
       </div>
       <div style="text-align: center; padding: 10px">
-        <el-link type="primary" @click="delAlgorithm(currentData)"
+        <el-link
+          type="primary"
+          v-show="currentData.funcLevelId === 5"
+          @click="delAlgorithm(currentData)"
+          >删除</el-link
+        >
+        <el-link
+          type="primary"
+          v-show="currentData.funcLevelId === 3"
+          @click="delModule(currentData)"
           >删除</el-link
         >
       </div>
@@ -109,6 +131,32 @@
       </div>
     </template>
   </el-dialog>
+
+  <el-dialog
+    v-model="dialogModuleVisible"
+    :close-on-click-modal="false"
+    title="新建模块"
+    width="500"
+  >
+    <el-form
+      :model="newModule"
+      :rules="rulesModule"
+      status-icon
+      ref="ruleModuleFormRef"
+    >
+      <el-form-item label="模块名称" prop="name">
+        <el-input v-model="newModule.name" placeholder="请输入" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogModuleVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveModule(ruleModuleFormRef)"
+          >确定</el-button
+        >
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -118,7 +166,11 @@ import { pagetagsStore } from "@/store/pageTags.js";
 import { algorithmDS } from "@/jslib/dataStructure.js";
 import { codeLanguage } from "@/jslib/common.js";
 import { ElNotification } from "element-plus";
-import { getCurrentObj, changeData } from "@/utils/cache/common";
+import {
+  getCurrentObj,
+  changeData,
+  removeCurrentModuleByCache,
+} from "@/utils/cache/common";
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 import { commonStore } from "@/store/commonStore.js";
@@ -129,6 +181,7 @@ const tagsStore = pagetagsStore();
 //let topY = ref(10);
 let popStatus = ref(false);
 let dialogVisible = ref(false);
+let dialogModuleVisible = ref(false);
 let isEdit = ref(false);
 let currentData = reactive({ funcLevelId: 0 });
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
@@ -137,8 +190,12 @@ const route = useRoute();
 let currentModule = ref(route.params.id);
 const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
+const ruleModuleFormRef = ref();
 const isAutoFocus = ref(null);
-
+const newModule = ref({
+  id: 0,
+  name: "",
+});
 const validateName = (rule, value, callback) => {
   if (!reg.test(value)) {
     callback(new Error("使用字母数字和下划线,首个字符必须是字母"));
@@ -163,6 +220,29 @@ const rules = reactive({
       message: "语言类型必选",
       trigger: "change",
     },
+  ],
+});
+const validateModuleName = (rule, value, callback) => {
+  if (value !== "") {
+    let params = {
+      name: value,
+      pid: currentData.id,
+    };
+    sysApi.validateModule(params).then(async (res) => {
+      if (res.data) {
+        await callback();
+      } else {
+        await callback(new Error("模块名称已存在"));
+      }
+    });
+  } else {
+    callback(new Error("请输入模块名称"));
+  }
+};
+const rulesModule = reactive({
+  name: [
+    { required: true, message: "请输入模块名称", trigger: "blur" },
+    { validator: validateModuleName, trigger: "blur" },
   ],
 });
 
@@ -223,41 +303,6 @@ const processMenuData = (list) => {
 };
 let curNode = ref();
 let curData = ref();
-const handleNodeClickOld = (data) => {
-  queryData(listOneFuncList.value);
-  if (data.funcUrl) {
-    data.isPenultimate = true;
-    const curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
-    let path = data.funcUrl;
-    let pathArrays = path.split("/");
-    let id = "";
-    let name = "";
-    if (pathArrays.length == 2) {
-      let objFunc = curFuncList.find((l) => l.funcUrl == path);
-      id = objFunc.id;
-      name = objFunc.funcName;
-    }
-    if (pathArrays.length >= 4) {
-      id = pathArrays[3];
-      let cObj = curFuncList.find((l) => l.id == id);
-      path = cObj.funcUrl;
-      name = cObj.funcName;
-    }
-    let model = {
-      id,
-      path,
-      name,
-      effect: "dark",
-    };
-
-    tagsStore.AddTag(model);
-    router.push({ path: data.funcUrl });
-
-    router.push(data.funcUrl);
-  }
-  // 仅右键打开时用到
-  popStatus.value = false;
-};
 
 const handleNodeClick = async (data) => {
   queryData(listOneFuncList.value);
@@ -407,6 +452,35 @@ const saveName = (data) => {
   // console.log(data)
 };
 
+const saveModule = async (formEl) => {
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      let addModule = {
+        id: 0,
+        funcName: newModule.value.name,
+        funcParentId: currentData.id,
+        funcLevelId: currentData.funcLevelId + 1,
+        funcUrl: "/module",
+        isEdit: false,
+      };
+      sysApi.addModule(addModule).then((res) => {
+        ElMessage({
+          message: "保存成功",
+          type: "success",
+        });
+        newModule.value.name = "";
+        sysApi.getFuncList().then((res) => {
+          let list = res;
+          sessionStorage.setItem("curFuncLists", JSON.stringify(list));
+          loadData(list);
+          dialogModuleVisible.value = false;
+        });
+      });
+    }
+  });
+};
+
 onMounted(() => {
   // sysApi.getFuncList().then((res) => {
   //  console.log("sysApi--2", res);
@@ -435,7 +509,7 @@ const addTree = (newAlgorithm) => {
     funcParentId: 0,
     funcLevelId: 0,
     isEdit: false,
-    type: newAlgorithm.type
+    type: newAlgorithm.type,
   };
   if (curLevel == 4 && curFuncName == "算法") {
     newObj.funcName = newAlgorithm.text;
@@ -483,6 +557,30 @@ const delTree = () => {
   // console.log(path)
   // router.push(path);
 };
+const delModule = (data) => {
+  ElMessageBox.confirm(`确定要删除${data.funcName}?`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      //处理逻辑
+      delTree();
+      popStatus.value = false;
+      console.log("curData.id", data.id);
+      removeCurrentModuleByCache(project, data.id);
+      let params = {
+        id: data.id,
+      };
+      sysApi.delModule(params).then((res) => {
+        ElMessage({
+          type: "success",
+          message: "删除成功",
+        });
+      });
+    })
+    .catch(() => {});
+};
 
 const RenameTree = (newName) => {
   curData.value.funcName = newName;
@@ -505,7 +603,7 @@ const getCacheFuncList = () => {
     cacheJson.forEach((c) => {
       let moduleId = c.id;
       let name = "";
-      let type = '';
+      let type = "";
       if (c.algorithms && c.algorithms.length > 0) {
         c.algorithms.forEach((el) => {
           name = el.text;
@@ -529,7 +627,7 @@ const getCacheFuncList = () => {
         funcParentId: pObj?.id,
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
-        type: e.type
+        type: e.type,
       };
       //console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
       //console.log("e.name,obj", newObj);
@@ -690,6 +788,8 @@ const showOrHidden = () => {
 
 #navTree {
   width: 165px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 #navTree > .el-tree {
   /* padding-right: 15px; */
@@ -745,7 +845,7 @@ const showOrHidden = () => {
 }
 
 .algorithm-icon {
-  background-color:#169BD5;
+  background-color: #169bd5;
   padding-right: 2px;
   /* font-size: large; */
   color: #fff;
