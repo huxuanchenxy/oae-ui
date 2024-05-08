@@ -29,15 +29,16 @@
           @node-contextmenu="showContextMenu"
         >
           <template #default="{ node, data }">
+            <i v-show="data.funcLevelId == 5" class="algorithm-icon">{{ data.type }}</i>
             <el-input
               ref="isAutoFocus"
               v-model="data.funcName"
               autofocus
               v-if="data.isEdit"
-              style="height: 26px"
+              style="height: 26px;margin-left: 4px;"
               @keyup.enter="saveName(data)"
             ></el-input>
-            <span v-else>{{ data.funcName }}</span>
+            <span style="margin-left: 4px;" v-else>{{ data.funcName }}</span>
           </template>
         </el-tree>
       </div>
@@ -340,7 +341,7 @@ const onSubmit = async (formEl) => {
       let moduleJson = getCurrentObj(project, currentModule.value);
       moduleJson.algorithms.push(newAlgorithm);
       changeData(project, currentModule.value, moduleJson);
-      addTree(newAlgorithm.text);
+      addTree(newAlgorithm);
       // console.log(newAlgorithm);
     } else {
       // console.log('error submit!', fields)
@@ -423,7 +424,7 @@ onMounted(() => {
   // processMenuData(listOneFuncList.value);
 });
 
-const addTree = (treeName) => {
+const addTree = (newAlgorithm) => {
   let curLevel = curData.value.funcLevelId;
   let curFuncName = curData.value.funcName;
 
@@ -434,14 +435,15 @@ const addTree = (treeName) => {
     funcParentId: 0,
     funcLevelId: 0,
     isEdit: false,
+    type: newAlgorithm.type
   };
   if (curLevel == 4 && curFuncName == "算法") {
-    newObj.funcName = treeName;
+    newObj.funcName = newAlgorithm.text;
     newObj.funcLevelId = curLevel + 1;
     var ppObj = curFuncList.value.find(
       (x) => x.id == curData.value.funcParentId
     );
-    newObj.funcUrl = `${ppObj.funcUrl}/algorithm/${treeName}`;
+    newObj.funcUrl = `${ppObj.funcUrl}/algorithm/${newAlgorithm.text}`;
     let newId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
     newObj.id = newId;
     newObj.funcParentId = curData.value.id;
@@ -503,10 +505,12 @@ const getCacheFuncList = () => {
     cacheJson.forEach((c) => {
       let moduleId = c.id;
       let name = "";
+      let type = '';
       if (c.algorithms && c.algorithms.length > 0) {
         c.algorithms.forEach((el) => {
           name = el.text;
-          newTempFuncList.push({ moduleId, name });
+          type = el.type.toLowerCase();
+          newTempFuncList.push({ moduleId, name, type });
         });
       }
     });
@@ -525,6 +529,7 @@ const getCacheFuncList = () => {
         funcParentId: pObj?.id,
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
+        type: e.type
       };
       //console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
       //console.log("e.name,obj", newObj);
@@ -737,5 +742,14 @@ const showOrHidden = () => {
   width: 5px;
   height: 35px;
   background: url(@/assets/img/arrowRight.gif) no-repeat;
+}
+
+.algorithm-icon {
+  background-color:#169BD5;
+  padding-right: 2px;
+  /* font-size: large; */
+  color: #fff;
+  height: 80%;
+  border-radius: 5px;
 }
 </style>
