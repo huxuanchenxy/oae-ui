@@ -343,6 +343,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
         // 'drag-combo',
         // 'drag-node',
         // 'drag-node',
+        'drag-edge',
         // config the shouldBegin and shouldEnd to make sure the create-edge is began and ended at anchor-point circles
         {
           type: 'create-edge',
@@ -655,7 +656,7 @@ const initGraphData=()=>{
     //如果不存在数据，就用初始数据
     graphJson=  {
       nodes: [
-        { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize},
+        { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize,type:'rect-node'},
       ]
     };
   }
