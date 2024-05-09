@@ -1,7 +1,15 @@
 <template>
   <div class="wrapper" style="">
     <!-- 将编辑器容器绑定到 ref -->
-    <div style="position: relative; height: 100%; flex-grow: 2;width:1000px">
+    <div
+      style="
+        position: relative;
+        height: 100%;
+        flex-grow: 2;
+        width: 1000px;
+        overflow: hidden;
+      "
+    >
       <div id="editor" ref="editor" class="cusEditor"></div>
       <div class="val-color">
         <el-card
@@ -362,7 +370,7 @@ const initEditor = () => {
       accessibilitySupport: "on",
       suggestions: true,
       snippetSuggestions: "top",
-      automaticLayout: true //自适应
+      automaticLayout: true, //自适应
     });
     setCursorPos();
     // console.log(monacoEditor.getValue())
