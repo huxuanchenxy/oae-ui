@@ -4,10 +4,10 @@
             输入
             <div class="table_out">
                 <div>
-                    <div class="icon"><el-button type="primary" plain icon="Plus" @click="handleAdd"></el-button></div>
-                    <div class="icon"><el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()"></el-button></div>
-                    <div class="icon"><el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()"></el-button></div>
-                    <div class="icon"><el-button type="success" plain icon="Setting"></el-button></div>
+                    <div class="icon"><el-button  size="small" type="primary" plain icon="Plus" @click="handleAdd"></el-button></div>
+                    <div class="icon"><el-button  size="small" type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()"></el-button></div>
+                    <div class="icon"><el-button  size="small" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()"></el-button></div>
+                    <div class="icon"><el-button  size="small" type="success" plain icon="Setting"></el-button></div>
                 </div>
                 <div class="table_in">
                     <el-table :data="tempVariList" style="width: 100%" height="150"  @selection-change="handleSelectionChange">
