@@ -142,11 +142,12 @@
     import { v4 as uuidv4 } from 'uuid';
     import useVariInputStore from "@/store/modules/variInput.ts";
     import useVariOutputStore from "@/store/modules/variOutput.ts";
+    import {watch} from "vue";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const relateEveList = ref<Eve[]>([]);
     const route = useRoute()
-    const module=route.params.id;
+    let module=route.params.id;
     const project="project1";
     //----输入变量开始
     const variInputStore=useVariInputStore();
@@ -487,9 +488,16 @@
     }
     //----输出函数结束
     onMounted(() => {
-        getVariInputList();
-        getVariOutputList();
+        initData();
     })
+    const initData=(()=>{
+      module=route.params.id;
+      getVariInputList();
+      getVariOutputList();
+    })
+    watch(() => route.params.id, (newVal, oldVal) => {
+      initData();
+    });
 </script>
 
 <style lang="scss" scoped>

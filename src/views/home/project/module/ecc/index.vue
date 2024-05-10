@@ -190,6 +190,7 @@ import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
 import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
 import {processParallelEdgesOnAnchorPoint} from "@/antvgraph/statemachine/stateMachineNode";
+import {watch} from "vue";
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
 let currentState:StateVO=ref(null);
@@ -258,8 +259,8 @@ const project="project1";
 const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
-const module=route.params.id;
-const graphCacheKey=cacheKey+"-"+project+"-"+module;
+let module=route.params.id;
+let graphCacheKey=cacheKey+"-"+project+"-"+module;
 const prefState="state";
 const prefAlg="alg";
 const prefEvent="event";
@@ -633,24 +634,12 @@ const addAlgAndEventNode=(item,canvasY)=>{
   output_event.push({ key:defaultEvent.key,text: defaultEvent.text });
   saveOrUpdateState(project,module,state);
 }
-onMounted(() => {
-  //得到事件列表
-  inputEventList.value=getInputEvents(project,module);
-  outputEventList.value=getOutputEvents(project,module);
-  algList.value=getAlgList(project,module);
-  initLoad();
-  //用ref获取DOM元素必须在onMounted中赋值,否则取不到
-  graphWidth=container.value.offsetWidth;
-  graphHeight=container.value.offsetHeight;
-  data=initGraphData();
-  initGraph(data,graphWidth,graphHeight);
-});
+
 const getCurrentCanvas=()=>{
   currentCanvas.value= getCanvas(project,module);
 }
 //初始化图形数据
 const initGraphData=()=>{
-  let stateList:StateMachine[]=new Array();
   let graphJson=cache.local.getJSON(graphCacheKey);
   if(!graphJson){
     //如果不存在数据，就用初始数据
@@ -756,7 +745,6 @@ const initLoad = () => {
 };
 const saveCanvasForm=()=>{
   let data=canvasForm.value;
-  //保存大JSON里 todo
   //保存连线
   saveOrUpdateCanvas(project,module,data);
   currentCanvas.value=data;
@@ -949,12 +937,26 @@ const cancelStateDialog = () => {
 const cancelAlgAndEventDialog = () => {
   dialogAlgAndEvent.visible = false;
 }
-watch(
-    () => router.currentRoute.value,
-    (newValue) => {
-      initLoad();
-    }
-);
+onMounted(() => {
+  initData();
+});
+const initData=(()=>{
+  module=route.params.id;
+  //得到事件列表
+  inputEventList.value=getInputEvents(project,module);
+  outputEventList.value=getOutputEvents(project,module);
+  algList.value=getAlgList(project,module);
+  initLoad();
+  //用ref获取DOM元素必须在onMounted中赋值,否则取不到
+  graphWidth=container.value.offsetWidth;
+  graphHeight=container.value.offsetHeight;
+  data=initGraphData();
+  initGraph(data,graphWidth,graphHeight);
+})
+watch(() => route.params.id, (newVal, oldVal) => {
+  graphCacheKey=cacheKey+"-"+project+"-"+newVal;
+  initData();
+});
 </script>
 
 <style   scoped>

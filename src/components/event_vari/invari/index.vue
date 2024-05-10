@@ -64,11 +64,12 @@
     import {changeInVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useInVariStore from "@/store/modules/inVari.ts";
+    import {watch} from "vue";
     const inVariStore=useInVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
-    const module=route.params.id;
+    let module=route.params.id;
     const project="project1";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
@@ -182,8 +183,15 @@
       inVariStore.flag=true;
     }
     onMounted(() => {
-        getInVariList();
+      initData();
     })
+    const initData=(()=>{
+      module=route.params.id;
+      getInVariList();
+    })
+    watch(() => route.params.id, (newVal, oldVal) => {
+      initData();
+    });
 </script>
 
 <style lang="scss" scoped>

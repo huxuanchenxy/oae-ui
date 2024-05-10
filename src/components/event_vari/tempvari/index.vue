@@ -64,11 +64,12 @@
     import { v4 as uuidv4 } from 'uuid';
     import {getTempVaris} from "@/api/inter/tempvari";
     import useTempVariStore from "@/store/modules/tempVari.ts";
+    import {watch} from "vue";
     const tempVariStore=useTempVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
-    const module=route.params.id;
+    let module=route.params.id;
     const project="project1";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
@@ -182,8 +183,15 @@
       tempVariStore.flag=false;
     }
     onMounted(() => {
-        getTempVariList();
+        initData();
     })
+    const initData=(()=>{
+      module=route.params.id;
+      getTempVariList();
+    })
+    watch(() => route.params.id, (newVal, oldVal) => {
+      initData();
+    });
 </script>
 
 <style lang="scss" scoped>
