@@ -7,11 +7,17 @@
 
       <el-container>
         <el-header>
-          <div style="position: absolute">
-            <div style="margin-left: 8px">
-              <el-button type="primary" size="small" @click="save()"
-                >保存</el-button
+          <div style="position: absolute; top: 6px">
+            <div style="margin-left: 6px">
+              <el-button
+                type="primary"
+                plain="false"
+                size="small"
+                @click="save()"
               >
+                <span class="iconfont">&#xe6a2;</span
+                ><span style="font-size: 12px; margin: 0 0 0 4px">保存</span>
+              </el-button>
             </div>
           </div>
           <!-- <div class="logo"></div> -->
@@ -124,11 +130,11 @@
 </template>
 
 <script setup>
-import Tags from "@/components/Tags.vue"; 
-import NavTree from "@/components/NavTree.vue"; 
-import cache from "@/plugins/cache.ts"; 
+import Tags from "@/components/Tags.vue";
+import NavTree from "@/components/NavTree.vue";
+import cache from "@/plugins/cache.ts";
 import sysApi from "@/api/sysApi";
- 
+
 onMounted(() => {});
 
 const save = () => {

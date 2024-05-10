@@ -854,7 +854,8 @@ const showOrHidden = () => {
   padding-right: 2px;
   /* font-size: large; */
   color: #fff;
-  height: 80%;
+  /* height: 80%; */
   border-radius: 5px;
+  font-size: 12px;
 }
 </style>
