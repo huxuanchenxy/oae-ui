@@ -319,6 +319,7 @@ const initEditor = () => {
     })[0];
   }
   emit("getName", currentAlgorithm.value);
+  tabIndex.value = 2;
   // console.log(algorithm)
   if (!currentLanguage || currentLanguage !== algorithm.type.toLowerCase()) {
     currentLanguage = algorithm.type.toLowerCase();
@@ -370,7 +371,10 @@ const initEditor = () => {
       accessibilitySupport: "on",
       suggestions: true,
       snippetSuggestions: "top",
-      automaticLayout: true, //自适应
+      automaticLayout: true, //自适应      
+      minimap: { // 关闭代码缩略图
+        enabled: false // 是否启用预览图
+      }
     });
     setCursorPos();
     // console.log(monacoEditor.getValue())
@@ -380,7 +384,6 @@ const initEditor = () => {
         saveCache();
       }, 60000);
     }
-    tabIndex.value = 2;
   } else monacoEditor.setValue(algorithm.content);
 };
 
@@ -423,6 +426,8 @@ watch(
     saveCache();
     // console.log(route.params.algorithms)
     if (route.params.algorithms) {
+      // console.log(currentModule.value)
+      // console.log(route.params.id)
       initLoad();
       updateEditor();
       setCursorPos();
