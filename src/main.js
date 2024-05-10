@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
 import 'uno.css';
 import '@/assets/css/style.css'
-// import '@/assets/iconfont/iconfont.css';
-// import '@/assets/iconfont/iconfont.js';
+import '@/assets/iconfont/iconfont.css';
+import '@/assets/iconfont/iconfont.js';
 import 'animate.css'
 import App from './App.vue'
 import router from './router'
@@ -13,7 +13,7 @@ import 'element-plus/dist/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import store from './store';
-//import sotreVuex from './store/indexVuex.js'
+
 // 注册插件
 import plugins from './plugins/index'; // plugins
 // 预设动画
@@ -31,7 +31,6 @@ app.use(ElementPlus, {
 app.use(ElementIcons);
 app.use(router);
 app.use(store);
-//app.use(sotreVuex);
 app.use(plugins);
 app.mount('#app')
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
