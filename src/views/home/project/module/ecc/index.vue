@@ -333,6 +333,9 @@ const deleteNode=async (item)=> {
   }
 }
 const initGraph=(data,graphWidth,graphHeight)=>{
+  if(graph){
+    graph.destroy();
+  }
   graph = new G6.Graph({
     container: 'container',
     graphWidth,
