@@ -33,7 +33,7 @@ export default {
             params
         }).then(res => res.data)
     },
-    getModule1: async params => {
+    getModuleAsync: async params => {
         return await axios.get(`${baseUrl}/Module/GetModule`, {
             params
         })

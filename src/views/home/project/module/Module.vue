@@ -100,7 +100,7 @@ const goToTag = (tag) => {
   commonstore.changeCurTreeNode(cid.value, tagName, algorithmNames);
 };
 
-const initLoad = () => {
+const initLoad = async () => {
   pid.value = route.params.pid;
   cid.value = route.params.id;
   showType.value = route.params?.type?.toLowerCase() ?? "";
@@ -113,7 +113,7 @@ const initLoad = () => {
   if (cid.value) {
     let rlt = getCurrentObj(project, cid.value);
     if (!rlt) {
-      getModuleData(project, cid.value);
+      await getModuleData(project, cid.value);
       rlt = getCurrentObj(project, cid.value);
     }
     if (rlt) {
