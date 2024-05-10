@@ -426,30 +426,61 @@ const renameAlgorithm = (data) => {
   data.oldFuncName = data.funcName;
 };
 const saveName = (data) => {
-  // console.log(data)
+  //console.log("savaName---:", data);
   data.isEdit = false;
   isEdit.value = false;
   if (data.funcName === data.oldFuncName) return;
-  if (!reg.test(data.funcName)) {
-    ElNotification({
-      title: "算法" + data.oldFuncName + "重命名错误",
-      message: "使用字母数字和下划线,首个字符必须是字母",
-      position: "bottom-left",
-      type: "error",
-    });
-  } else {
-    let moduleJson = getCurrentObj(project, currentModule.value);
-    for (let item of moduleJson.algorithms) {
-      if (item.text === data.oldFuncName) {
-        item.text = data.funcName;
-        break;
+  if (data.funcLevelId == 5) {
+    if (!reg.test(data.funcName)) {
+      ElNotification({
+        title: "算法" + data.oldFuncName + "重命名错误",
+        message: "使用字母数字和下划线,首个字符必须是字母",
+        position: "bottom-left",
+        type: "error",
+      });
+    } else {
+      let moduleJson = getCurrentObj(project, currentModule.value);
+      for (let item of moduleJson.algorithms) {
+        if (item.text === data.oldFuncName) {
+          item.text = data.funcName;
+          break;
+        }
       }
+      // console.log(moduleJson);
+      changeData(project, currentModule.value, moduleJson);
+      RenameTree(data.funcName);
     }
-    // console.log(moduleJson);
-    changeData(project, currentModule.value, moduleJson);
-    RenameTree(data.funcName);
+  } else if (data.funcLevelId == 3) {
+    let params = {
+      name: data.funcName,
+      id: data.id,
+      pid: data.funcParentId,
+    };
+    sysApi.renameModule(params).then((res) => {
+      //console.log("renameModule:", res);
+      if (res) {
+        ElMessage({
+          message: "保存成功",
+          type: "success",
+        });
+        sysApi.getFuncList().then((res) => {
+          let list = res;
+          sessionStorage.setItem("curFuncLists", JSON.stringify(list));
+          loadData(list);
+        });
+      } else {
+        ElNotification({
+          title: "提示信息",
+          message: data.funcName + "名称已存在",
+          position: "bottom-left",
+          type: "error",
+        });
+        //data.isEdit = true;
+        //isEdit.value = true;
+        RenameTree(data.oldFuncName);
+      }
+    });
   }
-  // console.log(data)
 };
 
 const saveModule = async (formEl) => {
