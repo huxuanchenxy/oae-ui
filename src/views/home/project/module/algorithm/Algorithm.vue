@@ -486,7 +486,7 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .wrapper {
-  height: calc(100vh - 355px);
+  height: calc(100vh - 365px);
   margin-top: 10px;
   display: flex;
   flex-wrap: nowrap;
@@ -516,7 +516,7 @@ onUnmounted(() => {
   // margin-left: 0;
   // margin-top: -66px;
   right: 10px;
-  top: 63px;
+  top: 73px;
 }
 // .right {
 //   position: absolute;

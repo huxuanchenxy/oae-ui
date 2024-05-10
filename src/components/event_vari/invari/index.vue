@@ -64,11 +64,12 @@
     import {changeInVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useInVariStore from "@/store/modules/inVari.ts";
+    import {watch} from "vue";
     const inVariStore=useInVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
-    const module=route.params.id;
+    let module=route.params.id;
     const project="project1";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
@@ -95,7 +96,7 @@
             // pageSize: 10,
         },
       inVariRules: {
-            name: [{ required: true, message: "输入内部变量名称不能为空", trigger: "blur" }],
+        text: [{ required: true, message: "内部变量名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
@@ -182,8 +183,15 @@
       inVariStore.flag=true;
     }
     onMounted(() => {
-        getInVariList();
+      initData();
     })
+    const initData=(()=>{
+      module=route.params.id;
+      getInVariList();
+    })
+    watch(() => route.params.id, (newVal, oldVal) => {
+      initData();
+    });
 </script>
 
 <style lang="scss" scoped>

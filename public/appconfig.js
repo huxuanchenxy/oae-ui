@@ -1,5 +1,4 @@
 const staticConfig = {
-    baseUrl: 'http://localhost:5285'
-        //baseUrl: "http://47.116.67.163:8147"
-        //baseUrl = "http://192.144.227.237:8089"
+    //baseUrl: 'http://10.89.34.70:5800' 
+    baseUrl: 'http://localhost:5200'
 }

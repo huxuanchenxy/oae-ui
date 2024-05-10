@@ -125,7 +125,7 @@ const loadTagData = (curFuncList) => {
 
 <style  scoped>
 #elTag {
-  margin-top: 26px;
+  margin-top: 36px;
 }
 #elTag .el-tag {
   margin-left: 5px;

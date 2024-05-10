@@ -126,11 +126,12 @@
     import { v4 as uuidv4 } from 'uuid';
     import useEveInputStore from "@/store/modules/eveInput.ts";
     import useEveOutputStore from "@/store/modules/eveOutput.ts";
+    import {watch} from "vue";
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { eveType } = toRefs<any>(proxy?.useDict("eveType"));
     const relateEveList = ref<Eve[]>([]);
     const route = useRoute()
-    const module=route.params.id;
+    let module=route.params.id;
     const project="project1";
     //----输入变量开始
     const eveInputStore=useEveInputStore();
@@ -171,7 +172,7 @@
             // pageSize: 10,
         },
         eveInputRules: {
-            name: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
+            text: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
@@ -328,7 +329,7 @@
             // pageSize: 10,
         },
         eveOutputRules: {
-            name: [{ required: true, message: "输出事件名称不能为空", trigger: "blur" }],
+          text: [{ required: true, message: "输出事件名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
@@ -468,10 +469,17 @@
     }
     //----输出函数结束
     onMounted(() => {
-        getEveInputList();
-        getEveOutputList();
-        getAlgList()
+        initData();
     })
+    const initData=(()=>{
+      module=route.params.id;
+      getEveInputList();
+      getEveOutputList();
+      getAlgList()
+    })
+    watch(() => route.params.id, (newVal, oldVal) => {
+      initData();
+    });
 </script>
 
 <style lang="scss" scoped>

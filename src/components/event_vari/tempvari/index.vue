@@ -64,11 +64,12 @@
     import { v4 as uuidv4 } from 'uuid';
     import {getTempVaris} from "@/api/inter/tempvari";
     import useTempVariStore from "@/store/modules/tempVari.ts";
+    import {watch} from "vue";
     const tempVariStore=useTempVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
-    const module=route.params.id;
+    let module=route.params.id;
     const project="project1";
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
@@ -95,7 +96,7 @@
             // pageSize: 10,
         },
       tempVariRules: {
-            name: [{ required: true, message: "输入内部变量名称不能为空", trigger: "blur" }],
+            text: [{ required: true, message: "输入内部变量名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
@@ -182,8 +183,15 @@
       tempVariStore.flag=false;
     }
     onMounted(() => {
-        getTempVariList();
+        initData();
     })
+    const initData=(()=>{
+      module=route.params.id;
+      getTempVariList();
+    })
+    watch(() => route.params.id, (newVal, oldVal) => {
+      initData();
+    });
 </script>
 
 <style lang="scss" scoped>

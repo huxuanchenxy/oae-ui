@@ -86,10 +86,14 @@ const goToTag = (tag) => {
   showType.value = tag.showType;
   let tagName = tag.name;
   let algorithmNames = "";
-  if (tagName.includes("算法")) {
+  if (tagName.includes("算法") && algorithmName.value != "") {
     tagName = "算法";
     algorithmNames = algorithmName.value;
   } else {
+    if (tagName.includes("算法")) {
+      showType.value = "";
+      tag.funcStatus = "plain";
+    }
     algorithmNames = "";
   }
   commonstore.changeCurTreeNode(cid.value, tagName, algorithmNames);
@@ -142,7 +146,7 @@ watch(
 <style  scoped>
 .routerHeight {
   overflow: auto;
-  height: calc(100vh - 345px);
+  height: calc(100vh - 355px);
 }
 
 #elContentTag {
