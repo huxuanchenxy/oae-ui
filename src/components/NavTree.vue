@@ -40,7 +40,17 @@
               style="height: 26px; margin-left: 4px"
               @keyup.enter="saveName(data)"
             ></el-input>
-            <span style="margin-left: 4px" v-else>{{ data.funcName }}</span>
+            <span
+              :title="data.funcName"
+              style="
+                margin-left: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
+              v-else
+              >{{ data.funcName }}</span
+            >
           </template>
         </el-tree>
       </div>
@@ -881,12 +891,13 @@ const showOrHidden = () => {
 }
 
 .algorithm-icon {
-  background-color: #169bd5;
+  background-color: #eee;
   padding-right: 2px;
   /* font-size: large; */
-  color: #fff;
+  color: #169bd5;
   /* height: 80%; */
   border-radius: 5px;
   font-size: 12px;
+  margin-left: -12px;
 }
 </style>
