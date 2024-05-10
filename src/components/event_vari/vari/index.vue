@@ -189,7 +189,7 @@
             // pageSize: 10,
         },
         variInputRules: {
-            name: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
+            text: [{ required: true, message: "输入事件名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
@@ -347,7 +347,7 @@
             // pageSize: 10,
         },
         variOutputRules: {
-            name: [{ required: true, message: "输出事件名称不能为空", trigger: "blur" }],
+            text: [{ required: true, message: "输出事件名称不能为空", trigger: "blur" }],
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式

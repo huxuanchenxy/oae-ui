@@ -41,8 +41,6 @@ declare module '@vue/runtime-core' {
     Eventvari: typeof import('./../components/antv/eventvari/index.vue')['default']
     Invari: typeof import('./../components/event_vari/invari/index.vue')['default']
     LogContent: typeof import('./../components/bottomContent/LogContent.vue')['default']
-    NavItem: typeof import('./../components/NavItem.vue')['default']
-    NavMenu: typeof import('./../components/NavMenu.vue')['default']
     NavTree: typeof import('./../components/NavTree.vue')['default']
     PwdChange: typeof import('./../components/dialog/PwdChange.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
