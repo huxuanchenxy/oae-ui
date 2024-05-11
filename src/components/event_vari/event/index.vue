@@ -1,5 +1,5 @@
 <template>
-    <div class="event">
+    <div class="event" ref="eventDivRef" id="eventDiv">
         <div class="left">
             输入
             <div class="table_out">
@@ -26,7 +26,10 @@
             </div>
         </div>
         <div class="right">
-            输出
+            <div class="right-top">
+              <div class="right-title">输出</div>
+              <div class="right-button"><el-button icon="FullScreen" >全屏显示</el-button></div>
+            </div>
             <div class="table_out">
                 <div>
                     <div class="icon"><el-button  size="small" type="primary" plain icon="Plus" @click="handleAddOutput"></el-button></div>
@@ -127,6 +130,9 @@
     import useEveInputStore from "@/store/modules/eveInput.ts";
     import useEveOutputStore from "@/store/modules/eveOutput.ts";
     import {watch} from "vue";
+
+    import screenfull from 'screenfull'
+    //进入全屏enter，退出全屏exit，切换全屏和退出全屏toggle，是否是全屏转态isFullscreen
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { eveType } = toRefs<any>(proxy?.useDict("eveType"));
     const relateEveList = ref<Eve[]>([]);
@@ -138,6 +144,7 @@
     const nosInput = ref<Array<number | string>>([]);
     const singleInput = ref(true);
     const multipleInput = ref(true);
+    const eventDivRef = ref();
     const handleSelectionChangeInput = (selection: EveInputVO[]) => {
         nosInput.value = selection.map(item => item.no);
         singleInput.value = selection.length != 1;
@@ -149,6 +156,10 @@
     const nosOutput = ref<Array<number | string>>([]);
     const singleOutput = ref(true);
     const multipleOutput = ref(true);
+    // const handleFullscreenElement = () => {
+    //   screenfull.request(eventDivRef.value);
+    // }
+
     const handleSelectionChangeOutput = (selection: EveOutputVO[]) => {
         nosOutput.value = selection.map(item => item.no);
         singleOutput.value = selection.length != 1;
@@ -506,12 +517,16 @@
         .right{
             flex:0.5;
             margin-right: 20px;
+            .right-top{
+              display: flex;
+              justify-content: space-between;
+            }
             .table_out{
                 margin-top:10px;
                 height: 100%;
                 display: flex;
                 .icon{
-                    width:30;
+                    width:30px;
                     height:30px;
                 }
             }

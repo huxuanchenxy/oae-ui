@@ -190,7 +190,7 @@
             // pageSize: 10,
         },
         variInputRules: {
-            text: [{ required: true, message: "输入变量名称不能为空", trigger: "blur" }],
+          text: [{ required: true, message: "输入变量名称不能为空", trigger: "blur" },{ pattern: /([a-z])([a-z1-9])*(_([a-z1-9]+))*/, message: "请输入正确的变量名", trigger: "blur" }]
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
@@ -348,7 +348,7 @@
             // pageSize: 10,
         },
         variOutputRules: {
-            text: [{ required: true, message: "输出变量名称不能为空", trigger: "blur" }],
+          text: [{ required: true, message: "输出变量名称不能为空", trigger: "blur" },{ pattern: /([a-z])([a-z1-9])*(_([a-z1-9]+))*/, message: "请输入正确的变量名", trigger: "blur" }]
         },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式

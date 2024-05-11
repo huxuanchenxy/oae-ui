@@ -96,8 +96,8 @@
             // pageSize: 10,
         },
       tempVariRules: {
-            text: [{ required: true, message: "输入内部变量名称不能为空", trigger: "blur" }],
-        },
+        text: [{ required: true, message: "临时变量名称不能为空", trigger: "blur" },{ pattern: /([a-z])([a-z1-9])*(_([a-z1-9]+))*/, message: "请输入正确的变量名", trigger: "blur" }]
+      },
     });
     //内部属性不是响应式，需要用toRefs把属性也变成响应式
     const {  tempVariForm, tempVariRules } = toRefs(tempVariData);
