@@ -326,12 +326,86 @@ const deleteNode=async (item)=> {
   const edgeIds = edges.map((edge) => edge.get('id'));
   if (nodeIds.length != 0||edgeIds.length != 0) {
     await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
-    graph.removeItem(item);
-    saveDataToServer();
+    let id=item.get("id");
+    //根据不同的ID前缀来删除对应的节点
+    if(id.startsWith(prefState)){
+      deleteStateNode(item);
+    }else if(id.startsWith(prefAlg)){
+      deleteAlgNode(item);
+    }else if(id.startsWith(prefEvent)){
+      deleteEventNode(item);
+    }
   }else{
     proxy?.$modal.msgWarning("您没有选中任何节点");
   }
 }
+//删除状态机，同时会删除下面所有的事件和输出
+const deleteStateNode=((item)=>{
+  const edges = graph.getEdges();
+  let stateId=item.get("id");
+  let algIds=new Array();
+  let eventIds=new Array();
+  edges.forEach((edge)=>{
+    if(edge.getSource().get("id")==stateId&&edge.getTarget().get("id").startsWith(prefAlg))
+      algIds.push(edge.getTarget().get("id"))
+  })
+  algIds.forEach((algId)=>{
+    eventIds.push(prefEvent+algId.substring(prefAlg.length,algId.length));
+  })
+
+  console.log(algIds);
+  console.log(eventIds);
+  // //图上删除事件和算法
+  algIds.forEach((algId)=>{
+    graph.removeItem(graph.findById(algId));
+  })
+  eventIds.forEach((eventId)=>{
+    graph.removeItem(graph.findById(eventId));
+  })
+  //图上删除对应的
+  saveDataToServer();
+  //更新大JSON
+  // removeAlgAndEvent(project,module,stateId,algId);
+});
+//删除算法，同时删除对应的事件
+const deleteAlgNode=((item)=>{
+  const edges = graph.getEdges();
+  let stateId;
+  edges.forEach((edge)=>{
+    if(edge.getTarget().get("id")==item.get("id"))
+    stateId=edge.getSource().get("id");
+    return;
+  })
+  //图上删除算法
+  let algId=item.get("id");
+  let eventId=prefEvent+algId.substring(prefAlg.length,algId.length);
+  graph.removeItem(item);
+  graph.removeItem(graph.findById(eventId));
+  //图上删除对应的
+  saveDataToServer();
+  //更新大JSON
+  removeAlgAndEvent(project,module,stateId,algId);
+});
+//删除事件，同时删除对应的算法
+const deleteEventNode=((item)=>{
+  const edges = graph.getEdges();
+  let stateId;
+  let eventId=item.get("id");
+  let algId=prefAlg+eventId.substring(prefEvent.length,eventId.length);
+  console.log(algId)
+  edges.forEach((edge)=>{
+    if(edge.getTarget().get("id")==algId)
+    stateId=edge.getSource().get("id");
+    return;
+  })
+  //图上删除事件和算法
+  graph.removeItem(item);
+  graph.removeItem(graph.findById(algId));
+  //图上删除对应的
+  saveDataToServer();
+  //更新大JSON
+  removeAlgAndEvent(project,module,stateId,algId);
+});
 const initGraph=(data,graphWidth,graphHeight)=>{
   if(graph){
     graph.destroy();
@@ -509,8 +583,8 @@ const saveDataToServer=()=>{
 const getCurrentState=((project,module,id)=>{
   let state:StateMachine=getOneState(project,module,id);
   currentState.value={...state}
-  delete currentState.value.algorithm;
-  delete currentState.value.output_event;
+  // delete currentState.value.algorithm;
+  // delete currentState.value.output_event;
   return currentState.value;
 });
 /**
@@ -625,16 +699,16 @@ const addAlgAndEventNode=(item,canvasY)=>{
       key:defaultEvent.key,text:defaultEvent.text,graphId:eveNodeId
     }
   });
-  let algorithm=state.algorithm;
-  if(!algorithm){
-    algorithm=new Array();
-  }
-  algorithm.push({ key: defaultAlg.key,text: defaultEvent.text});
-  let output_event=state.output_event;
-  if(!output_event){
-    output_event=new Array();
-  }
-  output_event.push({ key:defaultEvent.key,text: defaultEvent.text });
+  // let algorithm=state.algorithm;
+  // if(!algorithm){
+  //   algorithm=new Array();
+  // }
+  // algorithm.push({ key: defaultAlg.key,text: defaultEvent.text});
+  // let output_event=state.output_event;
+  // if(!output_event){
+  //   output_event=new Array();
+  // }
+  // output_event.push({ key:defaultEvent.key,text: defaultEvent.text });
   saveOrUpdateState(project,module,state);
 }
 
@@ -724,8 +798,8 @@ const addCombo=(stateNodeX,stateNodeY)=>{
     text:stateLabel,
     x:stateNodeX,
     y:stateNodeY,
-    algorithm:[{ key: defaultAlg.key,text:defaultAlg.text }],
-    output_event:[{ key: defaultEvent.key,text: defaultEvent.text }],
+    // algorithm:[{ key: defaultAlg.key,text:defaultAlg.text }],
+    // output_event:[{ key: defaultEvent.key,text: defaultEvent.text }],
     //需要有个ID标识是哪一个algAndEvent
     algAndEvent:[{
       id:uuidv4(),
@@ -851,8 +925,8 @@ const submitAlgAndEventForm=(()=>{
     jsonDataAlgArr.push({key:algAndEvent.alg.key,text:algAndEvent.alg.text});
     jsonDataEventArr.push({key:algAndEvent.event.key,text:algAndEvent.event.text});
   })
-  jsonData.algorithm=jsonDataAlgArr;
-  jsonData.output_event=jsonDataEventArr;
+  // jsonData.algorithm=jsonDataAlgArr;
+  // jsonData.output_event=jsonDataEventArr;
   saveOrUpdateState(project,module,jsonData);
   proxy?.$modal.msgSuccess("操作成功");
   dialogAlgAndEvent.visible = false;
@@ -909,7 +983,7 @@ const handleDeleteCondition=async(stateId,id)=>{
   //更新图JSON
   saveDataToServer();
   //更新大JSON
-  removeAlgAndEvent(project,module,stateId,id);
+  removeAlgAndEvent(project,module,stateId,prefAlg+id);
 }
 
 const resetEdgeForm = () => {
