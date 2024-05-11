@@ -63,3 +63,13 @@ export const removeAlgAndEvent=(project,module,stateId,algId)=> {
     rlt.ecc.nodeDataArray=states;
     changeData(project,module,rlt)
 }
+export const removeState=(project,module,stateId)=> {
+    let states=listStates(project, module);
+    //得到当前事件
+    states= states.filter(
+        x => x.key != stateId
+    );
+    let rlt=getCurrentObj(project,module);
+    rlt.ecc.nodeDataArray=states;
+    changeData(project,module,rlt)
+}

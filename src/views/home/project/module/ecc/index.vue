@@ -185,7 +185,7 @@ import {getInputEvents,getOutputEvents} from "@/api/inter/event";
 import {getAlgList} from "@/api/alg";
 import {getOneEdge,saveOrUpdateEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
-import {removeAlgAndEvent,saveOrUpdateState,getOneState} from "@/api/ecc/state";
+import {removeAlgAndEvent,saveOrUpdateState,getOneState,removeState} from "@/api/ecc/state";
 import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
 import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
@@ -352,9 +352,6 @@ const deleteStateNode=((item)=>{
   algIds.forEach((algId)=>{
     eventIds.push(prefEvent+algId.substring(prefAlg.length,algId.length));
   })
-
-  console.log(algIds);
-  console.log(eventIds);
   // //图上删除事件和算法
   algIds.forEach((algId)=>{
     graph.removeItem(graph.findById(algId));
@@ -362,10 +359,11 @@ const deleteStateNode=((item)=>{
   eventIds.forEach((eventId)=>{
     graph.removeItem(graph.findById(eventId));
   })
+  graph.removeItem(graph.findById(stateId));
   //图上删除对应的
   saveDataToServer();
   //更新大JSON
-  // removeAlgAndEvent(project,module,stateId,algId);
+  removeState(project,module,stateId);
 });
 //删除算法，同时删除对应的事件
 const deleteAlgNode=((item)=>{
