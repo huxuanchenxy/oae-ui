@@ -23,12 +23,17 @@ export default {
             params
         }).then(res => res.data)
     },
+    renameModule: params => {
+        return axios.get(`${baseUrl}/Sys/Rename`, {
+            params
+        }).then(res => res.data)
+    },
     getModule: params => {
         return axios.get(`${baseUrl}/Module/GetModule`, {
             params
         }).then(res => res.data)
     },
-    getModule1: async params => {
+    getModuleAsync: async params => {
         return await axios.get(`${baseUrl}/Module/GetModule`, {
             params
         })

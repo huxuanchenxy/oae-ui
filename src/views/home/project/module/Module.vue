@@ -86,20 +86,21 @@ const goToTag = (tag) => {
   showType.value = tag.showType;
   let tagName = tag.name;
   let algorithmNames = "";
-  if (tagName.includes("算法") && algorithmName.value != "") {
-    tagName = "算法";
-    algorithmNames = algorithmName.value;
-  } else {
-    if (tagName.includes("算法")) {
+  if (tagName.includes("算法")) {
+    if (algorithmName.value != "") {
+      tagName = "算法";
+      algorithmNames = algorithmName.value;
+    } else {
+      tagName = "算法";
       showType.value = "";
-      tag.funcStatus = "plain";
+      //tag.funcStatus = "plain";
+      algorithmNames = "";
     }
-    algorithmNames = "";
   }
   commonstore.changeCurTreeNode(cid.value, tagName, algorithmNames);
 };
 
-const initLoad = () => {
+const initLoad = async () => {
   pid.value = route.params.pid;
   cid.value = route.params.id;
   showType.value = route.params?.type?.toLowerCase() ?? "";
@@ -112,7 +113,7 @@ const initLoad = () => {
   if (cid.value) {
     let rlt = getCurrentObj(project, cid.value);
     if (!rlt) {
-      getModuleData(project, cid.value);
+      await getModuleData(project, cid.value);
       rlt = getCurrentObj(project, cid.value);
     }
     if (rlt) {
