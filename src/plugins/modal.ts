@@ -58,6 +58,23 @@ export default {
       type: 'warning'
     });
   },
+  // 成功消息
+  msgSuccessWithAppendTo(content: any,appendTo:any) {
+    ElMessage({
+      type: 'success',
+      message:content,
+      appendTo:appendTo
+    });
+  },
+  // 确认窗体
+  confirmWithAppendTo(content: any,appendTo:any): Promise<MessageBoxData> {
+    return ElMessageBox.confirm(content, '系统提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+      appendTo:appendTo
+    });
+  },
   // 提交内容
   prompt(content: any) {
     return ElMessageBox.prompt(content, '系统提示', {

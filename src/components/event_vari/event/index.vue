@@ -54,13 +54,13 @@
             </div>
         </div>
         <!-- 添加或修改参数配置对话框 -->
-        <el-dialog :title="dialogInput.title" v-model="dialogInput.visible" width="500px" append-to-body>
+        <el-dialog :title="dialogInput.title" v-model="dialogInput.visible" width="500px" :modal-append-to-body="false">
             <el-form ref="eveInputFormRef" :model="eveInputForm" :rules="eveInputRules" label-width="80px">
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="eveInputForm.type" placeholder="请输入类型">
+                    <el-select v-model="eveInputForm.type" placeholder="请输入类型" :popper-append-to-body="false" append-to-body="false">
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -86,13 +86,13 @@
             </template>
         </el-dialog>
         <!-- 添加或修改参数配置对话框 -->
-        <el-dialog :title="dialogOutput.title" v-model="dialogOutput.visible" width="500px" append-to-body>
+        <el-dialog :title="dialogOutput.title" v-model="dialogOutput.visible" width="500px"  :modal-append-to-body="false">
             <el-form ref="eveOutputFormRef" :model="eveOutputForm" :rules="eveOutputRules" label-width="80px">
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="eveOutputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="eveOutputForm.type" placeholder="请输入类型">
+                    <el-select v-model="eveOutputForm.type" placeholder="请输入类型" :popper-append-to-body="false">
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -130,7 +130,8 @@
     import useEveInputStore from "@/store/modules/eveInput.ts";
     import useEveOutputStore from "@/store/modules/eveOutput.ts";
     import {watch} from "vue";
-
+    import useBottomContentStore from "@/store/modules/bottomContent.ts";
+    const bottomContentStore=useBottomContentStore();
     import screenfull from 'screenfull'
     //进入全屏enter，退出全屏exit，切换全屏和退出全屏toggle，是否是全屏转态isFullscreen
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -145,6 +146,7 @@
     const singleInput = ref(true);
     const multipleInput = ref(true);
     const eventDivRef = ref();
+    let bottomDiv;
     const handleSelectionChangeInput = (selection: EveInputVO[]) => {
         nosInput.value = selection.map(item => item.no);
         singleInput.value = selection.length != 1;
@@ -233,7 +235,8 @@
         eveInputFormRef.value?.validate((valid: boolean) => {
             if (valid) {
                 eveInputForm.value.no?updateEveInput(eveInputForm.value):addEveInput(eveInputForm.value);
-                proxy?.$modal.msgSuccess("操作成功");
+                // proxy?.$modal.msgSuccess("操作成功");
+                proxy?.$modal.msgSuccessWithAppendTo("操作成功",bottomDiv);
                 dialogInput.visible = false;
                 eveInputStore.flag=true;
                 eveInputStore.flag=false;
@@ -310,7 +313,8 @@
     }
     const handleDeleteInput = async (row?: EveInputVO) => {
         const deleteNos = row?.no||nosInput.value;
-        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+        // await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+        await proxy?.$modal.confirmWithAppendTo('是否确认删除序号为"' + deleteNos + '"的数据项？',bottomDiv);
         let newList=inputEventList.value.filter(x=>!deleteNos.includes(x.no));
         for (let i=0; i< newList.length; i++){
             newList[i].no=i+1;
@@ -466,7 +470,8 @@
     }
     const handleDeleteOutput = async (row?: EveOutputVO) => {
         const deleteNos = row?.no||nosOutput.value;
-        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+        // await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+        await proxy?.$modal.confirmWithAppendTo('是否确认删除序号为"' + deleteNos + '"的数据项？',bottomDiv);
         let newList=outputEventList.value.filter(x=>!deleteNos.includes(x.no));
         for (let i=0; i< newList.length; i++){
             newList[i].no=i+1;
@@ -480,7 +485,8 @@
     }
     //----输出函数结束
     onMounted(() => {
-        initData();
+      initData();
+      bottomDiv=bottomContentStore.getBottomDiv();
     })
     const initData=(()=>{
       module=route.params.id;

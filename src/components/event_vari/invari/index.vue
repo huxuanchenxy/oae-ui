@@ -28,7 +28,7 @@
             </div>
         </div>
         <!-- 添加或修改参数配置对话框 -->
-        <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body>
+        <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" :modal-append-to-body="false">
             <el-form ref="inVariFormRef" :model="inVariForm" :rules="inVariRules" label-width="80px">
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="inVariForm.text" placeholder="请输入名称" />

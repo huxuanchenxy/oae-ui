@@ -55,7 +55,7 @@
             </div>
         </div>
         <!-- 添加或修改参数配置对话框 -->
-        <el-dialog :title="dialogInput.title" v-model="dialogInput.visible" width="500px" append-to-body>
+        <el-dialog :title="dialogInput.title" v-model="dialogInput.visible" width="500px"  :modal-append-to-body="false">
             <el-form ref="variInputFormRef" :model="variInputForm" :rules="variInputRules" label-width="80px">
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="variInputForm.text" placeholder="请输入名称" />
@@ -93,7 +93,7 @@
             </template>
         </el-dialog>
         <!-- 添加或修改参数配置对话框 -->
-        <el-dialog :title="dialogOutput.title" v-model="dialogOutput.visible" width="500px" append-to-body>
+        <el-dialog :title="dialogOutput.title" v-model="dialogOutput.visible" width="500px"  :modal-append-to-body="false">
             <el-form ref="variOutputFormRef" :model="variOutputForm" :rules="variOutputRules" label-width="80px">
                 <el-form-item label="名称" prop="text">
                     <el-input v-model="variOutputForm.text" placeholder="请输入名称" />

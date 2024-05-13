@@ -1,6 +1,7 @@
 <template>
-  <div class="divBottom">
-    <el-tabs v-model="props.editableTabsValue" type="card" @tab-remove="removeTab">
+  <div class="divBottom" ref="divBottomRef">
+    <el-button type="primary" icon="FullScreen" @click="handleFullscreenElement">全屏显示</el-button>
+    <el-tabs v-model="props.editableTabsValue" type="card" @tab-remove="removeTab" >
       <el-tab-pane
         v-for="(item, i) in editableTabs"
         :key="item.index"
@@ -9,7 +10,7 @@
         :closable="i != 0"
       >
         <AttributeContent v-show="item.index == 0"></AttributeContent>
-        <EventVari v-show="item.index == 1"></EventVari>
+        <EventVari v-show="item.index == 1" :bottomDiv="111"></EventVari>
         <LogContent v-show="item.index == 2"></LogContent>
       </el-tab-pane>
     </el-tabs>
@@ -21,6 +22,13 @@ import { ref } from "vue";
 import AttributeContent from "@/components/bottomContent/AttributeContent.vue";
 import LogContent from "@/components/bottomContent/LogContent.vue";
 import EventVari from "@/components/event_vari/index.vue";
+import screenfull from 'screenfull'
+import useBottomContentStore from "@/store/modules/bottomContent.ts";
+const bottomContentStore=useBottomContentStore();
+const divBottomRef = ref();
+const handleFullscreenElement = () => {
+  screenfull.request(divBottomRef.value);
+}
 /*
    * 定义组件的属性
    * type 表示属性类型
@@ -108,6 +116,7 @@ watch(()=>props.editableTabsValue, (newVal) => {
 
 onMounted(() => {
   //console.log("bottomContent onMounted");
+  bottomContentStore.setBottomDiv(divBottomRef.value)
 });
 </script>
 
