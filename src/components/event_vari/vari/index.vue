@@ -61,7 +61,7 @@
                     <el-input v-model="variInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="关联事件">
-                    <el-select v-model="variInputForm.relatedEventIds" multiple placeholder="请选择关联事件">
+                    <el-select v-model="variInputForm.relatedEventIds" multiple placeholder="请选择关联事件" :teleported="false">
                         <el-option
                         v-for="item in relateEveList"
                         :key="item.key"
@@ -74,7 +74,7 @@
                     <el-input v-model="variInputForm.arrayLength" placeholder="请输入数组长度" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="variInputForm.type" placeholder="请输入类型">
+                    <el-select v-model="variInputForm.type" placeholder="请输入类型" :teleported="false">
                         <el-option v-for="dict in variType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -99,7 +99,7 @@
                     <el-input v-model="variOutputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="关联事件">
-                    <el-select v-model="variOutputForm.relatedEventIds" multiple placeholder="请选择关联事件">
+                    <el-select v-model="variOutputForm.relatedEventIds" multiple placeholder="请选择关联事件" :teleported="false">
                       <el-option
                           v-for="item in relateEveList"
                           :key="item.key"
@@ -112,7 +112,7 @@
                     <el-input v-model="variOutputForm.arrayLength" placeholder="请输入数组长度" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="variOutputForm.type" placeholder="请输入类型">
+                    <el-select v-model="variOutputForm.type" placeholder="请输入类型" :teleported="false">
                         <el-option v-for="dict in variType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -143,6 +143,9 @@
     import useVariInputStore from "@/store/modules/variInput.ts";
     import useVariOutputStore from "@/store/modules/variOutput.ts";
     import {watch} from "vue";
+    import useBottomContentStore from "@/store/modules/bottomContent.ts";
+    const bottomContentStore=useBottomContentStore();
+    let bottomDiv;
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const relateEveList = ref<Eve[]>([]);
@@ -239,11 +242,11 @@
     const submitVariInputForm = () => {
         variInputFormRef.value?.validate((valid: boolean) => {
             if (valid) {
-                variInputForm.value.no?updateVariInput(variInputForm.value):addVariInput(variInputForm.value);
-                proxy?.$modal.msgSuccess("操作成功");
-                dialogInput.visible = false;
-                variInputStore.flag=true;
-                variInputStore.flag=false;
+              variInputForm.value.no?updateVariInput(variInputForm.value):addVariInput(variInputForm.value);
+              proxy?.$modal.msgSuccessWithAppendTo("操作成功",bottomDiv);
+              dialogInput.visible = false;
+              variInputStore.flag=true;
+              variInputStore.flag=false;
             }  
         });
     }
@@ -315,18 +318,18 @@
         });
     }
     const handleDeleteInput = async (row?: VariInputVO) => {
-        const deleteNos = row?.no||nosInput.value;
-        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
-        let newList=inputVariList.value.filter(x=>!deleteNos.includes(x.no));
-        for (let i=0; i< newList.length; i++){
-            newList[i].no=i+1;
-        }
-        inputVariList.value=[];
-        Object.assign(inputVariList.value,newList);
-        changeInputVaris(project,module,inputVariList.value);
-        proxy?.$modal.msgSuccess("删除成功");
-        variInputStore.flag=true;
-        variInputStore.flag=false;
+      const deleteNos = row?.no||nosInput.value;
+      await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+      let newList=inputVariList.value.filter(x=>!deleteNos.includes(x.no));
+      for (let i=0; i< newList.length; i++){
+          newList[i].no=i+1;
+      }
+      inputVariList.value=[];
+      Object.assign(inputVariList.value,newList);
+      changeInputVaris(project,module,inputVariList.value);
+      proxy?.$modal.msgSuccessWithAppendTo("删除成功",bottomDiv);
+      variInputStore.flag=true;
+      variInputStore.flag=false;
     }
     //----输入函数结束
     //----输出函数开始
@@ -397,11 +400,11 @@
     const submitVariOutputForm = () => {
         variOutputFormRef.value?.validate((valid: boolean) => {
             if (valid) {
-                variOutputForm.value.no?updateVariOutput(variOutputForm.value):addVariOutput(variOutputForm.value);
-                proxy?.$modal.msgSuccess("操作成功");
-                dialogOutput.visible = false;
-                variOutputStore.flag=true;
-                variOutputStore.flag=false;
+              variOutputForm.value.no?updateVariOutput(variOutputForm.value):addVariOutput(variOutputForm.value);
+              proxy?.$modal.msgSuccessWithAppendTo("操作成功",bottomDiv);
+              dialogOutput.visible = false;
+              variOutputStore.flag=true;
+              variOutputStore.flag=false;
             }  
         });
     }
@@ -473,27 +476,28 @@
         });
     }
     const handleDeleteOutput = async (row?: VariOutputVO) => {
-        const deleteNos = row?.no||nosOutput.value;
-        await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
-        let newList=outputVariList.value.filter(x=>!deleteNos.includes(x.no));
-        for (let i=0; i< newList.length; i++){
-            newList[i].no=i+1;
-        }
-        outputVariList.value=[];
-        Object.assign(outputVariList.value,newList);
-        changeOutputVaris(project,module,outputVariList.value);
-        proxy?.$modal.msgSuccess("删除成功");
-        variOutputStore.flag=true;
-        variOutputStore.flag=false;
+      const deleteNos = row?.no||nosOutput.value;
+      await proxy?.$modal.confirm('是否确认删除序号为"' + deleteNos + '"的数据项？');
+      let newList=outputVariList.value.filter(x=>!deleteNos.includes(x.no));
+      for (let i=0; i< newList.length; i++){
+          newList[i].no=i+1;
+      }
+      outputVariList.value=[];
+      Object.assign(outputVariList.value,newList);
+      changeOutputVaris(project,module,outputVariList.value);
+      proxy?.$modal.msgSuccessWithAppendTo("删除成功",bottomDiv);
+      variOutputStore.flag=true;
+      variOutputStore.flag=false;
     }
     //----输出函数结束
     onMounted(() => {
-        initData();
+      initData();
     })
     const initData=(()=>{
       module=route.params.id;
       getVariInputList();
       getVariOutputList();
+      bottomDiv=bottomContentStore.getBottomDiv();
     })
     watch(() => route.params.id, (newVal, oldVal) => {
       initData();

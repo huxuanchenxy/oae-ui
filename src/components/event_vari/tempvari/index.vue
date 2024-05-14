@@ -37,7 +37,7 @@
                     <el-input v-model="tempVariForm.arrayLength" placeholder="请输入数组长度" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="tempVariForm.type" placeholder="请输入类型">
+                    <el-select v-model="tempVariForm.type" placeholder="请输入类型" :teleported="false">
                         <el-option v-for="dict in variType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -65,7 +65,10 @@
     import {getTempVaris} from "@/api/inter/tempvari";
     import useTempVariStore from "@/store/modules/tempVari.ts";
     import {watch} from "vue";
+    import useBottomContentStore from "@/store/modules/bottomContent.ts";
+    const bottomContentStore=useBottomContentStore();
     const tempVariStore=useTempVariStore();
+    let bottomDiv;
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
     const route = useRoute()
@@ -139,7 +142,7 @@
         tempVariFormRef.value?.validate((valid: boolean) => {
             if (valid) {
               tempVariForm.value.no?updateVariInput(tempVariForm.value):addVariInput(tempVariForm.value);
-              proxy?.$modal.msgSuccess("操作成功");
+              proxy?.$modal.msgSuccessWithAppendTo("操作成功",bottomDiv);
               dialog.visible = false;
               tempVariStore.flag=true;
               tempVariStore.flag=false;
@@ -178,16 +181,17 @@
       tempVariList.value=[];
       Object.assign(tempVariList.value,newList);
       changeTempVaris(project,module,tempVariList.value);
-      proxy?.$modal.msgSuccess("删除成功");
+      proxy?.$modal.msgSuccessWithAppendTo("删除成功",bottomDiv);
       tempVariStore.flag=true;
       tempVariStore.flag=false;
     }
     onMounted(() => {
-        initData();
+      initData();
     })
     const initData=(()=>{
       module=route.params.id;
       getTempVariList();
+      bottomDiv=bottomContentStore.getBottomDiv();
     })
     watch(() => route.params.id, (newVal, oldVal) => {
       initData();

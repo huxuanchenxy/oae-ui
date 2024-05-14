@@ -488,13 +488,13 @@
     //----输出函数结束
     onMounted(() => {
       initData();
-      bottomDiv=bottomContentStore.getBottomDiv();
     })
     const initData=(()=>{
       module=route.params.id;
       getEveInputList();
       getEveOutputList();
-      getAlgList()
+      getAlgList();
+      bottomDiv=bottomContentStore.getBottomDiv();
     })
     watch(() => route.params.id, (newVal, oldVal) => {
       initData();

@@ -37,7 +37,7 @@
                     <el-input v-model="inVariForm.arrayLength" placeholder="请输入数组长度" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="inVariForm.type" placeholder="请输入类型">
+                    <el-select v-model="inVariForm.type" placeholder="请输入类型" :teleported="false">
                         <el-option v-for="dict in variType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -64,7 +64,8 @@
     import {changeInVaris} from "@/utils/cache/inter";
     import { v4 as uuidv4 } from 'uuid';
     import useInVariStore from "@/store/modules/inVari.ts";
-    import {watch} from "vue";
+    import useBottomContentStore from "@/store/modules/bottomContent.ts";
+    const bottomContentStore=useBottomContentStore();
     const inVariStore=useInVariStore();
     const { proxy } = getCurrentInstance() as ComponentInternalInstance;
     const { variType } = toRefs<any>(proxy?.useDict("variType"));
@@ -74,6 +75,7 @@
     const nos = ref<Array<number | string>>([]);
     const single = ref(true);
     const multiple = ref(true);
+    let bottomDiv;
     const handleSelectionChange = (selection: InVariVO[]) => {
         nos.value = selection.map(item => item.no);
         single.value = selection.length != 1;
@@ -139,7 +141,8 @@
         inVariFormRef.value?.validate((valid: boolean) => {
             if (valid) {
                 inVariForm.value.no?updateVariInput(inVariForm.value):addVariInput(inVariForm.value);
-                proxy?.$modal.msgSuccess("操作成功");
+                proxy?.$modal.msgSuccessWithAppendTo("操作成功",bottomDiv);
+                // proxy?.$modal.msgSuccess("操作成功");
                 dialog.visible = false;
                 inVariStore.flag=false;
                 inVariStore.flag=true;
@@ -178,7 +181,7 @@
       inVariList.value=[];
       Object.assign(inVariList.value,newList);
       changeInVaris(project,module,inVariList.value);
-      proxy?.$modal.msgSuccess("删除成功");
+      proxy?.$modal.msgSuccessWithAppendTo("删除成功",bottomDiv);
       inVariStore.flag=false;
       inVariStore.flag=true;
     }
@@ -188,6 +191,7 @@
     const initData=(()=>{
       module=route.params.id;
       getInVariList();
+      bottomDiv=bottomContentStore.getBottomDiv();
     })
     watch(() => route.params.id, (newVal, oldVal) => {
       initData();
