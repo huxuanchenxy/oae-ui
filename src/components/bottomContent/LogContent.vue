@@ -39,8 +39,8 @@
       v-model="dialogVisible"
       title="具体信息"
       fullscreen
-      append-to-body
       @before-close="dialogVisible = false"
+      :modal-append-to-body="false"
     >
       <span>{{ logDetail }}</span>
     </el-dialog>
@@ -48,8 +48,8 @@
       v-model="dialogVisibleTable"
       title="函数日志"
       fullscreen
-      append-to-body
       @before-close="dialogVisibleTable = false"
+      :modal-append-to-body="false"
     >
     <el-table :data="tableData" border style="width: 100%;height: 100%;">
       <el-table-column type="index" index="index+1" label="序号" width="60" />
