@@ -123,14 +123,23 @@ G6.registerNode('rect-node', {
     return cfg.anchorPoints || [[0, 0.5], [0.33, 0], [0.66, 0], [1, 0.5], [0.33, 1], [0.66, 1]];
   },
   // response the state changes and show/hide the link-point circles
-  setState(name, value, item) {
-    if (name === 'showAnchors') {
-      const anchorPoints = item.getContainer().findAll(ele => ele.get('name') === 'anchor-point');
-      anchorPoints.forEach(point => {
-        if (value || point.get('links') > 0) point.show()
-        else point.hide()
-      })
-    }
-  }
+  // setState(name, value, item) {
+  //   if (name === 'showAnchors') {
+  //     const anchorPoints = item.getContainer().findAll(ele => ele.get('name') === 'anchor-point');
+  //     anchorPoints.forEach(point => {
+  //       if (value || point.get('links') > 0) point.show()
+  //       else point.hide()
+  //     })
+  //   }
+  // }
 }, 'rect')
-
+/**
+ * 设置连接点显示隐藏
+ */
+export const setLinkState=((item,value)=>{
+    const anchorPoints = item.getContainer().findAll(ele => ele.get('name') === 'anchor-point');
+    anchorPoints.forEach(point => {
+      if (value || point.get('links') > 0) point.show()
+      else point.hide()
+    })
+});

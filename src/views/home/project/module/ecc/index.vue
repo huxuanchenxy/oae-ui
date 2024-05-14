@@ -189,7 +189,7 @@ import {removeAlgAndEvent,saveOrUpdateState,getOneState,removeState} from "@/api
 import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
 import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
-import {processParallelEdgesOnAnchorPoint} from "@/antvgraph/statemachine/stateMachineNode";
+import {processParallelEdgesOnAnchorPoint,setLinkState} from "@/antvgraph/statemachine/stateMachineNode";
 import {watch} from "vue";
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
@@ -516,12 +516,14 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     });
   });
 //鼠标事件
-  // some listeners to control the state of nodes to show and hide anchor-point circles
+//   some listeners to control the state of nodes to show and hide anchor-point circles
   graph.on('node:mouseenter', e => {
-    graph.setItemState(e.item, 'showAnchors', true);
+    const item=e.item;
+    setLinkState(item,true);
   })
   graph.on('node:mouseleave', e => {
-    graph.setItemState(e.item, 'showAnchors', false);
+    const item=e.item;
+    setLinkState(item,false);
   })
 
 // if create-edge is canceled before ending, update the 'links' on the anchor-point circles
@@ -553,6 +555,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
   //节点的事件
   graph.on('node:click', (evt) => {
     const { item } = evt;
+    graph.setItemState(item, 'selected'); // 切换选中
     let id=item.get("id");
     //如果节点是状态机
     if(id.startsWith(prefState)){
