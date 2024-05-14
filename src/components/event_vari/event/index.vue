@@ -60,7 +60,7 @@
                     <el-input v-model="eveInputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="eveInputForm.type" placeholder="请输入类型" :popper-append-to-body="false" append-to-body="false">
+                    <el-select v-model="eveInputForm.type" placeholder="请输入类型" :teleported="false">
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
@@ -92,7 +92,7 @@
                     <el-input v-model="eveOutputForm.text" placeholder="请输入名称" />
                 </el-form-item>
                 <el-form-item label="类型" prop="type">
-                    <el-select v-model="eveOutputForm.type" placeholder="请输入类型" :popper-append-to-body="false">
+                    <el-select v-model="eveOutputForm.type" placeholder="请输入类型"  :teleported="false">
                         <el-option v-for="dict in eveType" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
                     </el-select>
                 </el-form-item>
