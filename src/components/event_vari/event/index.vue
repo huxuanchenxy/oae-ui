@@ -322,7 +322,7 @@
         inputEventList.value=[];
         Object.assign(inputEventList.value,newList);
         changeInputEvents(project,module,inputEventList.value);
-        proxy?.$modal.msgSuccess("删除成功");
+        proxy?.$modal.msgSuccessWithAppendTo("删除成功",bottomDiv);
         eveInputStore.flag=true;
         eveInputStore.flag=false;
     }
@@ -394,7 +394,8 @@
         eveOutputFormRef.value?.validate((valid: boolean) => {
             if (valid) {
                 eveOutputForm.value.no?updateEveOutput(eveOutputForm.value):addEveOutput(eveOutputForm.value);
-                proxy?.$modal.msgSuccess("操作成功");
+                proxy?.$modal.msgSuccessWithAppendTo("操作成功",bottomDiv);
+                // proxy?.$modal.msgSuccess("操作成功");
                 dialogOutput.visible = false;
                 eveOutputStore.flag=true;
                 eveOutputStore.flag=false;
@@ -479,7 +480,8 @@
         outputEventList.value=[];
         Object.assign(outputEventList.value,newList);
         changeOutputEvents(project,module,outputEventList.value);
-        proxy?.$modal.msgSuccess("删除成功");
+        proxy?.$modal.msgSuccessWithAppendTo("删除成功",bottomDiv);
+        // proxy?.$modal.msgSuccess("删除成功");
         eveOutputStore.flag=true;
         eveOutputStore.flag=false;
     }
