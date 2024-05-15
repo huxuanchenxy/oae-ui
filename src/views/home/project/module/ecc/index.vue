@@ -345,6 +345,7 @@ const deleteStateNode=((item)=>{
   let stateId=item.get("id");
   let algIds=new Array();
   let eventIds=new Array();
+  let comboId=prefCombo+stateId.substring(prefState.length,stateId.length)
   edges.forEach((edge)=>{
     if(edge.getSource().get("id")==stateId&&edge.getTarget().get("id").startsWith(prefAlg))
       algIds.push(edge.getTarget().get("id"))
@@ -360,6 +361,7 @@ const deleteStateNode=((item)=>{
     graph.removeItem(graph.findById(eventId));
   })
   graph.removeItem(graph.findById(stateId));
+  graph.removeItem(graph.findById(comboId));
   //图上删除对应的
   saveDataToServer();
   //更新大JSON
@@ -1017,7 +1019,14 @@ const cancelAlgAndEventDialog = () => {
 }
 onMounted(() => {
   initData();
+  window.addEventListener('keydown', handleDeleteKeyDown);
 });
+const handleDeleteKeyDown = (e) => {
+  if (e.key === 'Delete' || e.key === 'Backspace') { // 判断是否是删除键
+    const items = graph.findAllByState('node', 'selected'); // 获取所有选中的元素
+    deleteNode(items[0]);
+  }
+};
 const initData=(()=>{
   module=route.params.id;
   //得到事件列表
