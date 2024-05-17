@@ -190,7 +190,6 @@ import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
 import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
 import {processParallelEdgesOnAnchorPoint,setLinkState} from "@/antvgraph/statemachine/stateMachineNode";
-import {watch} from "vue";
 let currentEdge:EdgeVO=ref(null);
 let currentCanvas:CanvasVO=ref(null);
 let currentState:StateVO=ref(null);
@@ -1044,6 +1043,7 @@ watch(() => route.params.id, (newVal, oldVal) => {
   graphCacheKey=cacheKey+"-"+project+"-"+newVal;
   initData();
 });
+
 </script>
 
 <style   scoped>

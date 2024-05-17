@@ -36,7 +36,12 @@ const routes = [{
                     import ('../views/home/main/Index.vue')
 
             },
-
+            {
+                //TODO 测试用，后续删除
+                path: '/functionBlock',
+                component: () =>
+                    import ('../views/home/project/functionblock/index.vue')
+            },
             {
                 "path": "/module/:pid/:id",
                 "name": "module",

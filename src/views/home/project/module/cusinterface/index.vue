@@ -7,15 +7,12 @@
 <script setup lang="ts">
 import { pagetagsStore } from "@/store/pageTags.js";
 import  eventVariAntv  from "@/components/antv/eventvari/index.vue";
-import interUtil from "@/utils/cache/inter";
 import useEveInputStore from "@/store/modules/eveInput.ts";
 import useEveOutputStore from "@/store/modules/eveOutput.ts";
 import useVariInputStore from "@/store/modules/variInput.ts";
 import useVariOutputStore from "@/store/modules/variOutput.ts";
 import {getInputEvents,getOutputEvents} from "@/api/inter/event";
 import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
-import inVariApi from "@/api/inter/invari";
-import tempVariApi from "@/api/inter/tempvari";
 const eveInputStore=useEveInputStore();
 const eveOutputStore=useEveOutputStore();
 const variInputStore=useVariInputStore();
@@ -53,6 +50,7 @@ onMounted(() => {
   graphData.nodes[0].paramInput=getCurrentDataVariInput();
   graphData.nodes[0].paramOutput=getCurrentDataVariOutput();
   if(eventVariAntvChild.value){
+    console.log(graphData)
     eventVariAntvChild.value.reRender(graphData);
   }
 });
