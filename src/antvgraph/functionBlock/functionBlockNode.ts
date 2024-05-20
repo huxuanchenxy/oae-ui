@@ -1,8 +1,7 @@
-import G6 from "@antv/g6";
+import G6, {Graph} from "@antv/g6";
 import type { FunctionBlock} from '@/api/functionBlock/type';
 import { v4 as uuidv4 } from 'uuid';
 let blockSide = 10;
-let graph;
 let sourceAnchorIdx, targetAnchorIdx;
 //得到上面事件的最大数量和下面参数的最大数量
 function getEventAndParamMaxNum(cfg) {
@@ -197,6 +196,20 @@ G6.registerNode("functionBlockShape", {
                 draggable: true,
             });
         });
+        console.log(11111,cfg.title)
+        group.addShape("text", {
+            attrs: {
+                width: 20,
+                height: 20,
+                x: -width/2+80 ,
+                y: -height/2,
+                text:cfg.title,
+                fill: "#666",
+                fontSize: 12,
+            },
+            // 在 G6 3.3 及之后的版本中，必须指定 name，可以是任意字符串，但需要在同一个自定义元素类型中保持唯一性
+            name: "title",
+        });
         return keyShape;
     },
     // 返回路径，如果事件大于等于5个，需要扩展高度，如果参数大于6个需要扩展高度。
@@ -306,7 +319,7 @@ G6.registerNode("functionBlockShape", {
 });
 
 export const initGraph=(()=> {
-    graph = new G6.Graph({
+    let graph = new G6.Graph({
         container: "container",
         width: 1300,
         height: 1500,
@@ -419,14 +432,15 @@ export const initGraph=(()=> {
     graph.on("node:dragout", (e) => {
         graph.setItemState(e.item, "showAnchors", false);
     });
+    return graph;
 });
 
 /**
  * 新建图形节点
  */
-export const createGraphNode=((functionBlock:FunctionBlock)=>{
+export const createGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
     const node={
-        id:uuidv4(),
+        id:+uuidv4(),
         type:'functionBlockShape',
         eventInput:functionBlock.inputEvents,
         eventOutput:functionBlock.outputEvents,
@@ -434,8 +448,10 @@ export const createGraphNode=((functionBlock:FunctionBlock)=>{
         paramOutput:functionBlock.outputVaris,
         x:functionBlock.x,
         y:functionBlock.y,
-        centerText:"Test.BFB1\nv0.1",
-        color:"red"
+        title:functionBlock.title,
+        centerText:functionBlock.centerText,
+        device:functionBlock.device,
+        color:"red",
     }
     graph.addItem('node',node)
 });
