@@ -20,17 +20,61 @@
     <el-tabs v-model="activeName" class="demo-tabs" >
       <el-tab-pane label="输入事件" name="inputEventTab">
         <div class="tab_table">
-          <el-table :data="inputEventList" style="width: 100%" height="150"  @selection-change="handleSelectionChangeInput">
+          <el-table :data="inputEventList" style="width: 100%" height="150" >
             <el-table-column type="selection" width="55"  prop="key"/>
             <el-table-column label="名称"  prop="text"/>
             <el-table-column label="映射事件" prop="text"/>
           </el-table>
         </div>
       </el-tab-pane>
-      <el-tab-pane label="输出事件" name="outputEventTab">Config</el-tab-pane>
-      <el-tab-pane label="输入变量" name="inputVariTab">Role</el-tab-pane>
-      <el-tab-pane label="输出变量" name="outputVariTab">Task</el-tab-pane>
-      <el-tab-pane label="内部变量" name="inVariTab">Task</el-tab-pane>
+      <el-tab-pane label="输出事件" name="outputEventTab">
+        <div class="tab_table">
+          <el-table :data="outputEventList" style="width: 100%" height="150">
+            <el-table-column type="selection" width="55"  prop="key"/>
+            <el-table-column label="名称"  prop="text"/>
+            <el-table-column label="映射事件" prop="text"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="输入变量" name="inputVariTab">
+        <div class="tab_table">
+          <el-table :data="inputVariList" style="width: 100%" height="150" >
+            <el-table-column type="selection" width="55"  prop="key"/>
+            <el-table-column label="名称"   width="100" prop="text"/>
+            <el-table-column label="关联事件" width="150"  prop="relateEveName"/>
+            <el-table-column label="类型" prop="type">
+              <template #default="scope">
+                <dict-tag :options="variType" :value="scope.row.type" />
+              </template>
+            </el-table-column>
+            <el-table-column label="映射变量" prop="comment"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="输出变量" name="outputVariTab">
+        <div class="tab_table">
+          <el-table :data="outputVariList" style="width: 100%" height="150" >
+            <el-table-column type="selection" width="55"  prop="key"/>
+            <el-table-column label="名称"   width="100" prop="text"/>
+            <el-table-column label="关联事件" width="150"  prop="relateEveName"/>
+            <el-table-column label="类型" prop="type">
+              <template #default="scope">
+                <dict-tag :options="variType" :value="scope.row.type" />
+              </template>
+            </el-table-column>
+            <el-table-column label="映射变量" prop="comment"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="内部变量" name="inVariTab">
+        <div class="table_in">
+          <el-table :data="inVariList" style="width: 100%" height="150">
+            <el-table-column type="selection" width="55"  prop="key"/>
+            <el-table-column label="名称"   width="100" prop="text"/>
+            <el-table-column label="映射变量" prop="comment"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
     </el-tabs>
     <template #footer>
       <div class="dialog-footer">
@@ -48,11 +92,21 @@ import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDr
 import {createGraphNode,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
 import type { FunctionBlock,FunctionBlockTree} from '@/api/functionBlock/type';
 import {getInputEvents,getOutputEvents} from "@/api/inter/event";
+import type { VariInputForm,VariOutputForm} from '@/api/inter/vari/type';
+import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
+import type { InVariForm} from '@/api/inter/invari/type';
 import { v4 as uuidv4 } from 'uuid';
-import type { EveInputForm,EveOutputForm} from '@/api/inter/event/type';
+import {getInVaris} from "@/api/inter/invari";
+import type { EveInputForm,EveOutputForm,EveInputVO,EveOutputVO} from '@/api/inter/event/type';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const inputEventList = ref<EveInputForm[]>([]);
+const outputEventList = ref<EveOutputForm[]>([]);
+const inVariList = ref<InVariForm[]>([]);
 const activeName = ref('inputEventTab')
+const { variType } = toRefs<any>(proxy?.useDict("variType"));
 let graph;
+const inputVariList = ref<VariInputForm[]>([]);
+const outputVariList = ref<VariOutputForm[]>([]);
 const project="project1";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
@@ -66,7 +120,7 @@ const defaultProps = {
   label: 'centerText',
 }
 
-const data: FunctionBlock[] = [
+const data: FunctionBlockTree[] = [
   {
     id: 1,
     title: 'title 1',
@@ -180,8 +234,46 @@ const handleDragEnd = (
 const submitAlgAndEventForm=(()=>{
   dialogAlgAndEvent.visible = false;
 });
+//加载输入变量数据
+const getVariInputList = () => {
+  inputVariList.value=getInputVaris(project,module);
+  inputVariList.value?.forEach(data => {
+    let relateEveName="";
+    let relatedEvents=data.relatedEvents
+    if(relatedEvents){
+      relatedEvents.forEach(eve => {
+        relateEveName+=eve.text+",";
+      });
+      relateEveName=relateEveName.substring(0,relateEveName.length-1);
+      data.relateEveName=relateEveName;
+    }
+  });
+}
+//加载输出变量数据
+const getVariOutputList = () => {
+  outputVariList.value=getOutputVaris(project,module);
+  outputVariList.value?.forEach(data => {
+    let relateEveName="";
+    let relatedEvents=data.relatedEvents
+    if(relatedEvents){
+      relatedEvents.forEach(eve => {
+        relateEveName+=eve.text+",";
+      });
+      relateEveName=relateEveName.substring(0,relateEveName.length-1);
+      data.relateEveName=relateEveName;
+    }
+  });
+}
+const getInVariList = () => {
+  inVariList.value=getInVaris(project,module);
+}
+//初始化事件和变量
 const initEveAndVariList = () => {
   inputEventList.value=getInputEvents(project,module);
+  outputEventList.value=getOutputEvents(project,module);
+  getVariInputList();
+  getVariOutputList();
+  getInVariList();
 }
 </script>
 <style scoped lang="scss">
