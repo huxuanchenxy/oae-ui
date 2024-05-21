@@ -44,6 +44,22 @@ G6.registerNode("functionBlockShape", {
             // 设置 draggable 以允许响应鼠标的图拽事件
             draggable: true,
         });
+        //这是rect底板，用于拖动和选中
+        group.addShape("rect", {
+            // attrs: style
+            attrs: {
+                width: width,
+                height: height,
+                x: -width / 2 ,
+                y:-height/2,
+                fill: "#666",
+                opacity:0 //要全透明，好像没有这个底板一样
+            },
+            // 在 G6 3.3 及之后的版本中，必须指定 name，可以是任意字符串，但需要在同一个自定义元素类型中保持唯一性
+            name: "all-shape" ,
+            // 设置 draggable 以允许响应鼠标的图拽事件
+            draggable: true,
+        });
         group.addShape("text", {
             // attrs: style
             attrs: {
@@ -332,6 +348,7 @@ export const initGraph=(()=> {
         },
         modes: {
             default: [
+                // 'drag-canvas',
                 // config the shouldBegin for drag-node to avoid node moving while dragging on the anchor-point circles
                 {
                     type: "drag-node",

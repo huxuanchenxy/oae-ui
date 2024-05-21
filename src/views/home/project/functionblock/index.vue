@@ -16,6 +16,29 @@
         allow-drag="true"
     />
   </div>
+  <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" append-to-body>
+    <el-tabs v-model="activeName" class="demo-tabs" >
+      <el-tab-pane label="输入事件" name="inputEventTab">
+        <div class="tab_table">
+          <el-table :data="inputEventList" style="width: 100%" height="150"  @selection-change="handleSelectionChangeInput">
+            <el-table-column type="selection" width="55"  prop="key"/>
+            <el-table-column label="名称"  prop="text"/>
+            <el-table-column label="映射事件" prop="text"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="输出事件" name="outputEventTab">Config</el-tab-pane>
+      <el-tab-pane label="输入变量" name="inputVariTab">Role</el-tab-pane>
+      <el-tab-pane label="输出变量" name="outputVariTab">Task</el-tab-pane>
+      <el-tab-pane label="内部变量" name="inVariTab">Task</el-tab-pane>
+    </el-tabs>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="primary" @click="submitAlgAndEventForm">确 定</el-button>
+        <el-button @click="cancelAlgAndEventDialog">取 消</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </div>
 </template>
 <script setup lang="ts">
@@ -24,9 +47,19 @@ import type Node from 'element-plus/es/components/tree/src/model/node'
 import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
 import {createGraphNode,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
 import type { FunctionBlock,FunctionBlockTree} from '@/api/functionBlock/type';
+import {getInputEvents,getOutputEvents} from "@/api/inter/event";
 import { v4 as uuidv4 } from 'uuid';
+import type { EveInputForm,EveOutputForm} from '@/api/inter/event/type';
+const inputEventList = ref<EveInputForm[]>([]);
+const activeName = ref('inputEventTab')
 let graph;
-const deviceSize=[50,25];
+const project="project1";
+// let module=route.params.id;
+ let module=4;//todo 后续改成route.params.id
+const dialogAlgAndEvent = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
 const treeRef = ref<InstanceType<typeof ElTree>>()
 const defaultProps = {
   children: 'children',
@@ -93,22 +126,27 @@ const data: FunctionBlock[] = [
     ],
   },
 ]
+const cancelAlgAndEventDialog = () => {
+  dialogAlgAndEvent.visible = false;
+}
 onMounted(() => {
-  graph=initGraph();
+  graph=initGraph();//初始化画布
+  initGraphEvent();//初始化画布事件
+  initData();//初始化数据
 });
-const addCombo=((functionBlock:FunctionBlock)=>{
+const initData=(()=>{
+  module=4;
+  initEveAndVariList();
+})
+const initGraphEvent=(()=>{
+  graph.on('node:dblclick', nodeDbClick);
+});
+const nodeDbClick=((evt)=>{
+  console.log(evt)
+  dialogAlgAndEvent.visible = true;
+});
+const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{
   createGraphNode(functionBlock,graph)
-  //再加设备矩形
-  // const node={
-  //   id:uuidv4(),
-  //   label: "",
-  //   x: x+10,
-  //   y: y+140,
-  //   size:deviceSize,
-  //   type: 'rect',
-  //   comboId:comboId
-  // }
-  // graph.addItem('node',node)
   //双向绑定更新
   //大JSON更新
 });
@@ -137,7 +175,13 @@ const handleDragEnd = (
     title:dropNode.data.title,
     device:dropNode.data.device
   }
-  addCombo(functionBlock)
+  addFunctionBlockNode(functionBlock)
+}
+const submitAlgAndEventForm=(()=>{
+  dialogAlgAndEvent.visible = false;
+});
+const initEveAndVariList = () => {
+  inputEventList.value=getInputEvents(project,module);
 }
 </script>
 <style scoped lang="scss">
