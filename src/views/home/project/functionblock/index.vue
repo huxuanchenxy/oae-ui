@@ -1,8 +1,6 @@
 <template>
 <div class="main">
-  <div class="left"  id="container" >
-
-  </div>
+  <div class="left"  id="container" ></div>
   <div class="right">
     <el-tree
         ref="treeRef"
@@ -19,16 +17,29 @@
   <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" append-to-body>
     <el-tabs v-model="activeName" class="demo-tabs" >
       <el-tab-pane label="输入事件" name="inputEventTab">
-        <div class="tab_table">
-          <el-table :data="inputEventList" style="width: 100%" height="150" >
-            <el-table-column type="selection" width="55"  prop="key"/>
-            <el-table-column label="名称"  prop="text"/>
-            <el-table-column label="映射事件" prop="text"/>
-          </el-table>
+        <div class="table_in">
+<!--          <el-table :data="inputEventList" style="width: 100%" height="150" >-->
+<!--            <el-table-column type="selection" width="55"  prop="key"/>-->
+<!--            <el-table-column label="名称"  prop="text"/>-->
+<!--            <el-table-column label="映射事件" prop="text"/>-->
+<!--          </el-table>-->
+          <vxe-table
+              border
+              show-overflow
+              :data="inputEventList"
+              :column-config="{resizable: true}"
+              :edit-config="{trigger: 'click', mode: 'cell'}">
+            <vxe-column type="seq" width="60"></vxe-column>
+            <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
+              <template #edit="{ row }">
+                <vxe-input v-model="row.text" type="text"></vxe-input>
+              </template>
+            </vxe-column>
+          </vxe-table>
         </div>
       </el-tab-pane>
       <el-tab-pane label="输出事件" name="outputEventTab">
-        <div class="tab_table">
+        <div class="table_in">
           <el-table :data="outputEventList" style="width: 100%" height="150">
             <el-table-column type="selection" width="55"  prop="key"/>
             <el-table-column label="名称"  prop="text"/>
@@ -37,7 +48,7 @@
         </div>
       </el-tab-pane>
       <el-tab-pane label="输入变量" name="inputVariTab">
-        <div class="tab_table">
+        <div class="table_in">
           <el-table :data="inputVariList" style="width: 100%" height="150" >
             <el-table-column type="selection" width="55"  prop="key"/>
             <el-table-column label="名称"   width="100" prop="text"/>
@@ -52,7 +63,7 @@
         </div>
       </el-tab-pane>
       <el-tab-pane label="输出变量" name="outputVariTab">
-        <div class="tab_table">
+        <div class="table_in">
           <el-table :data="outputVariList" style="width: 100%" height="150" >
             <el-table-column type="selection" width="55"  prop="key"/>
             <el-table-column label="名称"   width="100" prop="text"/>
@@ -275,6 +286,10 @@ const initEveAndVariList = () => {
   getVariOutputList();
   getInVariList();
 }
+
+
+
+//---------------------
 </script>
 <style scoped lang="scss">
   .main{

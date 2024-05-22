@@ -6,6 +6,8 @@ import '@/assets/iconfont/iconfont.js';
 import 'animate.css'
 import App from './App.vue'
 import router from './router'
+import VXETable from 'vxe-table'
+import 'vxe-table/lib/style.css'
 // import 'default-passive-events'
 //import 'element-plus/theme-chalk/el-loading.css'; 
 import ElementPlus from 'element-plus'
@@ -32,6 +34,7 @@ app.use(ElementIcons);
 app.use(router);
 app.use(store);
 app.use(plugins);
+app.use(VXETable)
 app.mount('#app')
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)

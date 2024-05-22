@@ -11,6 +11,8 @@ declare module '@vue/runtime-core' {
     BottomContent: typeof import('./../components/bottomContent/BottomContent.vue')['default']
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
     DictTag: typeof import('./../components/DictTag/index.vue')['default']
+    EditTable: typeof import('./../components/edittable/EditTable.vue')['default']
+    EditTableColumn: typeof import('./../components/edittable/EditTableColumn.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
