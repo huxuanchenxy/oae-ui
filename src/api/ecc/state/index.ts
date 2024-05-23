@@ -1,5 +1,4 @@
 //参数加上项目和模块以提高查找效率
-import  cache  from "@/plugins/cache.ts";
 import {getCurrentObj,changeData}  from "@/utils/cache/common";
 import {StateMachine} from "./types";
 const prefEvent="event";

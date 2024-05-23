@@ -1,25 +1,27 @@
 export interface FunctionBlock {
-    id:string
+    raw_id:string
     title:string,
     centerText:string,
     device:string,
-    inputEvents:string[],
-    outputEvents:string[],
-    inputVaris:string[],
-    outputVaris:string[],
+    input_events:string[],
+    output_events:string[],
+    inputs:string[],
+    outputs:string[],
+    internals:string[],
     x:number,
     y:number,
 }
 
 export interface FunctionBlockTree {
-    id:string,
+    raw_id:string,
     title:string,
     centerText:string,
     device:string,
-    inputEvents:string[],
-    outputEvents:string[],
-    inputVaris:string[],
-    outputVaris:string[],
+    input_events:string[],
+    output_events:string[],
+    inputs:string[],
+    outputs:string[],
+    internals:string[],
     x:number,
     y:number,
     children?: FunctionBlockTree[]

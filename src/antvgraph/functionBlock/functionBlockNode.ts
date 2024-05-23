@@ -457,12 +457,12 @@ export const initGraph=(()=> {
  */
 export const createGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
     const node={
-        id:+uuidv4(),
+        id:uuidv4(),
         type:'functionBlockShape',
-        eventInput:functionBlock.inputEvents,
-        eventOutput:functionBlock.outputEvents,
-        paramInput:functionBlock.inputVaris,
-        paramOutput:functionBlock.outputVaris,
+        eventInput:functionBlock.input_events,
+        eventOutput:functionBlock.output_events,
+        paramInput:functionBlock.inputs,
+        paramOutput:functionBlock.outputs,
         x:functionBlock.x,
         y:functionBlock.y,
         title:functionBlock.title,

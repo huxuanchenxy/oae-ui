@@ -40,11 +40,24 @@
       </el-tab-pane>
       <el-tab-pane label="输出事件" name="outputEventTab">
         <div class="table_in">
-          <el-table :data="outputEventList" style="width: 100%" height="150">
-            <el-table-column type="selection" width="55"  prop="key"/>
-            <el-table-column label="名称"  prop="text"/>
-            <el-table-column label="映射事件" prop="text"/>
-          </el-table>
+<!--          <el-table :data="outputEventList" style="width: 100%" height="150">-->
+<!--            <el-table-column type="selection" width="55"  prop="key"/>-->
+<!--            <el-table-column label="名称"  prop="text"/>-->
+<!--            <el-table-column label="映射事件" prop="text"/>-->
+<!--          </el-table>-->
+          <vxe-table
+              border
+              show-overflow
+              :data="outputEventList"
+              :column-config="{resizable: true}"
+              :edit-config="{trigger: 'click', mode: 'cell'}">
+            <vxe-column type="seq" width="60"></vxe-column>
+            <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
+              <template #edit="{ row }">
+                <vxe-input v-model="row.text" type="text"></vxe-input>
+              </template>
+            </vxe-column>
+          </vxe-table>
         </div>
       </el-tab-pane>
       <el-tab-pane label="输入变量" name="inputVariTab">
@@ -109,6 +122,7 @@ import type { InVariForm} from '@/api/inter/invari/type';
 import { v4 as uuidv4 } from 'uuid';
 import {getInVaris} from "@/api/inter/invari";
 import type { EveInputForm,EveOutputForm,EveInputVO,EveOutputVO} from '@/api/inter/event/type';
+import  cache  from "@/plugins/cache.ts";
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const inputEventList = ref<EveInputForm[]>([]);
 const outputEventList = ref<EveOutputForm[]>([]);
@@ -121,6 +135,8 @@ const outputVariList = ref<VariOutputForm[]>([]);
 const project="project1";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
+const cacheKey="graph_fbbs";
+let graphCacheKey=cacheKey+"-"+project+"-"+module;
 const dialogAlgAndEvent = reactive<DialogOption>({
   visible: false,
   title: ''
@@ -194,20 +210,11 @@ const data: FunctionBlockTree[] = [
 const cancelAlgAndEventDialog = () => {
   dialogAlgAndEvent.visible = false;
 }
-onMounted(() => {
-  graph=initGraph();//初始化画布
-  initGraphEvent();//初始化画布事件
-  initData();//初始化数据
-});
-const initData=(()=>{
-  module=4;
-  initEveAndVariList();
-})
+
 const initGraphEvent=(()=>{
   graph.on('node:dblclick', nodeDbClick);
 });
 const nodeDbClick=((evt)=>{
-  console.log(evt)
   dialogAlgAndEvent.visible = true;
 });
 const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{
@@ -230,10 +237,10 @@ const handleDragEnd = (
 ) => {
   //先加功能块
   let functionBlock:FunctionBlock={
-    inputEvents:['inputevent1'],
-    outputEvents:['outputevent1'],
-    inputVaris:['inputvari1'],
-    outputVaris:['outputvari2'],
+    input_events:['inputevent1'],
+    output_events:['outputevent1'],
+    inputs:['inputvari1'],
+    outputs:['outputvari2'],
     x:ev.x,
     y:ev.y,
     centerText:dropNode.data.label,
@@ -243,6 +250,7 @@ const handleDragEnd = (
   addFunctionBlockNode(functionBlock)
 }
 const submitAlgAndEventForm=(()=>{
+  //双向绑定变量vxe自动做好了,只需要作更新graph和更新大JSON的动作就好了
   dialogAlgAndEvent.visible = false;
 });
 //加载输入变量数据
@@ -279,17 +287,38 @@ const getInVariList = () => {
   inVariList.value=getInVaris(project,module);
 }
 //初始化事件和变量
-const initEveAndVariList = () => {
+const initSystemEveAndVariList = () => {
   inputEventList.value=getInputEvents(project,module);
   outputEventList.value=getOutputEvents(project,module);
   getVariInputList();
   getVariOutputList();
   getInVariList();
 }
-
-
-
-//---------------------
+const saveDataToServer=()=>{
+  const data = graph.save(); // 获取图实例的数据
+  cache.local.setJSON(graphCacheKey,data);
+}
+/**
+ * 重新加载图数据
+ */
+const changeGraphData=(()=>{
+  if(graph){
+    graph.destroy();
+  }
+  const graphData=cache.local.getJSON(graphCacheKey)
+  graph.data(graphData);
+  graph.render();
+})
+onMounted(() => {
+  graph=initGraph();//初始化画布
+  initGraphEvent();//初始化画布事件
+  changeGraphData();//加载图像
+  initData();//初始化基础数据
+});
+const initData=(()=>{
+  module=4;
+  initSystemEveAndVariList();
+})
 </script>
 <style scoped lang="scss">
   .main{
