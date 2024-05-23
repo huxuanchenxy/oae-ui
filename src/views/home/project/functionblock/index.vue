@@ -4,7 +4,7 @@
   <div class="right">
     <el-tree
         ref="treeRef"
-        style="max-width: 600px"
+        style="max-width: 200px"
         :data="data"
         default-expand-all
         node-key="id"
@@ -248,6 +248,7 @@ const handleDragEnd = (
     device:dropNode.data.device
   }
   addFunctionBlockNode(functionBlock)
+  saveDataToServer();
 }
 const submitAlgAndEventForm=(()=>{
   //双向绑定变量vxe自动做好了,只需要作更新graph和更新大JSON的动作就好了
@@ -302,17 +303,16 @@ const saveDataToServer=()=>{
  * 重新加载图数据
  */
 const changeGraphData=(()=>{
-  if(graph){
-    graph.destroy();
-  }
   const graphData=cache.local.getJSON(graphCacheKey)
-  graph.data(graphData);
-  graph.render();
+  if (graphData){
+    graph.data(graphData);
+    graph.render();
+  }
 })
 onMounted(() => {
   graph=initGraph();//初始化画布
-  initGraphEvent();//初始化画布事件
   changeGraphData();//加载图像
+  initGraphEvent();//初始化画布事件
   initData();//初始化基础数据
 });
 const initData=(()=>{
@@ -325,8 +325,12 @@ const initData=(()=>{
     height:1500px;
     display: flex;
     .left{
-      width: 800px;
+      flex:0.8;
+      width: 1800px;
       border: 1px solid red;
+    }
+    .right{
+      flex:0.2
     }
   }
 </style>

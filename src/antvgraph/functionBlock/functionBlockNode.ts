@@ -212,7 +212,6 @@ G6.registerNode("functionBlockShape", {
                 draggable: true,
             });
         });
-        console.log(11111,cfg.title)
         group.addShape("text", {
             attrs: {
                 width: 20,
