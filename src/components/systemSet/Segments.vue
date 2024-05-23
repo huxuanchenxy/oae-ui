@@ -64,7 +64,7 @@
                 <span class="iconfont">&#xe6a2;</span><span>保存</span>
               </el-button>
             </div>
-            <el-table :data="tableData" style="width: 100%" max-height="690">
+            <el-table :data="tableData" id="eltable" style="width: 100%" max-height="690">
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
               <el-table-column prop="name" label="字段名称"> </el-table-column>
@@ -80,7 +80,7 @@
                 <template #default="{ row }">
                   <el-input
                     v-if="
-                      row?.initialValue &&
+                      row.initialValue !=null && 
                       (row.option == '' || row.option == null)
                     "
                     v-model="row.initialValue"
@@ -97,7 +97,7 @@
                     v-if="row.option != '' && row.option != null"
                     v-model="row.initialValue"
                     placeholder="请选择"
-                    size="small"
+                    
                     style="width: 120px"
                   >
                     <el-option
@@ -124,7 +124,7 @@
           <el-tab-pane label="支持的终端设备">
             <el-button @click="addDevices">添加支持的终端设备</el-button>
 
-            <el-table :data="tableDataDevice" style="width: 100%">
+            <el-table  :data="tableDataDevice" style="width: 100%">
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
               <el-table-column
@@ -601,5 +601,8 @@ const saveDeviceList = () => {
   border-radius: 5px;
   margin-right: 10px;
   overflow: hidden;
+}
+.right #eltable .el-input__wrapper {
+  box-shadow: 0 0 0 1px #444549 inset;
 }
 </style>

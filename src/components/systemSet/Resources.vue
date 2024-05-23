@@ -48,7 +48,9 @@
       <div class="right">
         <el-tabs
           type="border-card"
-          v-show="currentData?.jsonContent != ''   && currentData?.jsonContent != null"
+          v-show="
+            currentData?.jsonContent != '' && currentData?.jsonContent != null
+          "
           style="max-height: 700px; overflow: hidden"
         >
           <el-tab-pane label="基本信息">
@@ -63,6 +65,7 @@
               </el-button>
             </div>
             <el-table
+              id="eltable"
               :data="tableData"
               max-height="690"
               style="width: 100%"
@@ -84,7 +87,7 @@
                 <template #default="{ row }">
                   <el-input
                     v-if="
-                      row?.initialValue &&
+                      row.initialValue != null &&
                       (row.option == '' || row.option == null)
                     "
                     v-model="row.initialValue"
@@ -101,7 +104,6 @@
                     v-if="row.option != '' && row.option != null"
                     v-model="row.initialValue"
                     placeholder="请选择"
-                    size="small"
                     style="width: 120px"
                   >
                     <el-option
@@ -550,5 +552,9 @@ onBeforeMount(() => {
   border-radius: 5px;
   margin-right: 10px;
   overflow: hidden;
+}
+
+.right #eltable .el-input__wrapper {
+  box-shadow: 0 0 0 1px #444549 inset;
 }
 </style>
