@@ -61,7 +61,7 @@
   </el-aside>
   <div
     :style="dyStyle.rightPop"
-    v-show="popStatus"
+    v-show="popStatus && currentData.operation?.includes('right')"
     @mouseleave="popStatus = false"
   >
     <div
@@ -103,7 +103,10 @@
           >删除</el-link
         >
       </div>
-      <div style="text-align: center; padding: 10px">
+      <div
+        v-show="currentData.operation?.includes('rename')"
+        style="text-align: center; padding: 10px"
+      >
         <el-link type="primary" @click="renameAlgorithm(currentData)"
           >重命名</el-link
         >
@@ -167,6 +170,15 @@
       </div>
     </template>
   </el-dialog>
+
+  <Segments v-if="segmentsObj.status" v-model="segmentsObj"></Segments>
+  <Devices v-if="devicesObj.status" v-model="devicesObj"></Devices>
+  <Controls v-if="controlsObj.status" v-model="controlsObj"></Controls>
+  <Resources v-if="resourcesObj.status" v-model="resourcesObj"></Resources>
+  <ResourceFuncs
+    v-if="resourcefuncsObj.status"
+    v-model="resourcefuncsObj"
+  ></ResourceFuncs>
 </template>
 
 <script setup>
@@ -184,11 +196,14 @@ import {
 import cache from "@/plugins/cache.ts";
 import { reactive, ref } from "vue";
 import { commonStore } from "@/store/commonStore.js";
+import Segments from "@/components/systemSet/Segments.vue";
+import Devices from "@/components/systemSet/Devices.vue";
+import Controls from "@/components/systemSet/Controls.vue";
+import Resources from "@/components/systemSet/Resources.vue";
+import ResourceFuncs from "@/components/systemSet/ResourceFuncs.vue";
 const commonstore = commonStore();
 const tagsStore = pagetagsStore();
-//let defaultOpeneds = ref([]);
-//let leftX = ref(10);
-//let topY = ref(10);
+
 let popStatus = ref(false);
 let dialogVisible = ref(false);
 let dialogModuleVisible = ref(false);
@@ -274,6 +289,21 @@ const curFuncList = ref([]);
 const listOneFuncList = ref([]);
 const project = "project1";
 const cacheKey = "json";
+let segmentsObj = ref({
+  status: false,
+});
+let devicesObj = ref({
+  status: false,
+});
+let resourcesObj = ref({
+  status: false,
+});
+let controlsObj = ref({
+  status: false,
+});
+let resourcefuncsObj = ref({
+  status: false,
+});
 const customNodeClass = (data, node) => {
   //console.log("cusNodeClass:::", data);
   if (data.isPenultimate) {
@@ -315,8 +345,19 @@ let curNode = ref();
 let curData = ref();
 
 const handleNodeClick = async (data) => {
+  //console.log("handleNodeClick******", data);
   queryData(listOneFuncList.value);
-  if (data.funcUrl) {
+  if (data.funcName == "网络段管理") {
+    segmentsObj.value.status = true;
+  } else if (data.funcName == "终端设备管理") {
+    devicesObj.value.status = true;
+  } else if (data.funcName == "控制器管理") {
+    controlsObj.value.status = true;
+  } else if (data.funcName == "控制器资源管理") {
+    resourcesObj.value.status = true;
+  } else if (data.funcName == "控制器资源功能块管理") {
+    resourcefuncsObj.value.status = true;
+  } else if (data.funcUrl) {
     data.isPenultimate = true;
     const curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
     let path = data.funcUrl;
@@ -346,7 +387,7 @@ const handleNodeClick = async (data) => {
       getModuleData(id, data.funcUrl);
     } else {
       //router.push({ path: data.funcUrl });
-      console.log("data.funcUrl", data.funcUrl);
+      //console.log("data.funcUrl", data.funcUrl);
       router.push(data.funcUrl);
     }
   }
@@ -375,7 +416,7 @@ const showContextMenu = (e, data, node, n) => {
     dyStyle.rightPop.left = e.x + "px";
     popStatus.value = true;
     currentData = data;
-    // console.log(currentData)
+    //console.log("currentData:::", currentData);
     let url = currentData.funcUrl;
     if (url === "") {
       var ppObj = curFuncList.value.find((x) => x.id == data.funcParentId);

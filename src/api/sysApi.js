@@ -46,5 +46,61 @@ export default {
     saveAll: params => {
         return axios.post(`${baseUrl}/Module/SaveModule`,
             params).then(res => res)
-    }
+    },
+    getSegmentsList: () => {
+        return axios.get(`${baseUrl}/Sys/GetSegmentsList`).then(res => res.data)
+    },
+    validateSegmentsName: params => {
+        return axios.get(`${baseUrl}/Sys/ValidateSegmentsName`, {
+            params
+        })
+    },
+    addSegments: (params) => {
+        return axios.post(`${baseUrl}/Sys/SaveSegments`, params).then(res => res.data)
+    },
+
+    getDevicesList: () => {
+        return axios.get(`${baseUrl}/Sys/GetDevicesList`).then(res => res.data)
+    },
+    validateDevicesName: params => {
+        return axios.get(`${baseUrl}/Sys/ValidateDevicesName`, {
+            params
+        })
+    },
+    addDevices: (params) => {
+        return axios.post(`${baseUrl}/Sys/SaveDevices`, params).then(res => res.data)
+    },
+    getControlsList: () => {
+        return axios.get(`${baseUrl}/Sys/GetControlsList`).then(res => res.data)
+    },
+    validateControlsName: params => {
+        return axios.get(`${baseUrl}/Sys/ValidateControlsName`, {
+            params
+        })
+    },
+    addControls: (params) => {
+        return axios.post(`${baseUrl}/Sys/SaveControls`, params).then(res => res.data)
+    },
+    getResourcesList: () => {
+        return axios.get(`${baseUrl}/Sys/GetResourceList`).then(res => res.data)
+    },
+    addResources: (params) => {
+        return axios.post(`${baseUrl}/Sys/SaveResource`, params).then(res => res.data)
+    },
+    getResourceFuncsList: () => {
+        return axios.get(`${baseUrl}/Sys/GetResourceFuncList`).then(res => res.data)
+    },
+
+    addSegDev: (params) => {
+        return axios.post(`${baseUrl}/Sys/SaveSegmentDevice`, params).then(res => res.data)
+    },
+    getSegDevList: (params) => {
+        return axios.get(`${baseUrl}/Sys/GetSegmentDeviceList`, {
+            params
+        }).then(res => res.data)
+    },
+    getAllDevicesList: () => {
+        return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
+    },
+
 }
