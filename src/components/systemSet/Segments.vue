@@ -329,7 +329,10 @@ const handleNodeClick = async (data) => {
     //console.log("objJsonContent",objJsonContent);
     let objNew = {
       name: "SegmentType Name",
-      displayName: objJsonContent?.DisplayName,
+      displayName:
+        objJsonContent.DisplayName == null
+          ? objJsonContent.DisplayName
+          : objJsonContent.Name,
       type: "",
       arraySize: "",
       option: "",
@@ -353,7 +356,7 @@ const handleNodeClick = async (data) => {
       }
       objNew = {
         name: arr.Name,
-        displayName: arr?.DisplayName,
+        displayName: arr.DisplayName==null? arr.Name: arr.DisplayName,
         type: arr.Type,
         arraySize: arr.ArraySize,
         option: arr.Option,

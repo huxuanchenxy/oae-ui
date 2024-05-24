@@ -29,7 +29,7 @@
           @node-contextmenu="showContextMenu"
         >
           <template #default="{ node, data }">
-            <i v-show="data.funcLevelId == 5" class="algorithm-icon">{{
+            <i v-show="data.funcLevelId == 6" class="algorithm-icon">{{
               data.type
             }}</i>
             <el-input
@@ -64,40 +64,45 @@
     v-show="popStatus && currentData.operation?.includes('right')"
     @mouseleave="popStatus = false"
   >
-    <div
-      style="text-align: center; padding: 10px"  
-    >
+    <div style="text-align: center; padding: 10px">
       <el-link
         type="primary"
-        v-show="currentData.funcName === '算法'"
+        v-show="
+          currentData.operation?.includes('new') &&
+          currentData.operationType === 'algorithm'
+        "
         @click="dialogVisible = true"
         >新建</el-link
       >
       <el-link
         type="primary"
-        v-show="currentData.funcLevelId === 3"
+        v-show="
+          currentData.operation?.includes('new') &&
+          currentData.operationType === 'bfb'
+        "
         @click="dialogModuleVisible = true"
         >新建</el-link
       >
     </div>
-    <div
-      v-show="currentData.funcLevelId === 4 || currentData.funcLevelId === 5"
-    >
+    <div v-show="currentData.operation?.includes('open')">
       <div style="text-align: center; padding: 10px">
         <el-link type="primary" @click="handleNodeClick(currentData)"
           >打开</el-link
         >
       </div>
-      <div style="text-align: center; padding: 10px">
+      <div
+        v-show="currentData.operation?.includes('del')"
+        style="text-align: center; padding: 10px"
+      >
         <el-link
           type="primary"
-          v-show="currentData.funcLevelId === 5"
+          v-show="currentData.operationType == 'algorithm'"
           @click="delAlgorithm(currentData)"
           >删除</el-link
         >
         <el-link
+          v-show="currentData.operationType == 'module'"
           type="primary"
-          v-show="currentData.funcLevelId === 3"
           @click="delModule(currentData)"
           >删除</el-link
         >
@@ -106,7 +111,10 @@
         v-show="currentData.operation?.includes('rename')"
         style="text-align: center; padding: 10px"
       >
-        <el-link type="primary" @click="renameAlgorithm(currentData)"
+        <el-link
+          type="primary"
+          v-show="currentData.operationType == 'algorithm'"
+          @click="renameAlgorithm(currentData)"
           >重命名</el-link
         >
       </div>
@@ -328,7 +336,7 @@ const processMenuData = (list) => {
     if (isExistFlag) {
       //defaultOpeneds.value.push(l.funcUrl);
       let childList = curFuncList.value.filter((obj) => {
-        return obj.funcParentId == l.id //&& obj.funcLevelId == l.funcLevelId + 1;
+        return obj.funcParentId == l.id; //&& obj.funcLevelId == l.funcLevelId + 1;
       });
       if (childList) {
         l.child = childList;

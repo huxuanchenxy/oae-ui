@@ -80,7 +80,10 @@
               </el-upload>
 
               <el-image
+                v-if="uploadImgPath.value"
                 style="margin-left: 10px; width: 25px; height: 25px"
+                :preview-src-list="[uploadImgPath]"
+                :preview-teleported="true"
                 :src="uploadImgPath"
                 :fit="fit"
               />
@@ -313,7 +316,10 @@ const handleNodeClick = async (data) => {
     //console.log("objJsonContent", objJsonContent);
     let objNew = {
       name: "DeviceType",
-      displayName: objJsonContent?.DisplayName,
+      displayName:
+        objJsonContent.DisplayName == null
+          ? objJsonContent.Name
+          : objJsonContent.DisplayName,
       type: "",
       arraySize: "",
       option: "",
@@ -336,7 +342,7 @@ const handleNodeClick = async (data) => {
       }
       objNew = {
         name: arr.Name,
-        displayName: arr?.DisplayName,
+        displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
         type: arr.Type,
         arraySize: arr.ArraySize,
         option: arr.Option,
@@ -374,7 +380,7 @@ const handleNodeClick = async (data) => {
           }
           let childObjNew = {
             name: arr.Name,
-            displayName: arr?.DisplayName,
+            displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
             type: arr.Type,
             arraySize: arr.ArraySize,
             option: arr.Option,
@@ -427,18 +433,18 @@ const handleTemplateSuccess = (res) => {
   }
 };
 let uploadImgPath = ref("");
-  let uploadImgName = ref("");
-  const ImageUrlFilter = computed(() => (item) => {
+let uploadImgName = ref("");
+const ImageUrlFilter = computed(() => (item) => {
   return `${baseUrl}/${item}`;
 });
 const handleUploadImgSuccess = (res) => {
   if (res.isSuccess) {
     ElMsg(res.message);
-    console.log(
-      res,
-      `${baseUrl}/${res.data.linkFilePath}`,
-      res.data.sourceFileName
-    );
+    // console.log(
+    //   res,
+    //   `${baseUrl}/${res.data.linkFilePath}`,
+    //   res.data.sourceFileName
+    // );
     uploadImgPath.value = `${baseUrl}/${res.data.linkFilePath}`;
     uploadImgName.value = res.data.sourceFileName;
     // sysApi.getControlsList().then((res1) => {
