@@ -65,8 +65,7 @@
     @mouseleave="popStatus = false"
   >
     <div
-      style="text-align: center; padding: 10px"
-      v-show="currentData.funcLevelId === 2 || currentData.funcName === '算法'"
+      style="text-align: center; padding: 10px"  
     >
       <el-link
         type="primary"
@@ -76,13 +75,13 @@
       >
       <el-link
         type="primary"
-        v-show="currentData.funcLevelId === 2"
+        v-show="currentData.funcLevelId === 3"
         @click="dialogModuleVisible = true"
         >新建</el-link
       >
     </div>
     <div
-      v-show="currentData.funcLevelId === 3 || currentData.funcLevelId === 5"
+      v-show="currentData.funcLevelId === 4 || currentData.funcLevelId === 5"
     >
       <div style="text-align: center; padding: 10px">
         <el-link type="primary" @click="handleNodeClick(currentData)"
@@ -319,17 +318,17 @@ const defaultProps = {
 
 const processMenuData = (list) => {
   list.forEach((l) => {
-    let curLevel = l.funcLevelId + 1;
+    //let curLevel = l.funcLevelId + 1;
     // if (l.funcUrl != "" && l.funcParentId) {
     //   l.funcUrl = `${l.funcUrl}/${l.funcParentId}/${l.id}`;
     // }
     let isExistFlag = curFuncList.value.some(
-      (t) => t.funcParentId == l.id && t.funcLevelId == curLevel
+      (t) => t.funcParentId == l.id //&& t.funcLevelId == curLevel
     );
     if (isExistFlag) {
       //defaultOpeneds.value.push(l.funcUrl);
       let childList = curFuncList.value.filter((obj) => {
-        return obj.funcParentId == l.id && obj.funcLevelId == l.funcLevelId + 1;
+        return obj.funcParentId == l.id //&& obj.funcLevelId == l.funcLevelId + 1;
       });
       if (childList) {
         l.child = childList;

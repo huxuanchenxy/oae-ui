@@ -54,12 +54,13 @@
           style="max-height: 700px; overflow: hidden"
         >
           <el-tab-pane label="基本信息">
-            <div>
+            <div style="display: flex; margin-bottom: 15px">
               <el-button
                 type="primary"
                 :plain="false"
                 size="small"
                 @click="saveBase()"
+                style="margin-right: 10px"
               >
                 <span class="iconfont">&#xe6a2;</span><span>保存</span>
               </el-button>
@@ -67,15 +68,24 @@
               <el-upload
                 v-model:file-list="fileTemplateList"
                 :action="actionUploadUrl"
-                :data="uploadData"
-                accept=".dev"
+                :data="uploadDataImg"
+                accept=".jpg,.jpge,.png"
                 :on-change="handleOnChange"
-                :on-success="handleTemplateSuccess"
+                :on-success="handleUploadImgSuccess"
                 :show-file-list="false"
               >
-                <el-link type="primary" :plain="true">上传数据</el-link>
+                <el-button type="primary" size="small" :plain="false"
+                  >上传图标</el-button
+                >
               </el-upload>
+
+              <el-image
+                style="margin-left: 10px; width: 25px; height: 25px"
+                :src="uploadImgPath"
+                :fit="fit"
+              />
             </div>
+
             <el-table
               id="eltable"
               :data="tableData"
@@ -226,7 +236,12 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `control,${currentData.value.id}`,
+    types: `control,${currentData.value.id},.dev`,
+  };
+});
+const uploadDataImg = computed(() => {
+  return {
+    types: `control,${currentData.value.id},.dev,img`,
   };
 });
 const fileTemplateList = ref([]);
@@ -411,6 +426,29 @@ const handleTemplateSuccess = (res) => {
     ElMsg(res.message, "error");
   }
 };
+let uploadImgPath = ref("");
+  let uploadImgName = ref("");
+  const ImageUrlFilter = computed(() => (item) => {
+  return `${baseUrl}/${item}`;
+});
+const handleUploadImgSuccess = (res) => {
+  if (res.isSuccess) {
+    ElMsg(res.message);
+    console.log(
+      res,
+      `${baseUrl}/${res.data.linkFilePath}`,
+      res.data.sourceFileName
+    );
+    uploadImgPath.value = `${baseUrl}/${res.data.linkFilePath}`;
+    uploadImgName.value = res.data.sourceFileName;
+    // sysApi.getControlsList().then((res1) => {
+    //   let list = res1;
+    //   loadData(list);
+    // });
+  } else {
+    ElMsg(res.message, "error");
+  }
+};
 
 const handleOnChange = (file, fileList) => {
   let cusLoading = CusElLoading();
@@ -550,10 +588,10 @@ onBeforeMount(() => {
   color: #4290f7;
   font-weight: bold;
 }
-#segTree .is-penultimate > .el-tree-node__content .el-tree-node__label {
-  /* padding: 5px;
-    background: #4290f7; */
-}
+/* #segTree .is-penultimate > .el-tree-node__content .el-tree-node__label {
+  padding: 5px;
+    background: #4290f7;  
+} */
 
 .right {
   flex: 4;

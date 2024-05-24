@@ -214,7 +214,7 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `dev,${currentData.value.id}`,
+    types: `dev,${currentData.value.id},.dev`,
   };
 });
 const fileTemplateList = ref([]);

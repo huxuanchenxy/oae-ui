@@ -214,7 +214,7 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `resource,${currentData.value.id}`,
+    types: `resource,${currentData.value.id},.res`,
   };
 });
 const fileTemplateList = ref([]);
@@ -529,7 +529,7 @@ onBeforeMount(() => {
   background-color: #fff;
   margin-right: 10px;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  border-radius: 5px;
+  /* border-radius: 5px; */
   overflow: auto;
 }
 #segTree {
@@ -549,7 +549,7 @@ onBeforeMount(() => {
   flex: 4;
   background-color: #fff;
   box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4);
-  border-radius: 5px;
+  /* border-radius: 5px; */
   margin-right: 10px;
   overflow: hidden;
 }

@@ -62,7 +62,7 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `resourcefunc,0`,
+    types: `resourcefunc,0,.fbt`,
   };
 });
 const fileTemplateList = ref([]);

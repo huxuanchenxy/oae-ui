@@ -64,7 +64,12 @@
                 <span class="iconfont">&#xe6a2;</span><span>保存</span>
               </el-button>
             </div>
-            <el-table :data="tableData" id="eltable" style="width: 100%" max-height="690">
+            <el-table
+              :data="tableData"
+              id="eltable"
+              style="width: 100%"
+              max-height="690"
+            >
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
               <el-table-column prop="name" label="字段名称"> </el-table-column>
@@ -80,7 +85,7 @@
                 <template #default="{ row }">
                   <el-input
                     v-if="
-                      row.initialValue !=null && 
+                      row.initialValue != null &&
                       (row.option == '' || row.option == null)
                     "
                     v-model="row.initialValue"
@@ -97,7 +102,6 @@
                     v-if="row.option != '' && row.option != null"
                     v-model="row.initialValue"
                     placeholder="请选择"
-                    
                     style="width: 120px"
                   >
                     <el-option
@@ -124,7 +128,7 @@
           <el-tab-pane label="支持的终端设备">
             <el-button @click="addDevices">添加支持的终端设备</el-button>
 
-            <el-table  :data="tableDataDevice" style="width: 100%">
+            <el-table :data="tableDataDevice" style="width: 100%">
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
               <el-table-column
@@ -247,7 +251,7 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `seg,${currentData.value.id}`,
+    types: `seg,${currentData.value.id},.seg`,
   };
 });
 const fileTemplateList = ref([]);

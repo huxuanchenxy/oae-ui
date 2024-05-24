@@ -69,6 +69,19 @@ const routes = [{
                 component: () =>
                     import ('../views/home/project/module/Module.vue'),
             },
+            {
+                "path": "/deploymentplan",
+                "name": "deploymentplan",
+
+                component: () =>
+                    import ('../views/home/project/Deploymentplan.vue'),
+            },
+            {
+                "path": "/applications",
+                "name": "applications",
+                component: () =>
+                    import ('../views/home/project/Applications.vue'),
+            },
         ]
     },
     {
