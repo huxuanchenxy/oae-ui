@@ -54,15 +54,42 @@
           style="max-height: 700px; overflow: hidden"
         >
           <el-tab-pane label="基本信息">
-            <div>
+            <div style="display: flex; margin-bottom: 15px">
               <el-button
                 type="primary"
                 :plain="false"
                 size="small"
                 @click="saveBase()"
+                style="margin-right: 10px"
               >
                 <span class="iconfont">&#xe6a2;</span><span>保存</span>
               </el-button>
+
+              <el-upload
+                v-model:file-list="fileTemplateList"
+                :action="actionUploadUrl"
+                :data="uploadDataImg"
+                accept=".jpg,.jpge,.png"
+                :on-change="handleOnChange"
+                :on-success="handleUploadImgSuccess"
+                :show-file-list="false"
+              >
+                <el-button type="primary" size="small" :plain="false"
+                  >上传图标</el-button
+                >
+              </el-upload>
+
+              <el-image
+                v-if="uploadImgPath"
+                title="点击查看"
+                alt="点击查看"
+                style="margin-left: 10px; width: 25px; height: 25px"
+                :preview-src-list="[uploadImgPath]"
+                :preview-teleported="true"
+                :src="uploadImgPath"
+                :fit="fill"
+                :hide-on-click-modal="true"
+              />
             </div>
             <el-table
               id="eltable"
@@ -217,6 +244,11 @@ const uploadData = computed(() => {
     types: `dev,${currentData.value.id},.dev`,
   };
 });
+const uploadDataImg = computed(() => {
+  return {
+    types: `dev,${currentData.value.id},.dev,img`,
+  };
+});
 const fileTemplateList = ref([]);
 let segList = ref([]);
 let segLevelList = ref([]);
@@ -279,6 +311,11 @@ const handleNodeClick = async (data) => {
   queryData(segLevelList.value);
   data.isPenultimate = true;
   currentData.value = data;
+  if (data.images) {
+    uploadImgPath.value = `${baseUrl}/devimgs/${data.images}`;
+  } else {
+    uploadImgPath.value = "";
+  }
   tableData.value = [];
   if (data.jsonContent) {
     //console.log("----", data.jsonContent);
@@ -402,7 +439,26 @@ const handleTemplateSuccess = (res) => {
     ElMsg(res.message, "error");
   }
 };
-
+let uploadImgPath = ref("");
+const handleUploadImgSuccess = (res) => {
+  if (res.isSuccess) {
+    ElMsg(res.message);
+    // console.log(
+    //   res,
+    //   `${baseUrl}/${res.data.linkFilePath}`,
+    //   res.data.sourceFileName
+    // );
+    uploadImgPath.value = `${baseUrl}/${res.data.linkFilePath}`;
+    currentData.value.images = res.data.sourceFileName;
+    //uploadImgName.value = res.data.sourceFileName;
+    // sysApi.getDevicesList().then((res1) => {
+    //   let list = res1;
+    //   loadData(list);
+    // });
+  } else {
+    ElMsg(res.message, "error");
+  }
+};
 const handleOnChange = (file, fileList) => {
   let cusLoading = CusElLoading();
   if (file.percentage == 100) {

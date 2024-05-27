@@ -54,15 +54,18 @@
           style="max-height: 500px; overflow: auto"
         >
           <el-tab-pane label="基本信息">
-            <div>
+            <div style="display: flex; margin-bottom: 10px">
               <el-button
                 type="primary"
                 :plain="false"
                 size="small"
                 @click="saveBase()"
+                style="margin-right: 10px"
               >
                 <span class="iconfont">&#xe6a2;</span><span>保存</span>
               </el-button>
+
+              部署图颜色：<el-color-picker v-model="currentData.images" />
             </div>
             <el-table
               :data="tableData"
@@ -317,6 +320,7 @@ const handleNodeClick = async (data) => {
   queryData(segLevelList.value);
   data.isPenultimate = true;
   currentData.value = data;
+  console.log("current data", currentData.value);
   let params = { id: currentData.value.id };
   sysApi.getSegDevList(params).then((res1) => {
     //console.log("res1", res1);
@@ -356,7 +360,7 @@ const handleNodeClick = async (data) => {
       }
       objNew = {
         name: arr.Name,
-        displayName: arr.DisplayName==null? arr.Name: arr.DisplayName,
+        displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
         type: arr.Type,
         arraySize: arr.ArraySize,
         option: arr.Option,

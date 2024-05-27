@@ -80,12 +80,15 @@
               </el-upload>
 
               <el-image
-                v-if="uploadImgPath.value"
+                v-if="uploadImgPath"
+                title="点击查看"
+                alt="点击查看"
                 style="margin-left: 10px; width: 25px; height: 25px"
                 :preview-src-list="[uploadImgPath]"
                 :preview-teleported="true"
                 :src="uploadImgPath"
-                :fit="fit"
+                :fit="fill"
+                :hide-on-click-modal="true"
               />
             </div>
 
@@ -309,6 +312,12 @@ const handleNodeClick = async (data) => {
   queryData(segLevelList.value);
   data.isPenultimate = true;
   currentData.value = data;
+  if (data.images) {
+    uploadImgPath.value = `${baseUrl}/devimgs/${data.images}`;
+  } else {
+    uploadImgPath.value = "";
+  }
+  console.log(data.images, uploadImgPath.value);
   tableData.value = [];
   if (data.jsonContent) {
     //console.log("----", data.jsonContent);
@@ -433,10 +442,8 @@ const handleTemplateSuccess = (res) => {
   }
 };
 let uploadImgPath = ref("");
-let uploadImgName = ref("");
-const ImageUrlFilter = computed(() => (item) => {
-  return `${baseUrl}/${item}`;
-});
+//let uploadImgName = ref("");
+
 const handleUploadImgSuccess = (res) => {
   if (res.isSuccess) {
     ElMsg(res.message);
@@ -446,7 +453,8 @@ const handleUploadImgSuccess = (res) => {
     //   res.data.sourceFileName
     // );
     uploadImgPath.value = `${baseUrl}/${res.data.linkFilePath}`;
-    uploadImgName.value = res.data.sourceFileName;
+    currentData.value.images = res.data.sourceFileName;
+    //uploadImgName.value = res.data.sourceFileName;
     // sysApi.getControlsList().then((res1) => {
     //   let list = res1;
     //   loadData(list);
