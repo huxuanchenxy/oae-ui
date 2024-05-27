@@ -820,7 +820,7 @@ const initLoad = () => {
   pid.value = route.params.pid;
   id.value = route.params.id;
   //store.commit("ChangeTagModuleStatus", route.path);
-  tagsStore.ChangeTagModuleStatus( route.path)
+  //tagsStore.ChangeTagModuleStatus( route.path)
 };
 const saveCanvasForm=()=>{
   let data=canvasForm.value;

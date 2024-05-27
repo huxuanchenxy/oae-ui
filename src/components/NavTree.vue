@@ -29,9 +29,11 @@
           @node-contextmenu="showContextMenu"
         >
           <template #default="{ node, data }">
-            <i v-show="data.funcLevelId == 6" class="algorithm-icon">{{
-              data.type
-            }}</i>
+            <i
+              v-show="data.operationType?.includes('algorithm')"
+              class="algorithm-icon"
+              >{{ data.type }}</i
+            >
             <el-input
               ref="isAutoFocus"
               v-model="data.funcName"
@@ -64,8 +66,9 @@
     v-show="popStatus && currentData.operation?.includes('right')"
     @mouseleave="popStatus = false"
   >
-    <div style="text-align: center; padding: 10px">
+    <div style="text-align: center">
       <el-link
+        style="padding: 10px"
         type="primary"
         v-show="
           currentData.operation?.includes('new') &&
@@ -75,6 +78,7 @@
         >新建</el-link
       >
       <el-link
+        style="padding: 10px"
         type="primary"
         v-show="
           currentData.operation?.includes('new') &&
@@ -84,40 +88,42 @@
         >新建</el-link
       >
     </div>
-    <div v-show="currentData.operation?.includes('open')">
-      <div style="text-align: center; padding: 10px">
-        <el-link type="primary" @click="handleNodeClick(currentData)"
-          >打开</el-link
-        >
-      </div>
-      <div
-        v-show="currentData.operation?.includes('del')"
-        style="text-align: center; padding: 10px"
+
+    <div
+      v-show="currentData.operation?.includes('open')"
+      style="text-align: center; padding: 10px"
+    >
+      <el-link type="primary" @click="handleNodeClick(currentData)"
+        >打开</el-link
       >
-        <el-link
-          type="primary"
-          v-show="currentData.operationType == 'algorithm'"
-          @click="delAlgorithm(currentData)"
-          >删除</el-link
-        >
-        <el-link
-          v-show="currentData.operationType == 'module'"
-          type="primary"
-          @click="delModule(currentData)"
-          >删除</el-link
-        >
-      </div>
-      <div
-        v-show="currentData.operation?.includes('rename')"
-        style="text-align: center; padding: 10px"
+    </div>
+    <div
+      v-show="currentData.operation?.includes('del')"
+      style="text-align: center; padding: 10px"
+    >
+      <el-link
+        type="primary"
+        v-show="currentData.operationType?.includes('algorithm')"
+        @click="delAlgorithm(currentData)"
+        >删除</el-link
       >
-        <el-link
-          type="primary"
-          v-show="currentData.operationType == 'algorithm'"
-          @click="renameAlgorithm(currentData)"
-          >重命名</el-link
-        >
-      </div>
+      <el-link
+        v-show="currentData.operationType?.includes('module')"
+        type="primary"
+        @click="delModule(currentData)"
+        >删除</el-link
+      >
+    </div>
+    <div
+      style="text-align: center"
+      v-show="currentData.operation?.includes('rename')"
+    >
+      <el-link
+        type="primary"
+        style="padding: 10px"
+        @click="renameName(currentData)"
+        >重命名</el-link
+      >
     </div>
   </div>
   <el-dialog v-model="dialogVisible" title="" width="500">
@@ -413,27 +419,28 @@ const queryData = (list) => {
 
 const showContextMenu = (e, data, node, n) => {
   e.preventDefault();
-  if (
-    data.funcLevelId === 2 ||
-    data.funcName === "算法" ||
-    data.funcLevelId === 3 ||
-    data.funcLevelId === 5
-  ) {
-    dyStyle.rightPop.top = e.y + "px";
-    dyStyle.rightPop.left = e.x + "px";
-    popStatus.value = true;
-    currentData = data;
-    //console.log("currentData:::", currentData);
-    let url = currentData.funcUrl;
-    if (url === "") {
-      var ppObj = curFuncList.value.find((x) => x.id == data.funcParentId);
-      url = `${ppObj.funcUrl}`;
-    }
-    currentModule.value = url.split("/")[3];
-    // console.log(currentModule.value)
-    curData.value = data;
-    curNode.value = node;
+  // if (
+  //   data.funcLevelId === 2 ||
+  //   data.funcName === "算法" ||
+  //   data.funcLevelId === 3 ||
+  //   data.funcLevelId === 5
+  // )
+  //{
+  dyStyle.rightPop.top = e.y + "px";
+  dyStyle.rightPop.left = e.x + "px";
+  popStatus.value = true;
+  currentData = data;
+  //console.log("currentData:::", currentData);
+  let url = currentData.funcUrl;
+  if (url === "") {
+    var ppObj = curFuncList.value.find((x) => x.id == data.funcParentId);
+    url = `${ppObj.funcUrl}`;
   }
+  currentModule.value = url.split("/")[3];
+  // console.log(currentModule.value)
+  curData.value = data;
+  curNode.value = node;
+  //}
 };
 
 const onSubmit = async (formEl) => {
@@ -476,7 +483,7 @@ const delAlgorithm = (data) => {
     .catch(() => {});
 };
 
-const renameAlgorithm = (data) => {
+const renameName = (data) => {
   data.isEdit = true;
   isEdit.value = true;
   popStatus.value = false;
@@ -488,7 +495,7 @@ const saveName = (data) => {
   data.isEdit = false;
   isEdit.value = false;
   if (data.funcName === data.oldFuncName) return;
-  if (data.funcLevelId == 5) {
+  if (data.operationType.includes("algorithm")) {
     if (!reg.test(data.funcName)) {
       ElNotification({
         title: "算法" + data.oldFuncName + "重命名错误",
@@ -508,7 +515,7 @@ const saveName = (data) => {
       changeData(project, currentModule.value, moduleJson);
       RenameTree(data.funcName);
     }
-  } else if (data.funcLevelId == 3) {
+  } else if (data.operationType.includes("module")) {
     let params = {
       name: data.funcName,
       id: data.id,
@@ -552,6 +559,8 @@ const saveModule = async (formEl) => {
         funcLevelId: currentData.funcLevelId + 1,
         funcUrl: "/module",
         isEdit: false,
+        operation: "right,del,rename,open",
+        operationType: "module",
       };
       sysApi.addModule(addModule).then((res) => {
         ElMessage({
@@ -600,7 +609,7 @@ const addTree = (newAlgorithm) => {
     isEdit: false,
     type: newAlgorithm.type,
   };
-  if (curLevel == 4 && curFuncName == "算法") {
+  if (curFuncName == "算法") {
     newObj.funcName = newAlgorithm.text;
     newObj.funcLevelId = curLevel + 1;
     var ppObj = curFuncList.value.find(
@@ -610,6 +619,8 @@ const addTree = (newAlgorithm) => {
     let newId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
     newObj.id = newId;
     newObj.funcParentId = curData.value.id;
+    newObj.operation = "right,del,open,rename";
+    newObj.operationType = "algorithm";
     if (curData.value.child) {
       curData.value.child.push(newObj);
     } else {
@@ -722,14 +733,15 @@ const getCacheFuncList = () => {
         funcLevelId: pObj?.funcLevelId + 1,
         isEdit: false,
         type: e.type,
+        operation: "right,del,open,rename",
+        operationType: "algorithm",
       };
       //console.log("e.name", e.name, maxId, pObj.id, newObj.funcUrl);
       //console.log("e.name,obj", newObj);
       var isExistobj = curFuncList.value.find(
         (x) =>
-          x.funcName == newObj.funcName &&
-          x.funcParentId == newObj.funcParentId &&
-          x.funcLevelId == newObj.funcLevelId
+          x.funcName == newObj.funcName && x.funcParentId == newObj.funcParentId
+        // && x.funcLevelId == newObj.funcLevelId
       );
       if (!isExistobj) {
         curFuncList.value.push(newObj);
@@ -808,7 +820,7 @@ const getModuleData = (id, path) => {
 watch(isEdit, (newValue, oldValue) => {
   if (newValue) {
     nextTick(() => {
-      console.log(isAutoFocus.value);
+      //console.log(isAutoFocus.value);
       isAutoFocus.value.focus();
     });
   }
