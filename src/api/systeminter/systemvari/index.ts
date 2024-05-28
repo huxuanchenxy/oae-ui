@@ -1,5 +1,5 @@
 import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
-export const getInputVaris=(project,module)=>{
+export const getSystemInputVaris=(project,module)=>{
     return [
         {key:1,text:'inputvari1'},
         {key:2,text:'inputvari2'},
@@ -7,7 +7,7 @@ export const getInputVaris=(project,module)=>{
         {key:4,text:'inputvari4'},
     ]
 }
-export const getOutputVaris=(project,module)=>{
+export const getSystemOutputVaris=(project,module)=>{
     return [
         {key:1,text:'outputvari1'},
         {key:2,text:'outputvari2'},

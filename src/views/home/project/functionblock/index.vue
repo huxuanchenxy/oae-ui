@@ -18,13 +18,14 @@
     <el-tabs v-model="activeName" class="demo-tabs" >
       <el-tab-pane label="输入事件" name="inputEventTab">
         <div class="table_in">
-<!--          <el-table :data="inputEventList" style="width: 100%" height="150" >-->
-<!--            <el-table-column type="selection" width="55"  prop="key"/>-->
-<!--            <el-table-column label="名称"  prop="text"/>-->
-<!--            <el-table-column label="映射事件" prop="text"/>-->
-<!--          </el-table>-->
+          <vxe-toolbar>
+            <template #buttons>
+              <vxe-button @click="insertInputEvent()">新增</vxe-button>
+            </template>
+          </vxe-toolbar>
           <vxe-table
               border
+              ref="inputEventTableRef"
               show-overflow
               :data="inputEventList"
               :column-config="{resizable: true}"
@@ -35,16 +36,21 @@
                 <vxe-input v-model="row.text" type="text"></vxe-input>
               </template>
             </vxe-column>
+            <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}">
+              <template #default="{ row }">
+                <span>{{ formatSystemInputEvent(row.relatedEvent) }}</span>
+              </template>
+              <template #edit="{ row }">
+                <vxe-select v-model="row.relatedEvent" transfer>
+                  <vxe-option v-for="item in systemInputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                </vxe-select>
+              </template>
+            </vxe-column>
           </vxe-table>
         </div>
       </el-tab-pane>
       <el-tab-pane label="输出事件" name="outputEventTab">
         <div class="table_in">
-<!--          <el-table :data="outputEventList" style="width: 100%" height="150">-->
-<!--            <el-table-column type="selection" width="55"  prop="key"/>-->
-<!--            <el-table-column label="名称"  prop="text"/>-->
-<!--            <el-table-column label="映射事件" prop="text"/>-->
-<!--          </el-table>-->
           <vxe-table
               border
               show-overflow
@@ -114,29 +120,34 @@ import { ElTree } from 'element-plus'
 import type Node from 'element-plus/es/components/tree/src/model/node'
 import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
 import {createGraphNode,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
-import type { FunctionBlock,FunctionBlockTree} from '@/api/functionBlock/type';
-import {getInputEvents,getOutputEvents} from "@/api/inter/event";
-import type { VariInputForm,VariOutputForm} from '@/api/inter/vari/type';
-import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
-import type { InVariForm} from '@/api/inter/invari/type';
+import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
+  BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
+import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
+import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
 import { v4 as uuidv4 } from 'uuid';
-import {getInVaris} from "@/api/inter/invari";
-import type { EveInputForm,EveOutputForm,EveInputVO,EveOutputVO} from '@/api/inter/event/type';
 import  cache  from "@/plugins/cache.ts";
+import {getOneFunctionBlock} from "@/api/functionBlock";
+import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
+import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
+import { VXETable, VxeTableInstance } from 'vxe-table'
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const inputEventList = ref<EveInputForm[]>([]);
-const outputEventList = ref<EveOutputForm[]>([]);
-const inVariList = ref<InVariForm[]>([]);
+let inputEventList = ref<BlockInputEventForm[]>([]);
+let outputEventList = ref<BlockOutputEventForm[]>([]);
+let inputVariList = ref<BlockInputVariForm[]>([]);
+let outputVariList = ref<BlockOutputVariForm[]>([]);
 const activeName = ref('inputEventTab')
 const { variType } = toRefs<any>(proxy?.useDict("variType"));
 let graph;
-const inputVariList = ref<VariInputForm[]>([]);
-const outputVariList = ref<VariOutputForm[]>([]);
+let systemInputEvents=new Array<SystemEventInput>();
+let systemOutputEvents=new Array<SystemEventOutput>();
+let systemInputVaris=new Array<SystemVariInput>();
+let systemOutputVaris=new Array<SystemVariOutput>();
 const project="project1";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
 const cacheKey="graph_fbbs";
 let graphCacheKey=cacheKey+"-"+project+"-"+module;
+const inputEventTableRef = ref<VxeTableInstance<RowVO>>()
 const dialogAlgAndEvent = reactive<DialogOption>({
   visible: false,
   title: ''
@@ -146,7 +157,6 @@ const defaultProps = {
   children: 'children',
   label: 'centerText',
 }
-
 const data: FunctionBlockTree[] = [
   {
     id: 1,
@@ -215,6 +225,15 @@ const initGraphEvent=(()=>{
   graph.on('node:dblclick', nodeDbClick);
 });
 const nodeDbClick=((evt)=>{
+  let id=evt.item.get("id");
+  let block=getOneFunctionBlock(id,project,module);
+  if (block&&block.interface){
+    inputEventList=block.interface.input_events;
+    outputEventList = block.interface.output_events;
+    inputVariList = block.interface.inputs
+    outputVariList = block.interface.outputs;
+  }
+
   dialogAlgAndEvent.visible = true;
 });
 const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{
@@ -254,47 +273,6 @@ const submitAlgAndEventForm=(()=>{
   //双向绑定变量vxe自动做好了,只需要作更新graph和更新大JSON的动作就好了
   dialogAlgAndEvent.visible = false;
 });
-//加载输入变量数据
-const getVariInputList = () => {
-  inputVariList.value=getInputVaris(project,module);
-  inputVariList.value?.forEach(data => {
-    let relateEveName="";
-    let relatedEvents=data.relatedEvents
-    if(relatedEvents){
-      relatedEvents.forEach(eve => {
-        relateEveName+=eve.text+",";
-      });
-      relateEveName=relateEveName.substring(0,relateEveName.length-1);
-      data.relateEveName=relateEveName;
-    }
-  });
-}
-//加载输出变量数据
-const getVariOutputList = () => {
-  outputVariList.value=getOutputVaris(project,module);
-  outputVariList.value?.forEach(data => {
-    let relateEveName="";
-    let relatedEvents=data.relatedEvents
-    if(relatedEvents){
-      relatedEvents.forEach(eve => {
-        relateEveName+=eve.text+",";
-      });
-      relateEveName=relateEveName.substring(0,relateEveName.length-1);
-      data.relateEveName=relateEveName;
-    }
-  });
-}
-const getInVariList = () => {
-  inVariList.value=getInVaris(project,module);
-}
-//初始化事件和变量
-const initSystemEveAndVariList = () => {
-  inputEventList.value=getInputEvents(project,module);
-  outputEventList.value=getOutputEvents(project,module);
-  getVariInputList();
-  getVariOutputList();
-  getInVariList();
-}
 const saveDataToServer=()=>{
   const data = graph.save(); // 获取图实例的数据
   cache.local.setJSON(graphCacheKey,data);
@@ -317,7 +295,26 @@ onMounted(() => {
 });
 const initData=(()=>{
   module=4;
-  initSystemEveAndVariList();
+  //初始化下拉框数据
+  systemInputEvents=getSystemInputEvents(project,module);
+  systemInputEvents=getSystemOutputEvents(project,module);
+  systemInputVaris=getSystemInputVaris(project,module)
+  systemOutputVaris=getSystemOutputVaris(project,module);
+  console.log(systemInputEvents)
+})
+const formatSystemInputEvent = (value: string) => {
+  return systemInputEvents.filter(x=>x.key==value)?.text;
+}
+const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
+  const $table = inputEventTableRef.value
+  if ($table) {
+    const record = {
+      key: uuidv4(),
+      text: '111'
+    }
+    const { row: newRow } = await $table.insertAt(record, row)
+    await $table.setEditCell(newRow, 'name')
+  }
 })
 </script>
 <style scoped lang="scss">

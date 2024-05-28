@@ -1,11 +1,4 @@
-  export interface SystemInVariForm {
+  export interface SystemInVari {
       key:string,
       text:string,
-      alias:string
-  }
-  
-  export interface SystemInVariVO extends BaseEntity {
-      key:string,
-      text:string,
-      alias:string
   }

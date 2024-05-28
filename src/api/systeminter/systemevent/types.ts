@@ -1,22 +1,8 @@
-  export interface SystemEveInputForm {
+  export interface SystemEventInput {
     key:string,
     text:string,
-    alias:string
   }
-  
-  export interface SystemEveInputVO extends BaseEntity {
+  export interface SystemEventOutput {
     key:string,
     text:string,
-    alias:string
-  }
-  export interface SystemEveOutputForm {
-    key:string,
-    text:string,
-    alias:string
-  }
-
-  export interface SystemEveOutputVO extends BaseEntity {
-    key:string,
-    text:string,
-    alias:string
   }

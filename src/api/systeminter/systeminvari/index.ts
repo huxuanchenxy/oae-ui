@@ -1,6 +1,6 @@
 import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/common";
 
-export const getInVaris=(project,module)=>{
+export const getSystemInVaris=(project,module)=>{
     return [
         {key:1,text:'invari1'},
         {key:2,text:'invari2'},

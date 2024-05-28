@@ -1,6 +1,5 @@
-import { Eve } from './types';
 import { getCurrentObj, getJsonAll, removeCurrentModule } from "@/utils/cache/common";
-export const getInputEvents = (project:string, module:number) => {
+export const getSystemInputEvents = (project:string, module:number) => {
     return [
         {key:1,text:'inputeve1'},
         {key:2,text:'inputeve2'},
@@ -8,7 +7,7 @@ export const getInputEvents = (project:string, module:number) => {
         {key:4,text:'inputeve4'},
     ]
 }
-export const getOutputEvents = (project:string, module:number) => {
+export const getSystemOutputEvents = (project:string, module:number) => {
     return [
         {key:1,text:'outputeve1'},
         {key:2,text:'outputeve2'},
