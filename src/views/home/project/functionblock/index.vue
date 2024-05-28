@@ -14,7 +14,7 @@
         allow-drag="true"
     />
   </div>
-  <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" append-to-body>
+  <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" :modal-append-to-body="false">
     <el-tabs v-model="activeName" class="demo-tabs" >
       <el-tab-pane label="输入事件" name="inputEventTab">
         <div class="table_in">
@@ -36,7 +36,7 @@
                 <vxe-input v-model="row.text" type="text"></vxe-input>
               </template>
             </vxe-column>
-            <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}">
+            <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
               <template #default="{ row }">
                 <span>{{ formatSystemInputEvent(row.relatedEvent) }}</span>
               </template>
@@ -138,10 +138,10 @@ let outputVariList = ref<BlockOutputVariForm[]>([]);
 const activeName = ref('inputEventTab')
 const { variType } = toRefs<any>(proxy?.useDict("variType"));
 let graph;
-let systemInputEvents=new Array<SystemEventInput>();
-let systemOutputEvents=new Array<SystemEventOutput>();
-let systemInputVaris=new Array<SystemVariInput>();
-let systemOutputVaris=new Array<SystemVariOutput>();
+let systemInputEvents=ref<SystemEventInput[]>([]);
+let systemOutputEvents=ref<SystemEventOutput[]>([]);
+let systemInputVaris=ref<SystemVariInput[]>([]);
+let systemOutputVaris=ref<SystemVariOutput[]>([]);
 const project="project1";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
@@ -233,7 +233,6 @@ const nodeDbClick=((evt)=>{
     inputVariList = block.interface.inputs
     outputVariList = block.interface.outputs;
   }
-
   dialogAlgAndEvent.visible = true;
 });
 const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{
@@ -296,14 +295,13 @@ onMounted(() => {
 const initData=(()=>{
   module=4;
   //初始化下拉框数据
-  systemInputEvents=getSystemInputEvents(project,module);
-  systemInputEvents=getSystemOutputEvents(project,module);
-  systemInputVaris=getSystemInputVaris(project,module)
-  systemOutputVaris=getSystemOutputVaris(project,module);
-  console.log(systemInputEvents)
+  systemInputEvents.value=getSystemInputEvents(project,module);
+  systemOutputEvents.value=getSystemOutputEvents(project,module);
+  systemInputVaris.value=getSystemInputVaris(project,module)
+  systemOutputVaris.value=getSystemOutputVaris(project,module);
 })
 const formatSystemInputEvent = (value: string) => {
-  return systemInputEvents.filter(x=>x.key==value)?.text;
+  return systemInputEvents.value.find(x=>x.key==value)?.text;
 }
 const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
   const $table = inputEventTableRef.value
@@ -316,6 +314,7 @@ const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
     await $table.setEditCell(newRow, 'name')
   }
 })
+
 </script>
 <style scoped lang="scss">
   .main{
