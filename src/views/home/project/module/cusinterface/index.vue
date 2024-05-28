@@ -1,32 +1,32 @@
 <template>
   <div>
-    <eventVariAntv ref="eventVariAntvChild" :anchor="0"/>
+    <eventVariAntv ref="eventVariAntvChild" :anchor="0" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { pagetagsStore } from "@/store/pageTags.js";
-import  eventVariAntv  from "@/components/antv/eventvari/index.vue";
+import eventVariAntv from "@/components/antv/eventvari/index.vue";
 import useEveInputStore from "@/store/modules/eveInput.ts";
 import useEveOutputStore from "@/store/modules/eveOutput.ts";
 import useVariInputStore from "@/store/modules/variInput.ts";
 import useVariOutputStore from "@/store/modules/variOutput.ts";
-import {getInputEvents,getOutputEvents} from "@/api/inter/event";
-import {getInputVaris,getOutputVaris} from "@/api/inter/vari";
-const eveInputStore=useEveInputStore();
-const eveOutputStore=useEveOutputStore();
-const variInputStore=useVariInputStore();
-const variOutputStore=useVariOutputStore();
-const tagsStore = pagetagsStore();
+import { getInputEvents, getOutputEvents } from "@/api/inter/event";
+import { getInputVaris, getOutputVaris } from "@/api/inter/vari";
+const eveInputStore = useEveInputStore();
+const eveOutputStore = useEveOutputStore();
+const variInputStore = useVariInputStore();
+const variOutputStore = useVariOutputStore();
+//const tagsStore = pagetagsStore();
 const router = useRouter();
 const route = useRoute();
-const module=route.params.id;
-const project="project1";
-const eventVariAntvChild=ref();
-const initLoad = () => {
-  //store.commit("ChangeTagModuleStatus", route.path);
-  tagsStore.ChangeTagModuleStatus(route.path);
-};
+const module = route.params.id;
+const project = "project1";
+const eventVariAntvChild = ref();
+//const initLoad = () => {
+//store.commit("ChangeTagModuleStatus", route.path);
+//tagsStore.ChangeTagModuleStatus(route.path);
+//};
 let graphData = {
   nodes: [
     {
@@ -44,80 +44,78 @@ let graphData = {
   ],
 };
 onMounted(() => {
-  initLoad();
-  graphData.nodes[0].eventInput=getCurrentDataEventInput();
-  graphData.nodes[0].eventOutput=getCurrentDataEventOutput();
-  graphData.nodes[0].paramInput=getCurrentDataVariInput();
-  graphData.nodes[0].paramOutput=getCurrentDataVariOutput();
-  if(eventVariAntvChild.value){
-    console.log(graphData)
+  //initLoad();
+  graphData.nodes[0].eventInput = getCurrentDataEventInput();
+  graphData.nodes[0].eventOutput = getCurrentDataEventOutput();
+  graphData.nodes[0].paramInput = getCurrentDataVariInput();
+  graphData.nodes[0].paramOutput = getCurrentDataVariOutput();
+  if (eventVariAntvChild.value) {
+    console.log(graphData);
     eventVariAntvChild.value.reRender(graphData);
   }
 });
-const getCurrentDataEventInput=()=>{
-  let data=getInputEvents(project,module);
-  let nameList=[];
-  data?.forEach(element => {
+const getCurrentDataEventInput = () => {
+  let data = getInputEvents(project, module);
+  let nameList = [];
+  data?.forEach((element) => {
     nameList.push(element.text);
   });
   return nameList;
-}
-const getCurrentDataEventOutput=()=>{
-  let data=getOutputEvents(project,module);
-  let nameList=[];
-  data?.forEach(element => {
+};
+const getCurrentDataEventOutput = () => {
+  let data = getOutputEvents(project, module);
+  let nameList = [];
+  data?.forEach((element) => {
     nameList.push(element.text);
   });
   return nameList;
-}
-const getCurrentDataVariInput=()=>{
-  let data=getInputVaris(project,module);
-  let nameList=[];
-  data?.forEach(element => {
+};
+const getCurrentDataVariInput = () => {
+  let data = getInputVaris(project, module);
+  let nameList = [];
+  data?.forEach((element) => {
     nameList.push(element.text);
   });
   return nameList;
-}
-const getCurrentDataVariOutput=()=>{
-  let data=getOutputVaris(project,module);
-  let nameList=[];
-  data?.forEach(element => {
+};
+const getCurrentDataVariOutput = () => {
+  let data = getOutputVaris(project, module);
+  let nameList = [];
+  data?.forEach((element) => {
     nameList.push(element.text);
   });
   return nameList;
-}
-eveInputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].eventInput=getCurrentDataEventInput();
-  if(eventVariAntvChild.value){
+};
+eveInputStore.$subscribe((mutate, state) => {
+  graphData.nodes[0].eventInput = getCurrentDataEventInput();
+  if (eventVariAntvChild.value) {
     eventVariAntvChild.value.reRender(graphData);
   }
-})
-eveOutputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].eventOutput=getCurrentDataEventOutput();
-  if(eventVariAntvChild.value){
+});
+eveOutputStore.$subscribe((mutate, state) => {
+  graphData.nodes[0].eventOutput = getCurrentDataEventOutput();
+  if (eventVariAntvChild.value) {
     eventVariAntvChild.value.reRender(graphData);
   }
-})
-variInputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].paramInput=getCurrentDataVariInput();
-  if(eventVariAntvChild.value){
+});
+variInputStore.$subscribe((mutate, state) => {
+  graphData.nodes[0].paramInput = getCurrentDataVariInput();
+  if (eventVariAntvChild.value) {
     eventVariAntvChild.value.reRender(graphData);
   }
-})
-variOutputStore.$subscribe((mutate,state)=>{
-  graphData.nodes[0].paramOutput=getCurrentDataVariOutput();
-  if(eventVariAntvChild.value){
+});
+variOutputStore.$subscribe((mutate, state) => {
+  graphData.nodes[0].paramOutput = getCurrentDataVariOutput();
+  if (eventVariAntvChild.value) {
     eventVariAntvChild.value.reRender(graphData);
   }
-})
+});
 watch(
   () => router.currentRoute.value,
   (newValue) => {
     initLoad();
   }
 );
-
-
 </script>
 
 <style lang="scss" scoped>

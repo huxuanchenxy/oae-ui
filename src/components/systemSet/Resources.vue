@@ -214,7 +214,7 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `resource,${currentData.value.id}`,
+    types: `resource,${currentData.value.id},.res`,
   };
 });
 const fileTemplateList = ref([]);
@@ -286,7 +286,7 @@ const handleNodeClick = async (data) => {
     //console.log("objJsonContent", objJsonContent);
     let objNew = {
       name: "ResourceType Name",
-      displayName: objJsonContent?.DisplayName,
+      displayName: objJsonContent.DisplayName==null?objJsonContent.Name:objJsonContent.DisplayName,
       type: "",
       arraySize: "",
       option: "",
@@ -311,7 +311,7 @@ const handleNodeClick = async (data) => {
 
       objNew = {
         name: arr.Name,
-        displayName: arr?.DisplayName,
+        displayName: arr.DisplayName==null? arr.Name:arr.DisplayName,
         type: arr.Type,
         arraySize: arr.ArraySize,
         option: arr.Option,
@@ -349,7 +349,7 @@ const handleNodeClick = async (data) => {
           }
           let childObjNew = {
             name: arr.Name,
-            displayName: arr?.DisplayName,
+            displayName: arr.DisplayName==null?arr.Name:arr.DisplayName,
             type: arr.Type,
             arraySize: arr.ArraySize,
             option: arr.Option,
@@ -529,7 +529,7 @@ onBeforeMount(() => {
   background-color: #fff;
   margin-right: 10px;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  border-radius: 5px;
+  /* border-radius: 5px; */
   overflow: auto;
 }
 #segTree {
@@ -549,7 +549,7 @@ onBeforeMount(() => {
   flex: 4;
   background-color: #fff;
   box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4);
-  border-radius: 5px;
+  /* border-radius: 5px; */
   margin-right: 10px;
   overflow: hidden;
 }

@@ -54,17 +54,25 @@
           style="max-height: 500px; overflow: auto"
         >
           <el-tab-pane label="基本信息">
-            <div>
+            <div style="display: flex; margin-bottom: 10px">
               <el-button
                 type="primary"
                 :plain="false"
                 size="small"
                 @click="saveBase()"
+                style="margin-right: 10px"
               >
                 <span class="iconfont">&#xe6a2;</span><span>保存</span>
               </el-button>
+
+              部署图颜色：<el-color-picker v-model="currentData.images" />
             </div>
-            <el-table :data="tableData" id="eltable" style="width: 100%" max-height="690">
+            <el-table
+              :data="tableData"
+              id="eltable"
+              style="width: 100%"
+              max-height="690"
+            >
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
               <el-table-column prop="name" label="字段名称"> </el-table-column>
@@ -80,7 +88,7 @@
                 <template #default="{ row }">
                   <el-input
                     v-if="
-                      row.initialValue !=null && 
+                      row.initialValue != null &&
                       (row.option == '' || row.option == null)
                     "
                     v-model="row.initialValue"
@@ -97,7 +105,6 @@
                     v-if="row.option != '' && row.option != null"
                     v-model="row.initialValue"
                     placeholder="请选择"
-                    
                     style="width: 120px"
                   >
                     <el-option
@@ -124,7 +131,7 @@
           <el-tab-pane label="支持的终端设备">
             <el-button @click="addDevices">添加支持的终端设备</el-button>
 
-            <el-table  :data="tableDataDevice" style="width: 100%">
+            <el-table :data="tableDataDevice" style="width: 100%">
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
               <el-table-column
@@ -247,7 +254,7 @@ const { modelValue } = defineProps({
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
-    types: `seg,${currentData.value.id}`,
+    types: `seg,${currentData.value.id},.seg`,
   };
 });
 const fileTemplateList = ref([]);
@@ -313,6 +320,7 @@ const handleNodeClick = async (data) => {
   queryData(segLevelList.value);
   data.isPenultimate = true;
   currentData.value = data;
+  console.log("current data", currentData.value);
   let params = { id: currentData.value.id };
   sysApi.getSegDevList(params).then((res1) => {
     //console.log("res1", res1);
@@ -325,7 +333,10 @@ const handleNodeClick = async (data) => {
     //console.log("objJsonContent",objJsonContent);
     let objNew = {
       name: "SegmentType Name",
-      displayName: objJsonContent?.DisplayName,
+      displayName:
+        objJsonContent.DisplayName == null
+          ? objJsonContent.DisplayName
+          : objJsonContent.Name,
       type: "",
       arraySize: "",
       option: "",
@@ -349,7 +360,7 @@ const handleNodeClick = async (data) => {
       }
       objNew = {
         name: arr.Name,
-        displayName: arr?.DisplayName,
+        displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
         type: arr.Type,
         arraySize: arr.ArraySize,
         option: arr.Option,
