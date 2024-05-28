@@ -166,12 +166,12 @@
       <el-link type="primary" @click="delTree()">删除</el-link>
     </div>
 
-    <div
+    <!-- <div
       v-show="currentData.parentId != 0"
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="renameTree()">重命名</el-link>
-    </div>
+    </div> -->
   </div>
 
   <el-dialog
@@ -286,7 +286,10 @@ const handleNodeClick = async (data) => {
     //console.log("objJsonContent", objJsonContent);
     let objNew = {
       name: "ResourceType Name",
-      displayName: objJsonContent.DisplayName==null?objJsonContent.Name:objJsonContent.DisplayName,
+      displayName:
+        objJsonContent.DisplayName == null
+          ? objJsonContent.Name
+          : objJsonContent.DisplayName,
       type: "",
       arraySize: "",
       option: "",
@@ -311,7 +314,7 @@ const handleNodeClick = async (data) => {
 
       objNew = {
         name: arr.Name,
-        displayName: arr.DisplayName==null? arr.Name:arr.DisplayName,
+        displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
         type: arr.Type,
         arraySize: arr.ArraySize,
         option: arr.Option,
@@ -349,7 +352,7 @@ const handleNodeClick = async (data) => {
           }
           let childObjNew = {
             name: arr.Name,
-            displayName: arr.DisplayName==null?arr.Name:arr.DisplayName,
+            displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
             type: arr.Type,
             arraySize: arr.ArraySize,
             option: arr.Option,
@@ -407,6 +410,36 @@ const handleOnChange = (file, fileList) => {
   if (file.percentage == 100) {
     cusLoading.close();
   }
+};
+
+const delTree = () => {
+  let msg = `确定要删除资源${currentData.value.name}吗?`;
+
+  ElMessageBox.confirm(msg, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      //处理逻辑
+      rightPopStatus.value = false;
+      //console.log("curData.id", currentData.value);
+      let params = {
+        id: currentData.value.id,
+      };
+      sysApi.delResources(params).then((res1) => {
+        sysApi.getResourcesList().then((res) => {
+          let list = res;
+          loadData(list);
+          ElMessage({
+            type: "success",
+            message: "删除成功",
+          });
+          currentData.value.jsonContent = null;
+        });
+      });
+    })
+    .catch(() => {});
 };
 
 const saveTree = async (formEl) => {
@@ -480,6 +513,7 @@ const saveBase = () => {
     });
   });
 };
+
 // const initloadTree = () => {};
 const loadData = (list) => {
   segList.value = list; //JSON.parse(sessionStorage.getItem("curFuncLists"));

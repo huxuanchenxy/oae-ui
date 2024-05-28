@@ -168,10 +168,10 @@
       style="text-align: center; padding: 10px"
       v-show="currentData?.jsonContent == ''"
     >
-      <el-link type="primary" @click="dialogTreeVisible = true">新建</el-link>
+      <el-link type="primary" @click="newTreeMothod()">新建</el-link>
     </div>
     <div
-      v-show="currentData.parentId != 0 && currentData?.jsonContent == ''"
+      v-show="currentData?.jsonContent == ''"
       style="text-align: center; padding: 10px"
     >
       <el-upload
@@ -194,7 +194,7 @@
     </div>
 
     <div
-      v-show="currentData.parentId != 0"
+      v-show="currentData.parentId != 0 && currentData?.jsonContent == ''"
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="renameTree()">重命名</el-link>
@@ -204,7 +204,7 @@
   <el-dialog
     v-model="dialogTreeVisible"
     :close-on-click-modal="false"
-    title="新建"
+    :title="dialogTreeTitle"
     width="300"
   >
     <el-form
@@ -268,6 +268,7 @@ const dyStyle = reactive({
 });
 let currentData = ref({});
 let dialogTreeVisible = ref(false);
+let dialogTreeTitle = ref("");
 const ruleTreeFormRef = ref();
 const newTree = ref({
   id: 0,
@@ -275,7 +276,7 @@ const newTree = ref({
 });
 
 const tableData = ref([]);
-const validateTreeName = (rule, value, callback) => {
+const validateTreeName_older = (rule, value, callback) => {
   if (value !== "") {
     let params = {
       name: value,
@@ -293,12 +294,45 @@ const validateTreeName = (rule, value, callback) => {
   }
 };
 
+const validateTreeName = (rule, value, callback) => {
+  if (value !== "") {
+    if (dialogTreeTitle.value == "重命名" && value == currentData.value.name) {
+      callback();
+    } else {
+      let pid = currentData.value.id;
+      if (dialogTreeTitle.value == "重命名") {
+        pid = currentData.value.parentId;
+      }
+      let params = {
+        name: value,
+        pid,
+      };
+      sysApi.validateDevicesName(params).then(async (res) => {
+        if (res.data) {
+          await callback();
+        } else {
+          await callback(new Error("名称已存在"));
+        }
+      });
+    }
+  } else {
+    callback(new Error("请输入名称"));
+  }
+};
+
 const rulesTree = reactive({
   name: [
     { required: true, message: "请输入名称", trigger: "blur" },
     { validator: validateTreeName, trigger: "blur" },
   ],
 });
+
+const newTreeMothod = () => {
+  newTree.name = "";
+  dialogTreeVisible.value = true;
+  dialogTreeTitle.value = "新建";
+};
+
 const queryData = (list) => {
   list.forEach((obj) => {
     obj.isPenultimate = false;
@@ -466,7 +500,7 @@ const handleOnChange = (file, fileList) => {
   }
 };
 
-const saveTree = async (formEl) => {
+const saveTree_older = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
@@ -491,7 +525,81 @@ const saveTree = async (formEl) => {
     }
   });
 };
+const saveTree = async (formEl) => {
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      dialogTreeVisible.value = false;
+      let addObj = {
+        id: 0,
+        name: newTree.value.name,
+        parentId: currentData.value.id,
+        status: 1,
+      };
+      if (dialogTreeTitle.value == "新建") {
+        sysApi.addDevices(addObj).then((res) => {
+          ElMessage({
+            message: "保存成功",
+            type: "success",
+          });
+          newTree.value.name = "";
+          sysApi.getDevicesList().then((res1) => {
+            let list = res1;
+            loadData(list);
+          });
+        });
+      } else if (dialogTreeTitle.value == "重命名") {
+        if (newTree.value.name == currentData.value.name) {
+        } else {
+          addObj.id = currentData.value.id;
+          sysApi.updateDevicesName(addObj).then((res1) => {
+            ElMessage({
+              message: "重命名成功",
+              type: "success",
+            });
+            currentData.value.name = newTree.value.name;
+          });
+        }
+      }
+    }
+  });
+};
 
+const delTree = () => {
+  let msg = `确定要删除终端设备${currentData.value.name}吗?`;
+  if (
+    currentData.value.jsonContent == "" &&
+    currentData.value.child?.length > 0
+  ) {
+    msg = `确定要删除分组${currentData.value.name}，以及分组下的终端设备吗?`;
+  } else if (currentData.value.jsonContent == "") {
+    msg = `确定要删除分组${currentData.value.name}吗?`;
+  }
+  ElMessageBox.confirm(msg, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      //处理逻辑
+      rightPopStatus.value = false;
+      let params = {
+        id: currentData.value.id,
+      };
+      sysApi.delDevices(params).then((res1) => {
+        sysApi.getDevicesList().then((res) => {
+          let list = res;
+          loadData(list);
+          ElMessage({
+            type: "success",
+            message: "删除成功",
+          });
+          currentData.value.jsonContent = null;
+        });
+      });
+    })
+    .catch(() => {});
+};
 const saveBase = () => {
   //console.log("saveBase--tableData.value--:", tableData.value);
   let objJsonContent = JSON.parse(currentData.value.jsonContent);
@@ -536,7 +644,14 @@ const saveBase = () => {
     });
   });
 };
-// const initloadTree = () => {};
+
+const renameTree = () => {
+  newTree.value.name = currentData.value.name;
+  dialogTreeVisible.value = true;
+  dialogTreeTitle.value = "重命名";
+  //console.log("currentData", currentData.value);
+};
+
 const loadData = (list) => {
   segList.value = list; //JSON.parse(sessionStorage.getItem("curFuncLists"));
   segLevelList.value = segList.value?.filter((obj) => {
