@@ -113,7 +113,7 @@ variOutputStore.$subscribe((mutate, state) => {
 watch(
   () => router.currentRoute.value,
   (newValue) => {
-    initLoad();
+    //initLoad();
   }
 );
 </script>
