@@ -1,5 +1,5 @@
 import  cache  from "@/plugins/cache.ts";
-import {getJsonAll,getCurrentObj,changeData}  from "@/utils/cache/systemConfig";
+import {getJsonAll}  from "@/utils/cache/systemConfig";
 import {FunctionBlock} from "./types";
 import {StateMachine} from "../ecc/state/types";
 const listFunctionBlocks=((project,module):FunctionBlock[]=>{
@@ -19,8 +19,16 @@ export const getOneFunctionBlock=((id:string,project,module)=>{
     let fbb=fbbs.filter(x=>{x.raw_id==id})
     return fbb;
 });
+/**
+ * 更新大JSON的fbbs的内容
+ * @param project
+ * @param module
+ * @param functionBlock
+ */
+const updateFbbs=(project,module,functionBlock)=>{
+
+}
 export const saveOrUpdateFunctionBlock=(project,module,data:FunctionBlock)=>{
-    let rlt=getCurrentObj(project,module);
     let functionBlocks=listFunctionBlocks(project,module);
     if(functionBlocks){
         functionBlocks= functionBlocks.filter(
@@ -30,6 +38,5 @@ export const saveOrUpdateFunctionBlock=(project,module,data:FunctionBlock)=>{
         functionBlocks=new Array();
     }
     functionBlocks.push(data);
-    rlt.ecc.nodeDataArray=functionBlocks;
-    changeData(project,module,rlt)
+    updateFbbs(project,module,functionBlocks)
 }

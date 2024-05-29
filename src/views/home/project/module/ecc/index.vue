@@ -378,12 +378,13 @@ const deleteAlgNode=((item)=>{
   //图上删除算法
   let algId=item.get("id");
   let eventId=prefEvent+algId.substring(prefAlg.length,algId.length);
+  console.log(item)
   graph.removeItem(item);
   graph.removeItem(graph.findById(eventId));
   //图上删除对应的
   saveDataToServer();
   //更新大JSON
-  removeAlgAndEvent(project,module,stateId,algId);
+  // removeAlgAndEvent(project,module,stateId,algId);
 });
 //删除事件，同时删除对应的算法
 const deleteEventNode=((item)=>{
@@ -975,12 +976,10 @@ const handleDeleteCondition=async(stateId,id)=>{
   let algAndEvents:AlgAndEventForm[]=currentState.value.algAndEvent;
   //删除节点
   let algAndEvent=algAndEvents.find(x=>x.id==id);
-  graph.removeItem(graph.findById(algAndEvent.alg.key));
-  graph.removeItem(graph.findById(algAndEvent.event.key));
+  graph.removeItem(graph.findById(algAndEvent.alg.graphId));
+  graph.removeItem(graph.findById(algAndEvent.event.graphId));
   //更新双向绑定的数据
-  algAndEvents=algAndEvents.filter(x=>x.alg.key!=algAndEvent.alg.key);
-  algAndEvents=algAndEvents.filter(x=>x.event.key!=algAndEvent.event.key);
-  currentState.value.algAndEvent=algAndEvents;
+  currentState.value.algAndEvent=algAndEvents.filter(x=>x.id!=id);
   //更新图JSON
   saveDataToServer();
   //更新大JSON
