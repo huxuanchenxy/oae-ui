@@ -471,12 +471,11 @@ export const createGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
     }
     graph.addItem('node',node)
 });
+//更新图形
 export const updateGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
-    console.log("id",functionBlock.raw_id)
     let originNode=graph.findById(functionBlock.raw_id);
     let originModel=originNode.getModel();
     graph.removeItem(originNode);
-    console.log(functionBlock.input_events)
     const node={
         id:functionBlock.raw_id,
         type:'functionBlockShape',

@@ -13,7 +13,7 @@
         <div v-if="showProp==1">
           <div>
             编辑<el-button type="success" plain icon="Edit" @click="handleUpdateCanvas()"></el-button><br/>
-            <el-descriptions title="执行控制图属性" direction="vertical" border>
+            <el-descriptions  class="discription" title="执行控制图属性" direction="vertical" border>
               <el-descriptions-item label="描述">{{currentCanvas?.comment}}</el-descriptions-item>
             </el-descriptions>
           </div>
@@ -1060,6 +1060,11 @@ watch(() => route.params.id, (newVal, oldVal) => {
   //flex-direction: column;
     .box-card{
       height: 500px;
+      .discription{
+        word-break: break-all; /* 允许在单词内换行 */
+        white-space: normal;   /* 允许换行 */
+        overflow-wrap: break-word; /* 在长单词或URL地址内部进行换行 */
+      }
     }
   }
 }
