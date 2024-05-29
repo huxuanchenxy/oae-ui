@@ -80,7 +80,7 @@ const routes = [{
                 "path": "/applications",
                 "name": "applications",
                 component: () =>
-                    import ('../views/home/project/Applications.vue'),
+                    import ('../views/home/project/functionblock/index.vue'),
             },
         ]
     },

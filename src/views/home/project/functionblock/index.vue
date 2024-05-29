@@ -272,7 +272,12 @@ const handleDragEnd = (
   saveDataToServer();
 }
 const submitAlgAndEventForm=(()=>{
-  //双向绑定变量vxe自动做好了,只需要作更新graph和更新大JSON的动作就好了
+  const $inputEventTable = inputEventTableRef.value
+  //由于是用户操作，VXE的API处理双向绑定变量
+  Object.assign(inputEventList.value,$inputEventTable.getTableData().fullData)
+  //更新graph
+
+  // 更新大JSON
   dialogAlgAndEvent.visible = false;
   proxy?.$modal.msgSuccess("操作成功");
 });
@@ -317,8 +322,6 @@ const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
     }
     const { row: newRow } = await $table.insertAt(record, row)
     await $table.setEditCell(newRow, 'text')
-    //由于是用户操作，vxe不会自动操作双向绑定数据，需要用VXE的API自行处理下
-    Object.assign(inputEventList.value,$table.getTableData())
   }
 })
 //删除输入事件
@@ -326,8 +329,6 @@ const removeInputEvents = () => {
   const $table = inputEventTableRef.value
   if ($table) {
     $table.removeCheckboxRow()
-    //由于是用户操作，vxe不会自动操作双向绑定数据，需要用VXE的API自行处理下
-    Object.assign(inputEventList.value,$table.getTableData())
   }
 }
 
