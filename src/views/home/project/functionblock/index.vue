@@ -31,7 +31,7 @@
               :data="inputEventList"
               :column-config="{resizable: true}"
               :edit-config="{trigger: 'click', mode: 'cell'}">
-            <vxe-column type="checkbox" width="60"></vxe-column>
+            <vxe-column type="checkbox" field="key" width="60"></vxe-column>
 <!--            <vxe-column type="seq" width="60"></vxe-column>-->
             <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
               <template #edit="{ row }">
@@ -150,7 +150,7 @@ let currentBlockId="";
  let module=4;//todo 后续改成route.params.id
 const cacheKey="graph_fbbs";
 let graphCacheKey=cacheKey+"-"+project+"-"+module;
-const inputEventTableRef = ref<VxeTableInstance<RowVO>>()
+const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
 const dialogAlgAndEvent = reactive<DialogOption>({
   visible: false,
   title: ''
@@ -274,6 +274,7 @@ const handleDragEnd = (
 const submitAlgAndEventForm=(()=>{
   //双向绑定变量vxe自动做好了,只需要作更新graph和更新大JSON的动作就好了
   dialogAlgAndEvent.visible = false;
+  proxy?.$modal.msgSuccess("操作成功");
 });
 const saveDataToServer=()=>{
   const data = graph.save(); // 获取图实例的数据
@@ -306,6 +307,7 @@ const initData=(()=>{
 const formatSystemInputEvent = (value: string) => {
   return systemInputEvents.value.find(x=>x.key==value)?.text;
 }
+//新增输入事件
 const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
   const $table = inputEventTableRef.value
   if ($table) {
@@ -315,12 +317,17 @@ const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
     }
     const { row: newRow } = await $table.insertAt(record, row)
     await $table.setEditCell(newRow, 'text')
+    //由于是用户操作，vxe不会自动操作双向绑定数据，需要用VXE的API自行处理下
+    Object.assign(inputEventList.value,$table.getTableData())
   }
 })
+//删除输入事件
 const removeInputEvents = () => {
   const $table = inputEventTableRef.value
   if ($table) {
     $table.removeCheckboxRow()
+    //由于是用户操作，vxe不会自动操作双向绑定数据，需要用VXE的API自行处理下
+    Object.assign(inputEventList.value,$table.getTableData())
   }
 }
 
