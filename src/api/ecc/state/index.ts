@@ -45,11 +45,7 @@ export const removeAlgAndEvent=(project,module,stateId,algId)=> {
     );
     //当前事件删除对应算法和事件
     let algAndEvent=currentState.algAndEvent;
-    console.log("删除前",currentState)
-    console.log("当前的algAndEvent",algAndEvent)
-    console.log("删除algId",algId)
     algAndEvent=algAndEvent.filter(x=>x.alg.graphId!=algId);
-    console.log("删除后",currentState)
     currentState.algAndEvent=algAndEvent;
     // currentState.algorithm=currentState.algorithm.filter(x=>x.key!=algId);
     // currentState.output_event=currentState.output_event.filter(x=>x.key!=eveId);

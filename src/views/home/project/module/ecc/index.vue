@@ -384,7 +384,7 @@ const deleteAlgNode=((item)=>{
   //图上删除对应的
   saveDataToServer();
   //更新大JSON
-  // removeAlgAndEvent(project,module,stateId,algId);
+  removeAlgAndEvent(project,module,stateId,algId);
 });
 //删除事件，同时删除对应的算法
 const deleteEventNode=((item)=>{
