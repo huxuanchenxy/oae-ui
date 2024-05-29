@@ -121,7 +121,7 @@
 import { ElTree } from 'element-plus'
 import type Node from 'element-plus/es/components/tree/src/model/node'
 import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
-import {createGraphNode,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
+import {createGraphNode,updateGraphNode,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
 import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
   BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
 import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
@@ -271,16 +271,7 @@ const handleDragEnd = (
   addFunctionBlockNode(functionBlock)
   saveDataToServer();
 }
-const submitAlgAndEventForm=(()=>{
-  const $inputEventTable = inputEventTableRef.value
-  //由于是用户操作，VXE的API处理双向绑定变量
-  Object.assign(inputEventList.value,$inputEventTable.getTableData().fullData)
-  //更新graph
 
-  // 更新大JSON
-  dialogAlgAndEvent.visible = false;
-  proxy?.$modal.msgSuccess("操作成功");
-});
 const saveDataToServer=()=>{
   const data = graph.save(); // 获取图实例的数据
   cache.local.setJSON(graphCacheKey,data);
@@ -331,7 +322,23 @@ const removeInputEvents = () => {
     $table.removeCheckboxRow()
   }
 }
-
+const submitAlgAndEventForm=(()=>{
+  const $inputEventTable = inputEventTableRef.value
+  //由于是用户操作，VXE的API处理双向绑定变量
+  Object.assign(inputEventList.value,$inputEventTable.getTableData().fullData)
+  //更新graph
+  let functionBlock:FunctionBlock={
+    raw_id:currentBlockId,
+    input_events:inputEventList.value.map(x=>x.text),
+    output_events:outputEventList.value.map(x=>x.text),
+    inputs:inputVariList.value.map(x=>x.text),
+    outputs:outputEventList.value.map(x=>x.text),
+  }
+  updateGraphNode(functionBlock,graph);
+  // 更新大JSON
+  dialogAlgAndEvent.visible = false;
+  proxy?.$modal.msgSuccess("操作成功");
+});
 </script>
 <style scoped lang="scss">
   .main{

@@ -391,7 +391,6 @@ const deleteEventNode=((item)=>{
   let stateId;
   let eventId=item.get("id");
   let algId=prefAlg+eventId.substring(prefEvent.length,eventId.length);
-  console.log(algId)
   edges.forEach((edge)=>{
     if(edge.getTarget().get("id")==algId)
     stateId=edge.getSource().get("id");

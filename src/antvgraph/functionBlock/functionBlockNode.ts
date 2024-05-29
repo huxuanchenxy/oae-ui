@@ -471,3 +471,25 @@ export const createGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
     }
     graph.addItem('node',node)
 });
+export const updateGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
+    console.log("id",functionBlock.raw_id)
+    let originNode=graph.findById(functionBlock.raw_id);
+    let originModel=originNode.getModel();
+    graph.removeItem(originNode);
+    console.log(functionBlock.input_events)
+    const node={
+        id:functionBlock.raw_id,
+        type:'functionBlockShape',
+        eventInput:functionBlock.input_events,
+        eventOutput:functionBlock.output_events,
+        paramInput:functionBlock.inputs,
+        paramOutput:functionBlock.outputs,
+        x:originModel.x,
+        y:originModel.y,
+        title:originModel.title,
+        centerText:originModel.centerText,
+        device:originModel.device,
+        color:"red",
+    }
+    graph.addItem('node',node)
+});
