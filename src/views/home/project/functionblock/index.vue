@@ -21,6 +21,7 @@
           <vxe-toolbar>
             <template #buttons>
               <vxe-button @click="insertInputEvent()">新增</vxe-button>
+              <vxe-button @click="removeInputEvents()">删除选中</vxe-button>
             </template>
           </vxe-toolbar>
           <vxe-table
@@ -30,7 +31,8 @@
               :data="inputEventList"
               :column-config="{resizable: true}"
               :edit-config="{trigger: 'click', mode: 'cell'}">
-            <vxe-column type="seq" width="60"></vxe-column>
+            <vxe-column type="checkbox" width="60"></vxe-column>
+<!--            <vxe-column type="seq" width="60"></vxe-column>-->
             <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
               <template #edit="{ row }">
                 <vxe-input v-model="row.text" type="text"></vxe-input>
@@ -143,6 +145,7 @@ let systemOutputEvents=ref<SystemEventOutput[]>([]);
 let systemInputVaris=ref<SystemVariInput[]>([]);
 let systemOutputVaris=ref<SystemVariOutput[]>([]);
 const project="project1";
+let currentBlockId="";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
 const cacheKey="graph_fbbs";
@@ -225,8 +228,8 @@ const initGraphEvent=(()=>{
   graph.on('node:dblclick', nodeDbClick);
 });
 const nodeDbClick=((evt)=>{
-  let id=evt.item.get("id");
-  let block=getOneFunctionBlock(id,project,module);
+  currentBlockId=evt.item.get("id");
+  let block=getOneFunctionBlock(currentBlockId,project,module);
   if (block&&block.interface){
     inputEventList=block.interface.input_events;
     outputEventList = block.interface.output_events;
@@ -308,12 +311,18 @@ const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
   if ($table) {
     const record = {
       key: uuidv4(),
-      text: '111'
+      blockId:currentBlockId,
     }
     const { row: newRow } = await $table.insertAt(record, row)
-    await $table.setEditCell(newRow, 'name')
+    await $table.setEditCell(newRow, 'text')
   }
 })
+const removeInputEvents = () => {
+  const $table = inputEventTableRef.value
+  if ($table) {
+    $table.removeCheckboxRow()
+  }
+}
 
 </script>
 <style scoped lang="scss">

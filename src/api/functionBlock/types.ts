@@ -29,14 +29,14 @@ export interface FunctionBlockTree {
     children?: FunctionBlockTree[]
 }
 export interface BlockInputEventForm {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvent:SystemEventInput;
 }
 
 export interface BlockInputEventVO {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvent:SystemEventInput;
@@ -44,14 +44,14 @@ export interface BlockInputEventVO {
     relateEventName:string
 }
 export interface BlockOutputEventForm {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvent:SystemEventInput;
 }
 
 export interface BlockOutputEventVO  {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvent:SystemEventInput;
@@ -59,14 +59,14 @@ export interface BlockOutputEventVO  {
     relateEventName:string
 }
 export interface BlockInputVariForm {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvents:Array<BlockInputEventForm>;
 }
 
 export interface BlockInputVariVO {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvents:Array<BlockOutputEventForm>;
@@ -75,14 +75,14 @@ export interface BlockInputVariVO {
 }
 
 export interface BlockOutputVariForm {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvents:Array<BlockInputEventForm>;
 }
 
 export interface BlockOutputVariVO {
-    block_id:string
+    blockId:string
     key:string,
     text:string,
     relatedEvents:Array<BlockOutputEventForm>;
