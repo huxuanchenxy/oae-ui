@@ -55,6 +55,16 @@ export default {
             params
         })
     },
+    updateSegmentsName: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateSegmentsName`, {
+            params
+        }).then(res => res.data)
+    },
+    delSegments: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateSegmentsStatus`, {
+            params
+        }).then(res => res.data)
+    },
     addSegments: (params) => {
         return axios.post(`${baseUrl}/Sys/SaveSegments`, params).then(res => res.data)
     },
@@ -67,6 +77,16 @@ export default {
             params
         })
     },
+    updateDevicesName: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateDevicesName`, {
+            params
+        }).then(res => res.data)
+    },
+    delDevices: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateDevicesStatus`, {
+            params
+        }).then(res => res.data)
+    },
     addDevices: (params) => {
         return axios.post(`${baseUrl}/Sys/SaveDevices`, params).then(res => res.data)
     },
@@ -78,11 +98,26 @@ export default {
             params
         })
     },
+    updateControlsName: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateControlsName`, {
+            params
+        }).then(res => res.data)
+    },
+    delControls: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateControlsStatus`, {
+            params
+        }).then(res => res.data)
+    },
     addControls: (params) => {
         return axios.post(`${baseUrl}/Sys/SaveControls`, params).then(res => res.data)
     },
     getResourcesList: () => {
         return axios.get(`${baseUrl}/Sys/GetResourceList`).then(res => res.data)
+    },
+    delResources: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateResourcesStatus`, {
+            params
+        }).then(res => res.data)
     },
     addResources: (params) => {
         return axios.post(`${baseUrl}/Sys/SaveResource`, params).then(res => res.data)

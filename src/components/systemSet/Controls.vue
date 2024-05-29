@@ -169,10 +169,10 @@
       style="text-align: center; padding: 10px"
       v-show="currentData?.jsonContent == ''"
     >
-      <el-link type="primary" @click="dialogTreeVisible = true">新建</el-link>
+      <el-link type="primary" @click="newTreeMothod()">新建</el-link>
     </div>
     <div
-      v-show="currentData.parentId != 0 && currentData?.jsonContent == ''"
+      v-show=" currentData?.jsonContent == ''"
       style="text-align: center; padding: 10px"
     >
       <el-upload
@@ -195,7 +195,7 @@
     </div>
 
     <div
-      v-show="currentData.parentId != 0"
+      v-show="currentData.parentId != 0 && currentData?.jsonContent == ''"
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="renameTree()">重命名</el-link>
@@ -205,7 +205,7 @@
   <el-dialog
     v-model="dialogTreeVisible"
     :close-on-click-modal="false"
-    title="新建"
+    :title="dialogTreeTitle"
     width="300"
   >
     <el-form
@@ -269,6 +269,7 @@ const dyStyle = reactive({
 });
 let currentData = ref({});
 let dialogTreeVisible = ref(false);
+let dialogTreeTitle = ref("");
 const ruleTreeFormRef = ref();
 const newTree = ref({
   id: 0,
@@ -278,17 +279,25 @@ const newTree = ref({
 const tableData = ref([]);
 const validateTreeName = (rule, value, callback) => {
   if (value !== "") {
-    let params = {
-      name: value,
-      pid: currentData.value.id,
-    };
-    sysApi.validateControlsName(params).then(async (res) => {
-      if (res.data) {
-        await callback();
-      } else {
-        await callback(new Error("名称已存在"));
+    if (dialogTreeTitle.value == "重命名" && value == currentData.value.name) {
+      callback();
+    } else {
+      let pid = currentData.value.id;
+      if (dialogTreeTitle.value == "重命名") {
+        pid = currentData.value.parentId;
       }
-    });
+      let params = {
+        name: value,
+        pid,
+      };
+      sysApi.validateControlsName(params).then(async (res) => {
+        if (res.data) {
+          await callback();
+        } else {
+          await callback(new Error("名称已存在"));
+        }
+      });
+    }
   } else {
     callback(new Error("请输入名称"));
   }
@@ -300,6 +309,12 @@ const rulesTree = reactive({
     { validator: validateTreeName, trigger: "blur" },
   ],
 });
+const newTreeMothod = () => {
+  newTree.name = "";
+  dialogTreeVisible.value = true;
+  dialogTreeTitle.value = "新建";
+};
+
 const queryData = (list) => {
   list.forEach((obj) => {
     obj.isPenultimate = false;
@@ -317,7 +332,7 @@ const handleNodeClick = async (data) => {
   } else {
     uploadImgPath.value = "";
   }
-  console.log(data.images, uploadImgPath.value);
+  console.log(" currentData.value :::", currentData.value);
   tableData.value = [];
   if (data.jsonContent) {
     //console.log("----", data.jsonContent);
@@ -475,26 +490,77 @@ const saveTree = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
+      dialogTreeVisible.value = false;
       let addObj = {
         id: 0,
         name: newTree.value.name,
         parentId: currentData.value.id,
         status: 1,
       };
-      sysApi.addControls(addObj).then((res) => {
-        ElMessage({
-          message: "保存成功",
-          type: "success",
+      if (dialogTreeTitle.value == "新建") {
+        sysApi.addControls(addObj).then((res) => {
+          ElMessage({
+            message: "保存成功",
+            type: "success",
+          });
+          newTree.value.name = "";
+          sysApi.getControlsList().then((res1) => {
+            let list = res1;
+            loadData(list);
+          });
         });
-        newTree.value.name = "";
-        sysApi.getControlsList().then((res1) => {
-          let list = res1;
-          loadData(list);
-          dialogTreeVisible.value = false;
-        });
-      });
+      } else if (dialogTreeTitle.value == "重命名") {
+        if (newTree.value.name == currentData.value.name) {
+        } else {
+          addObj.id = currentData.value.id;
+          sysApi.updateControlsName(addObj).then((res1) => {
+            ElMessage({
+              message: "重命名成功",
+              type: "success",
+            });
+            currentData.value.name = newTree.value.name;
+          });
+        }
+      }
     }
   });
+};
+
+const delTree = () => {
+  let msg = `确定要删除控制器${currentData.value.name}吗?`;
+  if (
+    currentData.value.jsonContent == "" &&
+    currentData.value.child?.length > 0
+  ) {
+    msg = `确定要删除分组${currentData.value.name}，以及分组下的控制器吗?`;
+  } else if (currentData.value.jsonContent == "") {
+    msg = `确定要删除分组${currentData.value.name}吗?`;
+  }
+  ElMessageBox.confirm(msg, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      //处理逻辑
+      rightPopStatus.value = false;
+      //console.log("curData.id", currentData.value);
+      let params = {
+        id: currentData.value.id,
+      };
+      sysApi.delControls(params).then((res1) => {
+        sysApi.getControlsList().then((res) => {
+          let list = res;
+          loadData(list);
+          ElMessage({
+            type: "success",
+            message: "删除成功",
+          });
+          currentData.value.jsonContent = null;
+        });
+      });
+    })
+    .catch(() => {});
 };
 
 const saveBase = () => {
@@ -564,6 +630,13 @@ const processMenuData = (list) => {
       }
     }
   });
+};
+
+const renameTree = () => {
+  newTree.value.name = currentData.value.name;
+  dialogTreeVisible.value = true;
+  dialogTreeTitle.value = "重命名";
+  //console.log("currentData", currentData.value);
 };
 
 onBeforeMount(() => {
