@@ -50,7 +50,6 @@ onMounted(() => {
   graphData.nodes[0].paramInput = getCurrentDataVariInput();
   graphData.nodes[0].paramOutput = getCurrentDataVariOutput();
   if (eventVariAntvChild.value) {
-    console.log(graphData);
     eventVariAntvChild.value.reRender(graphData);
   }
 });

@@ -340,6 +340,8 @@ const submitAlgAndEventForm=(()=>{
     outputs:outputVariNameList,
   }
   updateGraphNode(functionBlockGraphData,graph);
+  saveDataToServer();
+  // 更新大JSON
   let functionBlockJsonData:FunctionBlock={
     raw_id:currentBlockId,
     input_events:inputEventList.value,
@@ -347,7 +349,6 @@ const submitAlgAndEventForm=(()=>{
     inputs:inputVariList.value,
     outputs:outputVariList.value,
   }
-  // 更新大JSON
   saveOrUpdateFunctionBlock(project,module,functionBlockJsonData);
   dialogAlgAndEvent.visible = false;
   proxy?.$modal.msgSuccess("操作成功");

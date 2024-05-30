@@ -19,6 +19,7 @@ const listFunctionBlocks=((project,module):FunctionBlock[]=>{
  */
 export const getOneFunctionBlock=((project,module,id:string)=>{
     let fbbs=listFunctionBlocks(project,module);
+    console.log(fbbs)
     if (!fbbs){
         return null;
     }
@@ -35,7 +36,6 @@ export const saveOrUpdateFunctionBlock=(project,module,data:FunctionBlock)=>{
     let jsonAll = getJsonAll(project, module);
     let systemConfig=jsonAll.find(x=>x.type=="SystemConfiguration");
     let fbbs=listFunctionBlocks(project,module);
-    console.log("fbbs",fbbs)
     if(!fbbs){
         fbbs=new Array();
     }else{

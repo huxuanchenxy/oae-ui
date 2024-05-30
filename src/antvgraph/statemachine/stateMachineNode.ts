@@ -73,7 +73,6 @@ export const processParallelEdgesOnAnchorPoint = (
         continue;
       }
       if (length === 1 && singleEdgeType && (current.source !== current.target || current.sourceAnchor !== current.targetAnchor)&&!current.target.startsWith('alg')) {
-        console.log(current.target)
         current.type = singleEdgeType;
         continue;
       }

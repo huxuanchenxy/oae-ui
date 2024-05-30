@@ -378,7 +378,6 @@ const deleteAlgNode=((item)=>{
   //图上删除算法
   let algId=item.get("id");
   let eventId=prefEvent+algId.substring(prefAlg.length,algId.length);
-  console.log(item)
   graph.removeItem(item);
   graph.removeItem(graph.findById(eventId));
   //图上删除对应的
