@@ -13,6 +13,25 @@ export const getOneState=(project,module,id):StateMachine=>{
     let states=rlt.ecc.nodeDataArray;
     return states?.find((data)=>data.key==id);
 }
+export const getOneStateDetail=(project,module,id):StateMachine=>{
+    let rlt=getCurrentObj(project,module);
+    let states=rlt.ecc.states;
+    return states?.find((data)=>data.key==id);
+}
+export const saveOrUpdateStateDetail=(project,module,data:StateMachine)=>{
+    let rlt=getCurrentObj(project,module);
+    let states=rlt.ecc.states;
+    //如果不存在集合，直接加
+    if(!states){
+        states=new Array()
+    }else{
+        //如果存在集合，先删除原来的
+        states=states.filter(x=>x.key!=data.key)
+    }
+    states.push(data)
+    rlt.ecc.states=states;
+    changeData(project,module,rlt)
+}
 //增加或修改集合
 export const saveOrUpdateStateList=(project,module,data:StateMachine[])=>{
     let rlt=getCurrentObj(project,module);

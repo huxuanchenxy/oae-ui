@@ -1,5 +1,5 @@
 import  cache  from "@/plugins/cache.ts";
-import {getJsonAll}  from "@/utils/cache/systemConfig";
+import {getJsonAll,cacheKey}  from "@/utils/cache/systemConfig";
 import {FunctionBlock} from "./types";
 
 /**
@@ -34,11 +34,12 @@ export const getOneFunctionBlock=((project,module,id:string)=>{
 const updateFbbs=(project,module,functionBlock)=>{
     let jsonAll = getJsonAll(project, module);
     let systemConfig=jsonAll.find(x=>x.type=="SystemConfiguration");
-    console.log(systemConfig)
     let fbbs=listFunctionBlocks(project,module);
-    fbbs=fbbs.filter(x=>x.raw_id!=functionBlock.raw_id);
+    console.log("fbbs",fbbs)
     if(!fbbs){
         fbbs=new Array();
+    }else{
+        fbbs=fbbs.filter(x=>x.raw_id!=functionBlock.raw_id);
     }
     fbbs.push(functionBlock);
     systemConfig.applications[0].fbbs=fbbs;
@@ -46,6 +47,7 @@ const updateFbbs=(project,module,functionBlock)=>{
     jsonAll=jsonAll.filter(x=>x.id!=systemConfig.id);
     //再加上
     jsonAll.push(systemConfig);
+    cache.local.setJSON(cacheKey,jsonAll);
 }
 /**
  * 根据一个fbb更新大JSON
@@ -63,5 +65,5 @@ export const saveOrUpdateFunctionBlock=(project,module,data:FunctionBlock)=>{
         functionBlocks=new Array();
     }
     functionBlocks.push(data);
-    updateFbbs(project,module,functionBlocks)
+    // updateFbbs(project,module,functionBlocks)
 }

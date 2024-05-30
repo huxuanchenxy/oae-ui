@@ -185,7 +185,7 @@ import {getInputEvents,getOutputEvents} from "@/api/inter/event";
 import {getAlgList} from "@/api/alg";
 import {getOneEdge,saveOrUpdateEdge} from "@/api/ecc/edge";
 import {getCanvas,saveOrUpdateCanvas} from "@/api/ecc/canvas";
-import {removeAlgAndEvent,saveOrUpdateState,getOneState,removeState} from "@/api/ecc/state";
+import {removeAlgAndEvent,saveOrUpdateState,getOneState,removeState,saveOrUpdateStateDetail,getOneStateDetail} from "@/api/ecc/state";
 import {getAlgAndEventById} from "@/api/ecc/algandevent";
 import type { StateMachine,StateForm,StateVO,StateQuery} from '@/api/ecc/state/type';
 import type { AlgAndEventQuery,AlgAndEventForm} from '@/api/ecc/algandevent/type';
@@ -583,7 +583,7 @@ const saveDataToServer=()=>{
   cache.local.setJSON(graphCacheKey,data);
 }
 const getCurrentState=((project,module,id)=>{
-  let state:StateMachine=getOneState(project,module,id);
+  let state:StateMachine=getOneStateDetail(project,module,id);
   currentState.value={...state}
   // delete currentState.value.algorithm;
   // delete currentState.value.output_event;
@@ -815,6 +815,7 @@ const addCombo=(stateNodeX,stateNodeY)=>{
     comment:''
   };
   saveOrUpdateState(project,module,data);
+  saveOrUpdateStateDetail(project,module,data);
 }
 const initLoad = () => {
   pid.value = route.params.pid;
@@ -880,6 +881,8 @@ const submitStateForm=(()=>{
       label: data.text
     });
   }
+  //大JSON更新
+  saveOrUpdateStateDetail(project,module,data);
   proxy?.$modal.msgSuccess("操作成功");
   dialogState.visible = false;
 })
