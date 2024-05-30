@@ -26,12 +26,12 @@ export const getOneFunctionBlock=((project,module,id:string)=>{
     return fbb;
 });
 /**
- * 更新大JSON的fbbs的内容
+ * 根据一个fbb更新大JSON
  * @param project
  * @param module
- * @param functionBlock
+ * @param data
  */
-const updateFbbs=(project,module,functionBlock)=>{
+export const saveOrUpdateFunctionBlock=(project,module,data:FunctionBlock)=>{
     let jsonAll = getJsonAll(project, module);
     let systemConfig=jsonAll.find(x=>x.type=="SystemConfiguration");
     let fbbs=listFunctionBlocks(project,module);
@@ -39,31 +39,13 @@ const updateFbbs=(project,module,functionBlock)=>{
     if(!fbbs){
         fbbs=new Array();
     }else{
-        fbbs=fbbs.filter(x=>x.raw_id!=functionBlock.raw_id);
+        fbbs=fbbs.filter(x=>x.raw_id!=data.raw_id);
     }
-    fbbs.push(functionBlock);
+    fbbs.push(data);
     systemConfig.applications[0].fbbs=fbbs;
     //先移除
     jsonAll=jsonAll.filter(x=>x.id!=systemConfig.id);
     //再加上
     jsonAll.push(systemConfig);
     cache.local.setJSON(cacheKey,jsonAll);
-}
-/**
- * 根据一个fbb更新大JSON
- * @param project
- * @param module
- * @param data
- */
-export const saveOrUpdateFunctionBlock=(project,module,data:FunctionBlock)=>{
-    let functionBlocks=listFunctionBlocks(project,module);
-    if(functionBlocks){
-        functionBlocks= functionBlocks.filter(
-            x => x.raw_id != data.raw_id
-        );
-    }else{
-        functionBlocks=new Array();
-    }
-    functionBlocks.push(data);
-    // updateFbbs(project,module,functionBlocks)
 }

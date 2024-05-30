@@ -326,17 +326,29 @@ const submitAlgAndEventForm=(()=>{
   const $inputEventTable = inputEventTableRef.value
   //由于是用户操作，VXE的API处理双向绑定变量
   Object.assign(inputEventList.value,$inputEventTable.getTableData().fullData)
+  let inputEventNameList =inputEventList.value.map(x=>x.text);
+  let outputEventNameList =outputEventList.value.map(x=>x.text);
+  let inputVariNameList =inputVariList.value.map(x=>x.text);
+  let outputVariNameList =outputVariList.value.map(x=>x.text);
+
   //更新graph
-  let functionBlock:FunctionBlock={
+  let functionBlockGraphData:FunctionBlock={
     raw_id:currentBlockId,
-    input_events:inputEventList.value.map(x=>x.text),
-    output_events:outputEventList.value.map(x=>x.text),
-    inputs:inputVariList.value.map(x=>x.text),
-    outputs:outputEventList.value.map(x=>x.text),
+    input_events:inputEventNameList,
+    output_events:outputEventNameList,
+    inputs:inputVariNameList,
+    outputs:outputVariNameList,
   }
-  updateGraphNode(functionBlock,graph);
+  updateGraphNode(functionBlockGraphData,graph);
+  let functionBlockJsonData:FunctionBlock={
+    raw_id:currentBlockId,
+    input_events:inputEventList.value,
+    output_events:outputEventList.value,
+    inputs:inputVariList.value,
+    outputs:outputVariList.value,
+  }
   // 更新大JSON
-  saveOrUpdateFunctionBlock(project,module,functionBlock);
+  saveOrUpdateFunctionBlock(project,module,functionBlockJsonData);
   dialogAlgAndEvent.visible = false;
   proxy?.$modal.msgSuccess("操作成功");
 });
