@@ -230,12 +230,18 @@ const initGraphEvent=(()=>{
 const nodeDbClick=((evt)=>{
   currentBlockId=evt.item.get("id");
   let block=getOneFunctionBlock(project,module,currentBlockId);
-  if (block&&block.interface){
-    inputEventList=block.interface.input_events;
-    outputEventList = block.interface.output_events;
-    inputVariList = block.interface.inputs
-    outputVariList = block.interface.outputs;
+  if (block){
+    inputEventList.value=block.input_events;
+    outputEventList.value = block.output_events;
+    inputVariList.value = block.inputs
+    outputVariList.value = block.outputs;
+  }else{
+    inputEventList.value=new Array();
+    outputEventList.value = new Array();
+    inputVariList.value = new Array();
+    outputVariList.value = new Array();
   }
+  console.log(inputEventList.value)
   dialogAlgAndEvent.visible = true;
 });
 const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{

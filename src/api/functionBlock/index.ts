@@ -19,11 +19,10 @@ const listFunctionBlocks=((project,module):FunctionBlock[]=>{
  */
 export const getOneFunctionBlock=((project,module,id:string)=>{
     let fbbs=listFunctionBlocks(project,module);
-    console.log(fbbs)
     if (!fbbs){
         return null;
     }
-    let fbb=fbbs.filter(x=>{x.raw_id==id})
+    let fbb=fbbs.find(x=>x.raw_id==id)
     return fbb;
 });
 /**
