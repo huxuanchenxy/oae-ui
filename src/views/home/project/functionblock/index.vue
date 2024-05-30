@@ -128,7 +128,7 @@ import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/system
 import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
 import { v4 as uuidv4 } from 'uuid';
 import  cache  from "@/plugins/cache.ts";
-import {getOneFunctionBlock} from "@/api/functionBlock";
+import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
 import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
 import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
 import { VXETable, VxeTableInstance } from 'vxe-table'
@@ -229,7 +229,7 @@ const initGraphEvent=(()=>{
 });
 const nodeDbClick=((evt)=>{
   currentBlockId=evt.item.get("id");
-  let block=getOneFunctionBlock(currentBlockId,project,module);
+  let block=getOneFunctionBlock(project,module,currentBlockId);
   if (block&&block.interface){
     inputEventList=block.interface.input_events;
     outputEventList = block.interface.output_events;
@@ -336,6 +336,7 @@ const submitAlgAndEventForm=(()=>{
   }
   updateGraphNode(functionBlock,graph);
   // 更新大JSON
+  saveOrUpdateFunctionBlock(project,module,functionBlock);
   dialogAlgAndEvent.visible = false;
   proxy?.$modal.msgSuccess("操作成功");
 });

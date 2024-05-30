@@ -1016,14 +1016,14 @@ const cancelAlgAndEventDialog = () => {
 }
 onMounted(() => {
   initData();
-  window.addEventListener('keydown', handleDeleteKeyDown);
+  // window.addEventListener('keydown', handleDeleteKeyDown);
 });
-const handleDeleteKeyDown = (e) => {
-  if (e.key === 'Delete' || e.key === 'Backspace') { // 判断是否是删除键
-    const items = graph.findAllByState('node', 'selected'); // 获取所有选中的元素
-    deleteNode(items[0]);
-  }
-};
+// const handleDeleteKeyDown = (e) => {
+//   if (e.key === 'Delete' || e.key === 'Backspace') { // 判断是否是删除键
+//     const items = graph.findAllByState('node', 'selected'); // 获取所有选中的元素
+//     deleteNode(items[0]);
+//   }
+// };
 const initData=(()=>{
   module=route.params.id;
   //得到事件列表
