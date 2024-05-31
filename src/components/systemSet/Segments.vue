@@ -202,7 +202,7 @@
     <div
       v-show="
         currentData.parentId > 0 &&
-        (urrentData?.jsonContent == '' || currentData?.jsonContent == null)
+        (currentData?.jsonContent == '' || currentData?.jsonContent == null)
       "
       style="text-align: center; padding: 10px"
     >
