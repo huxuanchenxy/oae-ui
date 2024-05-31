@@ -84,7 +84,10 @@
           currentData.operation?.includes('new') &&
           currentData.operationType === 'bfb'
         "
-        @click="dialogModuleVisible = true"
+        @click="
+          newModule.name = '';
+          dialogModuleVisible = true;
+        "
         >新建</el-link
       >
     </div>

@@ -169,10 +169,12 @@
       style="text-align: center; padding: 10px"
       v-show="currentData?.jsonContent == ''"
     >
-      <el-link type="primary" @click="newTreeMothod()">新建</el-link>
+      <el-link type="primary" @click="newTreeMothod()">新建分组</el-link>
     </div>
     <div
-      v-show=" currentData?.jsonContent == ''"
+      v-show="
+        currentData?.jsonContent == '' || currentData?.jsonContent == null
+      "
       style="text-align: center; padding: 10px"
     >
       <el-upload
@@ -180,8 +182,10 @@
         :action="actionUploadUrl"
         :data="uploadData"
         accept=".dev"
+        multiple
         :on-change="handleOnChange"
         :on-success="handleTemplateSuccess"
+        :before-upload="beforeUpload"
         :show-file-list="false"
       >
         <el-link type="primary" :plain="true">上传数据</el-link>
@@ -195,7 +199,10 @@
     </div>
 
     <div
-      v-show="currentData.parentId != 0 && currentData?.jsonContent == ''"
+      v-show="
+        currentData.parentId != 0 &&
+        (currentData?.jsonContent == '' || currentData?.jsonContent == null)
+      "
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="renameTree()">重命名</el-link>
@@ -444,7 +451,8 @@ const defaultProps = {
   class: customNodeClass,
 };
 
-const handleTemplateSuccess = (res) => {
+const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
+  console.log("res,res:::", uploadFile, uploadFiles);
   //console.log(res);
   if (res.isSuccess) {
     ElMsg(res.data);
@@ -484,6 +492,10 @@ const handleOnChange = (file, fileList) => {
   if (file.percentage == 100) {
     cusLoading.close();
   }
+};
+
+const beforeUpload = (file) => {
+  console.log("beforeUpload", file);
 };
 
 const saveTree = async (formEl) => {
@@ -568,7 +580,7 @@ const saveBase = () => {
   let objJsonContent = JSON.parse(currentData.value.jsonContent);
   objJsonContent.DisplayName = tableData.value[0].displayName;
   objJsonContent.InitialValue = tableData.value[0].initialValue;
-  objJsonContent.Icon = "";
+
   objJsonContent?.VarDeclaration?.forEach((arr) => {
     var objTable = tableData.value.find((x) => x.name == arr.Name);
     if (objTable) {
@@ -600,7 +612,10 @@ const saveBase = () => {
   }
 
   currentData.value.name = tableData.value[0].initialValue;
+  objJsonContent.Name = tableData.value[0].initialValue;
+  objJsonContent.Icon = currentData.value.images;
   currentData.value.jsonContent = JSON.stringify(objJsonContent);
+  //console.log("currentData.value.jsonContent", objJsonContent);
   sysApi.addControls(currentData.value).then((res) => {
     ElMessage({
       message: "保存成功",

@@ -134,6 +134,11 @@ export default {
             params
         }).then(res => res.data)
     },
+    delSegDev: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateSegmentDeviceStatus`, {
+            params
+        }).then(res => res.data)
+    },
     getAllDevicesList: () => {
         return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
     },

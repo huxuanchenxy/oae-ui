@@ -166,12 +166,16 @@
   >
     <div
       style="text-align: center; padding: 10px"
-      v-show="currentData?.jsonContent == ''"
+      v-show="
+        currentData?.jsonContent == '' || currentData?.jsonContent == null
+      "
     >
-      <el-link type="primary" @click="newTreeMothod()">新建</el-link>
+      <el-link type="primary" @click="newTreeMothod()">新建分组</el-link>
     </div>
     <div
-      v-show="currentData?.jsonContent == ''"
+      v-show="
+        currentData?.jsonContent == '' || currentData?.jsonContent == null
+      "
       style="text-align: center; padding: 10px"
     >
       <el-upload
@@ -194,7 +198,10 @@
     </div>
 
     <div
-      v-show="currentData.parentId != 0 && currentData?.jsonContent == ''"
+      v-show="
+        currentData.parentId != 0 &&
+        (currentData?.jsonContent == '' || currentData?.jsonContent == null)
+      "
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="renameTree()">重命名</el-link>
@@ -605,7 +612,6 @@ const saveBase = () => {
   let objJsonContent = JSON.parse(currentData.value.jsonContent);
   objJsonContent.DisplayName = tableData.value[0].displayName;
   objJsonContent.InitialValue = tableData.value[0].initialValue;
-  objJsonContent.Icon = "";
   objJsonContent?.VarDeclaration?.forEach((arr) => {
     var objTable = tableData.value.find((x) => x.name == arr.Name);
     if (objTable) {
@@ -635,8 +641,9 @@ const saveBase = () => {
   }
 
   currentData.value.name = tableData.value[0].initialValue;
+  objJsonContent.Name = tableData.value[0].initialValue;
+  objJsonContent.Icon = currentData.value.images;
   currentData.value.jsonContent = JSON.stringify(objJsonContent);
-
   sysApi.addDevices(currentData.value).then((res) => {
     ElMessage({
       message: "保存成功",

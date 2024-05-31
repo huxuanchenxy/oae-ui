@@ -473,7 +473,6 @@ const saveBase = () => {
   let objJsonContent = JSON.parse(currentData.value.jsonContent);
   objJsonContent.DisplayName = tableData.value[0].displayName;
   objJsonContent.InitialValue = tableData.value[0].initialValue;
-  objJsonContent.Icon = "";
   objJsonContent?.VarDeclaration?.forEach((arr) => {
     var objTable = tableData.value.find((x) => x.name == arr.Name);
     if (objTable) {
@@ -504,6 +503,7 @@ const saveBase = () => {
     });
   }
   currentData.value.name = tableData.value[0].initialValue;
+  objJsonContent.Name = tableData.value[0].initialValue;
   //console.log("objJsonContent", objJsonContent);
   currentData.value.jsonContent = JSON.stringify(objJsonContent);
   sysApi.addResources(currentData.value).then((res) => {
