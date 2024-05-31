@@ -1,5 +1,6 @@
 import {SystemEventInput} from "@/api/systeminter/systemevent/types";
 import {SystemEventOutput} from "@/api/systeminter/systemevent/types";
+import {SystemVariInput} from "../systeminter/systemvari/types";
 export interface FunctionBlock {
     raw_id:string
     title:string,
@@ -62,23 +63,29 @@ export interface BlockInputVariForm {
     blockId:string
     key:string,
     text:string,
-    relatedEvents:Array<BlockInputEventForm>;
+    type:string,
+    relatedEvents:Array<BlockInputEventForm>,
+    relatedVari:SystemVariInput
 }
 
 export interface BlockInputVariVO {
     blockId:string
     key:string,
     text:string,
-    relatedEvents:Array<BlockOutputEventForm>;
+    relatedEvents:Array<BlockOutputEventForm>,
+    relatedVari:SystemVariInput,
     type:string,
-    relateEventName:string
+    relateEventName:string,
+    relatedVariName:string
 }
 
 export interface BlockOutputVariForm {
     blockId:string
     key:string,
     text:string,
-    relatedEvents:Array<BlockInputEventForm>;
+    type:string,
+    relatedEvents:Array<BlockInputEventForm>,
+    relatedVari:SystemVariInput
 }
 
 export interface BlockOutputVariVO {
@@ -86,6 +93,8 @@ export interface BlockOutputVariVO {
     key:string,
     text:string,
     relatedEvents:Array<BlockOutputEventForm>;
+    relatedVari:SystemVariInput,
     type:string,
-    relateEventName:string
+    relateEventName:string,
+    relatedVariName:string
 }
