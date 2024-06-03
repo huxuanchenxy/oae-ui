@@ -448,6 +448,7 @@ export const initGraph=(()=> {
     graph.on("node:dragout", (e) => {
         graph.setItemState(e.item, "showAnchors", false);
     });
+    graph.get('canvas').set('localRefresh', false)
     return graph;
 });
 
