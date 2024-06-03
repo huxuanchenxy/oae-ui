@@ -583,9 +583,8 @@ const saveDataToServer=()=>{
 }
 const getCurrentState=((project,module,id)=>{
   let state:StateMachine=getOneStateDetail(project,module,id);
-  currentState.value={...state}
-  // delete currentState.value.algorithm;
-  // delete currentState.value.output_event;
+  currentState.value=getOneState(project,module,id);
+  currentState.value.text=state.text;
   return currentState.value;
 });
 /**
@@ -596,11 +595,12 @@ const nodeDbClick=(e) => {
   const item = e.item;
   const id=item.get("id")
   //如果双击的是状态机，就添加算法和事件
+  console.log(id)
   if(id.startsWith(prefState)){
     addAlgAndEventNode(e.item,e.canvasY)
+    //保存大JSON
+    saveDataToServer()
   }
-  //保存大JSON
-  saveDataToServer()
 };
 const addCondition=(()=>{
   let node=graph.findById(currentState.value.key);
@@ -608,6 +608,8 @@ const addCondition=(()=>{
     return;
   }
   addAlgAndEventNode(node,node.getModel().y);
+  //保存大JSON
+  saveDataToServer()
 });
 //得到状态机的条件数量
 const getStateConditionNumber=((stateId)=>{
@@ -640,7 +642,6 @@ const addAlgAndEventNode=(item,canvasY)=>{
   let uuid=uuidv4();
   const algNodeId=prefAlg+uuid;
   const eveNodeId=prefEvent+uuid;
-  // let canvasY=e.canvasY;
   //算法的x和最上面一行的算法X对齐，所以需要得到上面的算法node
   const algNodeFirstLine=graph.findById(prefAlg+stateId.substring(5,stateId.length));
   const algNodeX=algNodeFirstLine.getModel().x
@@ -680,17 +681,20 @@ const addAlgAndEventNode=(item,canvasY)=>{
   if(!currentState.value.algAndEvent){
     currentState.value.algAndEvent=new Array();
   }
-  currentState.value.algAndEvent.push({
+  let currentStateAlgAndEvent=currentState.value.algAndEvent;
+  let newAlgAndEvent={
     id:uuid,
     alg: {key:algNodeId,text:defaultAlg.text},
     event:{key:eveNodeId,text:defaultEvent.text}
-  })
+  };
+  currentStateAlgAndEvent.push(newAlgAndEvent)
   //大JSON更新
   let state:StateMachine=getOneState(project,module,stateId);
   let algAndEvents:AlgAndEventForm[]=state.algAndEvent;
   if(!algAndEvents){
     algAndEvents=new Array();
   }
+  console.log("push前state.algAndEvent",state.algAndEvent)
   algAndEvents.push({
     id:uuid,
     alg: {
@@ -700,16 +704,7 @@ const addAlgAndEventNode=(item,canvasY)=>{
       key:defaultEvent.key,text:defaultEvent.text,graphId:eveNodeId
     }
   });
-  // let algorithm=state.algorithm;
-  // if(!algorithm){
-  //   algorithm=new Array();
-  // }
-  // algorithm.push({ key: defaultAlg.key,text: defaultEvent.text});
-  // let output_event=state.output_event;
-  // if(!output_event){
-  //   output_event=new Array();
-  // }
-  // output_event.push({ key:defaultEvent.key,text: defaultEvent.text });
+  console.log("push后state.algAndEvent",state.algAndEvent)
   saveOrUpdateState(project,module,state);
 }
 

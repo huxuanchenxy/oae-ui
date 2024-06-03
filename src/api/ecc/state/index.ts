@@ -11,7 +11,8 @@ const listStates=(project,module):StateMachine[]=>{
 export const getOneState=(project,module,id):StateMachine=>{
     let rlt=getCurrentObj(project,module);
     let states=rlt.ecc.nodeDataArray;
-    return states?.find((data)=>data.key==id);
+    let state= states?.find((data)=>data.key==id);
+    return state;
 }
 export const getOneStateDetail=(project,module,id):StateMachine=>{
     let rlt=getCurrentObj(project,module);
@@ -30,12 +31,6 @@ export const saveOrUpdateStateDetail=(project,module,data:StateMachine)=>{
     }
     states.push(data)
     rlt.ecc.states=states;
-    changeData(project,module,rlt)
-}
-//增加或修改集合
-export const saveOrUpdateStateList=(project,module,data:StateMachine[])=>{
-    let rlt=getCurrentObj(project,module);
-    rlt.ecc.nodeDataArray=data;
     changeData(project,module,rlt)
 }
 //增加或修改单个

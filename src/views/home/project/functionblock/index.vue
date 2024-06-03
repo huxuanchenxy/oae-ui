@@ -92,17 +92,6 @@
               <vxe-button @click="removeInputVaris()">删除选中</vxe-button>
             </template>
           </vxe-toolbar>
-<!--          <el-table :data="inputVariList" style="width: 100%" height="150" >-->
-<!--            <el-table-column type="selection" width="55"  prop="key"/>-->
-<!--            <el-table-column label="名称"   width="100" prop="text"/>-->
-<!--            <el-table-column label="关联事件" width="150"  prop="relateEveName"/>-->
-<!--            <el-table-column label="类型" prop="type">-->
-<!--              <template #default="scope">-->
-<!--                <dict-tag :options="variType" :value="scope.row.type" />-->
-<!--              </template>-->
-<!--            </el-table-column>-->
-<!--            <el-table-column label="映射变量" prop="comment"/>-->
-<!--          </el-table>-->
           <vxe-table
               border
               ref="inputVariTableRef"
@@ -114,6 +103,16 @@
             <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
               <template #edit="{ row }">
                 <vxe-input v-model="row.text" type="text"></vxe-input>
+              </template>
+            </vxe-column>
+            <vxe-column field="relatedEvents" title="关联事件" :edit-render="{}"  >
+              <template #default="{ row }">
+                <span>{{ formatInputVariRelatedEvents(row.relatedEvents) }}</span>
+              </template>
+              <template #edit="{ row }">
+                <vxe-select v-model="row.relatedEvents" transfer multiple>
+                  <vxe-option v-for="item in inputEventList" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                </vxe-select>
               </template>
             </vxe-column>
             <vxe-column field="type" title="类型" :edit-render="{}"  >
@@ -416,6 +415,9 @@ const formatSystemInputVari = (value: string) => {
 }
 const formatVariType = (value: string) => {
   return variType.value.find(x=>x.value==value)?.label;
+}
+const formatInputVariRelatedEvents = (value: string) => {
+  return inputEventList.value.find(x=>x.key==value)?.text;
 }
 
 //新增输入变量
