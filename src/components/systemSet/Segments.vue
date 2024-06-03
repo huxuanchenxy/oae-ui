@@ -35,8 +35,9 @@
         <div id="segTree">
           <!-- highlight-current -->
           <el-tree
+            node-key="id"
             :data="segLevelList"
-            default-expand-all
+            :default-expanded-keys="defaultExpandedKeys"
             :expand-on-click-node="false"
             :props="defaultProps"
             @node-click="handleNodeClick"
@@ -139,7 +140,18 @@
                 label="终端设备名称"
                 width="200"
               />
-              <el-table-column prop="address" label="操作" min-width="150" />
+              <el-table-column label="操作" min-width="150">
+                <template #default="scope">
+                  <el-link
+                    link
+                    type="primary"
+                    size="small"
+                    @click.prevent="deleteDeviceRow(scope.$index, scope.row)"
+                  >
+                    删除
+                  </el-link>
+                </template>
+              </el-table-column>
             </el-table>
           </el-tab-pane>
         </el-tabs>
@@ -154,12 +166,18 @@
   >
     <div
       style="text-align: center; padding: 10px"
-      v-show="currentData?.jsonContent == ''"
+      v-show="
+        currentData.parentId >= 0 &&
+        (currentData?.jsonContent == '' || currentData?.jsonContent == null)
+      "
     >
-      <el-link type="primary" @click="newTreeMothod()">新建</el-link>
+      <el-link type="primary" @click="newTreeMothod()">新建分组</el-link>
     </div>
     <div
-      v-show="currentData?.jsonContent == ''"
+      v-show="
+        currentData.parentId > 0 &&
+        (currentData?.jsonContent == '' || currentData?.jsonContent == null)
+      "
       style="text-align: center; padding: 10px"
     >
       <el-upload
@@ -175,14 +193,17 @@
       </el-upload>
     </div>
     <div
-      v-show="currentData.parentId != 0"
+      v-show="currentData.parentId > 0"
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="delTree()">删除</el-link>
     </div>
 
     <div
-      v-show="currentData.parentId != 0"
+      v-show="
+        currentData.parentId > 0 &&
+        (currentData?.jsonContent == '' || currentData?.jsonContent == null)
+      "
       style="text-align: center; padding: 10px"
     >
       <el-link type="primary" @click="renameTree()">重命名</el-link>
@@ -221,6 +242,11 @@
     title="终端设备列表"
     width="400"
   >
+    <el-input
+      v-model="filterText"
+      style="width: 240px"
+      placeholder="搜索终端设备"
+    />
     <el-tree
       ref="treeDeviceRef"
       :data="deviceLevelList"
@@ -230,6 +256,7 @@
       show-checkbox
       node-key="id"
       @node-click=""
+      :filter-node-method="filterNode"
     >
     </el-tree>
     <template #footer>
@@ -260,7 +287,10 @@ const uploadData = computed(() => {
 const fileTemplateList = ref([]);
 let segList = ref([]);
 let segLevelList = ref([]);
+let defaultExpandedKeys = ref([]);
 let rightPopStatus = ref(false);
+let segdevList = ref([]);
+
 const dyStyle = reactive({
   rightPop: {
     position: "absolute",
@@ -349,10 +379,13 @@ const queryData = (list) => {
   });
 };
 const handleNodeClick = async (data) => {
+  //console.log(data.id);
+  if (data.id < 0) return;
+  currentData.value = data;
   queryData(segLevelList.value);
   data.isPenultimate = true;
-  currentData.value = data;
-  console.log("current data", currentData.value);
+
+  //console.log("current data", currentData.value);
   let params = { id: currentData.value.id };
   sysApi.getSegDevList(params).then((res1) => {
     //console.log("res1", res1);
@@ -367,8 +400,8 @@ const handleNodeClick = async (data) => {
       name: "SegmentType Name",
       displayName:
         objJsonContent.DisplayName == null
-          ? objJsonContent.DisplayName
-          : objJsonContent.Name,
+          ? objJsonContent.Name
+          : objJsonContent.DisplayName,
       type: "",
       arraySize: "",
       option: "",
@@ -408,11 +441,13 @@ const handleNodeClick = async (data) => {
 };
 const showContextMenu = (e, data, node, n) => {
   e.preventDefault();
-  dyStyle.rightPop.top = e.y + "px";
-  dyStyle.rightPop.left = e.x + "px";
-  rightPopStatus.value = true;
   currentData.value = data;
-  console.log("currentData.value:::", currentData.value);
+  if (currentData.value.id > 0) {
+    dyStyle.rightPop.top = e.y + "px";
+    dyStyle.rightPop.left = e.x + "px";
+    rightPopStatus.value = true;
+  }
+  //console.log("currentData.value:::", currentData.value);
 };
 
 const customNodeClass = (data, node) => {
@@ -432,10 +467,11 @@ const handleTemplateSuccess = (res) => {
   //console.log(res);
   if (res.isSuccess) {
     ElMsg(res.data);
-    sysApi.getSegmentsList().then((res1) => {
-      let list = res1;
-      loadData(list);
-    });
+    // sysApi.getSegmentsList().then((res1) => {
+    //   let list = res1;
+    //   loadData(list);
+    // });
+    initloadTree();
   } else {
     ElMsg(res.message, "error");
   }
@@ -448,31 +484,31 @@ const handleOnChange = (file, fileList) => {
   }
 };
 
-const saveTree_older = async (formEl) => {
-  if (!formEl) return;
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      let addObj = {
-        id: 0,
-        name: newTree.value.name,
-        parentId: currentData.value.id,
-        status: 1,
-      };
-      sysApi.addSegments(addObj).then((res) => {
-        ElMessage({
-          message: "保存成功",
-          type: "success",
-        });
-        newTree.value.name = "";
-        sysApi.getSegmentsList().then((res1) => {
-          let list = res1;
-          loadData(list);
-          dialogTreeVisible.value = false;
-        });
-      });
-    }
-  });
-};
+// const saveTree_older = async (formEl) => {
+//   if (!formEl) return;
+//   await formEl.validate((valid, fields) => {
+//     if (valid) {
+//       let addObj = {
+//         id: 0,
+//         name: newTree.value.name,
+//         parentId: currentData.value.id,
+//         status: 1,
+//       };
+//       sysApi.addSegments(addObj).then((res) => {
+//         ElMessage({
+//           message: "保存成功",
+//           type: "success",
+//         });
+//         newTree.value.name = "";
+//         sysApi.getSegmentsList().then((res1) => {
+//           let list = res1.list;
+//           loadData(list);
+//           dialogTreeVisible.value = false;
+//         });
+//       });
+//     }
+//   });
+// };
 const saveTree = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
@@ -491,10 +527,11 @@ const saveTree = async (formEl) => {
             type: "success",
           });
           newTree.value.name = "";
-          sysApi.getSegmentsList().then((res1) => {
-            let list = res1;
-            loadData(list);
-          });
+          // sysApi.getSegmentsList().then((res1) => {
+          //   let list = res1;
+          //   loadData(list);
+          // });
+          initloadTree();
         });
       } else if (dialogTreeTitle.value == "重命名") {
         if (newTree.value.name == currentData.value.name) {
@@ -536,14 +573,20 @@ const delTree = () => {
         id: currentData.value.id,
       };
       sysApi.delSegments(params).then((res1) => {
-        sysApi.getSegmentsList().then((res) => {
-          let list = res;
-          loadData(list);
-          ElMessage({
-            type: "success",
-            message: "删除成功",
-          });
-          currentData.value.jsonContent = null;
+        // sysApi.getSegmentsList().then((res) => {
+        //   let list = res;
+        //   loadData(list);
+        //   ElMessage({
+        //     type: "success",
+        //     message: "删除成功",
+        //   });
+        //   currentData.value.jsonContent = null;
+        // });
+        initloadTree();
+        currentData.value.jsonContent = null;
+        ElMessage({
+          type: "success",
+          message: "删除成功",
         });
       });
     })
@@ -554,7 +597,7 @@ const saveBase = () => {
   let objJsonContent = JSON.parse(currentData.value.jsonContent);
   objJsonContent.DisplayName = tableData.value[0].displayName;
   objJsonContent.InitialValue = tableData.value[0].initialValue;
-  objJsonContent.Color = "";
+
   objJsonContent.VarDeclaration.forEach((arr) => {
     var objTable = tableData.value.find((x) => x.name == arr.Name);
     if (objTable) {
@@ -567,9 +610,10 @@ const saveBase = () => {
       //arr.OptionSelect = objTable?.optionsSelect;
     }
   });
-
-  currentData.value.jsonContent = JSON.stringify(objJsonContent);
   currentData.value.name = tableData.value[0].initialValue;
+  objJsonContent.Name = tableData.value[0].initialValue;
+  objJsonContent.Color = currentData.value.images;
+  currentData.value.jsonContent = JSON.stringify(objJsonContent);
   sysApi.addSegments(currentData.value).then((res) => {
     ElMessage({
       message: "保存成功",
@@ -584,17 +628,25 @@ const renameTree = () => {
   dialogTreeTitle.value = "重命名";
   //console.log("currentData", currentData.value);
 };
-// const initloadTree = () => {};
+const initloadTree = () => {
+  sysApi.getSegmentsList().then((res) => {
+    let list = res.list;
+    segdevList.value = res.segdevList;
+    loadData(list);
+  });
+};
 const loadData = (list) => {
   segList.value = list; //JSON.parse(sessionStorage.getItem("curFuncLists"));
   segLevelList.value = segList.value?.filter((obj) => {
     return obj.parentId == 0;
   });
   processMenuData(segLevelList.value);
+  //console.log("defaultExpandedKeys.value", defaultExpandedKeys.value);
 };
 
 const processMenuData = (list) => {
-  list.forEach((l) => {
+  list?.forEach((l) => {
+    defaultExpandedKeys.value.push(l.id);
     let isExistFlag = segList.value.some((t) => t.parentId == l.id);
     if (isExistFlag) {
       let childList = segList.value.filter((obj) => {
@@ -604,15 +656,41 @@ const processMenuData = (list) => {
         l.child = childList;
         processMenuData(childList);
       }
+    } else {
+      if (segdevList.value && segdevList.value.length > 0) {
+        let devList = segdevList.value.filter((x) => x.segmentId == l.id);
+        if (devList && devList.length > 0) {
+          l.child = [];
+          let objDevice = {
+            id: -l.id,
+            name: "终端设备",
+            jsonContent: "",
+            child: [],
+          };
+          defaultExpandedKeys.value.push(objDevice.id);
+          devList?.forEach((d) => {
+            let tempObj = {
+              id: -d.deviceId,
+              name: d.deviceName,
+              jsonContent: "",
+              child: [],
+            };
+            defaultExpandedKeys.value.push(tempObj.id);
+            objDevice.child.push(tempObj);
+          });
+          l.child.push(objDevice);
+        }
+      }
     }
   });
 };
 
 onBeforeMount(() => {
-  sysApi.getSegmentsList().then((res) => {
-    let list = res;
-    loadData(list);
-  });
+  // sysApi.getSegmentsList().then((res) => {
+  //   let list = res;
+  //   loadData(list);
+  // });
+  initloadTree();
 });
 
 let deviceList = ref([]);
@@ -647,21 +725,32 @@ const processDeviceMenuData = (list) => {
     }
   });
 };
+let filterText = ref("");
 let treeDeviceRef = ref();
 let tableDataDevice = ref([]);
+watch(filterText, (val) => {
+  console.log("fdaf", val);
+  treeDeviceRef.value.filter(val);
+});
+const filterNode = (value, data) => {
+  console.log("value,data", value, data);
+  if (!value) return true;
+  return data.name.includes(value);
+};
 const saveDeviceList = () => {
-  // console.log(treeDeviceRef.value.getCheckedNodes(false, false));
-  // console.log(treeDeviceRef.value.getCheckedNodes(true, false));
-  //console.log(treeDeviceRef.value.getCheckedKeys(false));
-  //console.log(treeDeviceRef.value.getCheckedKeys(true));
+  //console.log(treeDeviceRef.value.getCheckedNodes(false, false));//包含父节点
+  //console.log(treeDeviceRef.value.getCheckedNodes(true, false));//不包含父节点
+  // console.log(treeDeviceRef.value.getCheckedKeys(false));
+  // console.log(treeDeviceRef.value.getCheckedKeys(true));
   if (currentData.value) {
-    let checkIdArray = treeDeviceRef.value.getCheckedKeys(true);
+    //let checkIdArray = treeDeviceRef.value.getCheckedKeys(true);
+    let checkIdArray = treeDeviceRef.value.getCheckedNodes(true, false);
     let lsSegmentDevice = [];
-    console.log("checkIdArray", checkIdArray, currentData.value);
+    //console.log("checkIdArray", checkIdArray, currentData.value);
     checkIdArray?.forEach((x) => {
       let objN = {
         segmentId: currentData.value.id,
-        deviceId: x,
+        deviceId: x.id,
         status: 1,
         id: 0,
         deviceName: "",
@@ -680,10 +769,63 @@ const saveDeviceList = () => {
           //console.log("res1", res1);
           tableDataDevice.value = res1;
           dialogTreeListVisible.value = false;
+          //initloadTree();
+          if (!currentData.value.child) {
+            currentData.value.child = [];
+            let objDevice = {
+              id: -currentData.value.id,
+              name: "终端设备",
+              jsonContent: "",
+              child: [],
+            };
+            currentData.value.child.push(objDevice);
+          }
+          checkIdArray?.forEach((d) => {
+            let tempObj = {
+              id: -d.id,
+              name: d.name,
+              jsonContent: "",
+              isPenultimate: false,
+              child: [],
+            };
+            currentData.value.child[0].child.push(tempObj);
+          });
+          segLevelList.value = [...segLevelList.value];
         });
       });
     }
   }
+};
+
+const deleteDeviceRow = (index, row) => {
+  //console.log("scope:", row);
+  let msg = `确定要删除终端设备${row.deviceName}吗?`;
+  ElMessageBox.confirm(msg, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      let params = {
+        id: row.id,
+      };
+      sysApi.delSegDev(params).then((res1) => {
+        tableDataDevice.value.splice(index, 1);
+
+        let treeIndex = currentData.value.child[0]?.child.findIndex(
+          (x) => x.name == row.deviceName
+        );
+        if (treeIndex >= 0) {
+          currentData.value.child[0]?.child.splice(treeIndex, 1);
+          segLevelList.value = [...segLevelList.value];
+        }
+        ElMessage({
+          type: "success",
+          message: "删除成功",
+        });
+      });
+    })
+    .catch(() => {});
 };
 </script>
 

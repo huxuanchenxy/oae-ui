@@ -12,7 +12,8 @@
              if (this.TagArrs.length > 0) {
                  this.TagArrs.forEach(e => e.effect = "plain");
              }
-             if (this.TagArrs.filter(item => item.path.indexOf(tag.path) > -1).length == 0) {
+             //if (this.TagArrs.filter(item => item.path.indexOf(tag.path) > -1).length == 0) {
+             if (this.TagArrs.filter(item => item.path == (tag.path)).length == 0) {
                  this.TagArrs.push(tag);
              } else {
                  let obj = this.TagArrs.find(item => item.path == tag.path);

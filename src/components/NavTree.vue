@@ -1,11 +1,11 @@
 <template>
   <el-aside id="leftTree" class="asideTree" :style="asideTreeStyle.asideTree">
-    <div style="float: left; width: 165px" v-show="isShowTree">
+    <div style="float: left; width: 205px" v-show="isShowTree">
       <div
         style="
           text-align: center;
           height: 48px;
-          width: 165px;
+          width: 205px;
           line-height: 48px;
           border-bottom: 1px solid #bbb;
           /* border-left: none;
@@ -84,7 +84,10 @@
           currentData.operation?.includes('new') &&
           currentData.operationType === 'bfb'
         "
-        @click="dialogModuleVisible = true"
+        @click="
+          newModule.name = '';
+          dialogModuleVisible = true;
+        "
         >新建</el-link
       >
     </div>
@@ -866,18 +869,18 @@ watch(curTreeNode, (n, o) => {
 });
 const asideTreeStyle = reactive({
   asideTree: {
-    width: "172px",
+    width: "212px",
   },
 });
 let isShowTree = ref(true);
 let treeTitle = ref("单击隐藏菜单");
 const showOrHidden = () => {
   isShowTree.value = !isShowTree.value;
-  if (asideTreeStyle.asideTree.width == "172px") {
+  if (asideTreeStyle.asideTree.width == "212px") {
     asideTreeStyle.asideTree.width = "7px";
     treeTitle.value = "单击显示菜单";
   } else {
-    asideTreeStyle.asideTree.width = "172px";
+    asideTreeStyle.asideTree.width = "212px";
 
     treeTitle.value = "单击隐藏菜单";
   }
@@ -888,12 +891,12 @@ const showOrHidden = () => {
 #leftTree.asideTree {
   color: #000;
   height: 100%;
-  width: 172px;
+  width: 212px;
   overflow: hidden;
 }
 
 #navTree {
-  width: 165px;
+  width: 205px;
   height: calc(100vh - 60px);
   overflow-y: auto;
 }
