@@ -471,7 +471,7 @@ const onSubmit = async (formEl) => {
       let moduleJson = getCurrentObj(project, currentModule.value);
       moduleJson.algorithms.push(newAlgorithm);
       changeData(project, currentModule.value, moduleJson);
-      addTree(newAlgorithm);
+      addTreeAlgorithm(newAlgorithm);
       // console.log(newAlgorithm);
     } else {
       // console.log('error submit!', fields)
@@ -616,7 +616,7 @@ onMounted(() => {
   // processMenuData(listOneFuncList.value);
 });
 
-const addTree = (newAlgorithm) => {
+const addTreeAlgorithm = (newAlgorithm) => {
   let curLevel = curData.value.funcLevelId;
   let curFuncName = curData.value.funcName;
 
@@ -654,6 +654,44 @@ const addTree = (newAlgorithm) => {
   //console.log("curLevel:::", curLevel);
   //console.log("curFuncName:::", curFuncName);
 };
+
+
+const addTree = (newAlgorithm) => {
+  //let curLevel = curData.value.funcLevelId;
+  let curFuncName = curData.value.funcName;
+
+  var newObj = {
+    id: 0,
+    funcName: "",
+    funcUrl: "",
+    funcParentId: 0,
+    funcLevelId: 0,
+    isEdit: false,
+    type: newAlgorithm.type,
+  };
+  if (curFuncName == "算法") {
+    newObj.funcName = newAlgorithm.text;
+    //newObj.funcLevelId = curLevel + 1;
+    var ppObj = curFuncList.value.find(
+      (x) => x.id == curData.value.funcParentId
+    );
+    newObj.funcUrl = `${ppObj.funcUrl}/algorithm/${newAlgorithm.text}`;
+    let newId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
+    newObj.id = newId;
+    newObj.funcParentId = curData.value.id;
+    newObj.operation = "right,del,open,rename";
+    newObj.operationType = "algorithm";
+    if (curData.value.child) {
+      curData.value.child.push(newObj);
+    } else {
+      curData.value.child = [];
+      curData.value.child.push(newObj);
+    }
+    listOneFuncList.value = [...listOneFuncList.value];
+  }
+  handleNodeClick(newObj); 
+};
+
 
 const delTree = () => {
   const parent = curNode.value.parent;
