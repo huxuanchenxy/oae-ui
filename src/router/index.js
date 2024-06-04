@@ -70,14 +70,14 @@ const routes = [{
                     import ('../views/home/project/module/Module.vue'),
             },
             {
-                "path": "/deploymentplan/:id",
+                "path": "/deploymentplan",
                 "name": "deploymentplan",
 
                 component: () =>
                     import ('../views/home/project/Deploymentplan.vue'),
             },
             {
-                "path": "/applications/:id",
+                "path": "/applications",
                 "name": "applications",
                 component: () =>
                     import ('../views/home/project/functionblock/index.vue'),
