@@ -217,6 +217,10 @@ import Devices from "@/components/systemSet/Devices.vue";
 import Controls from "@/components/systemSet/Controls.vue";
 import Resources from "@/components/systemSet/Resources.vue";
 import ResourceFuncs from "@/components/systemSet/ResourceFuncs.vue";
+import { useDeploymentMenuStore,useDeploymentNodeIDStore } from '@/store/deploymentStore.js';
+
+const deploymentMenuStore = useDeploymentMenuStore();
+const deploymentNodeIDStore =useDeploymentNodeIDStore();
 const commonstore = commonStore();
 const tagsStore = pagetagsStore();
 
@@ -885,6 +889,9 @@ const showOrHidden = () => {
     treeTitle.value = "单击隐藏菜单";
   }
 };
+deploymentMenuStore.$subscribe((mutate, state) => {
+  console.log('subscribe',state,listOneFuncList.value)
+});
 </script> 
 
 <style scope>
