@@ -148,10 +148,10 @@
       style="text-align: center; padding: 10px"
     >
       <el-upload
-        v-model:file-list="fileTemplateList"
         :action="actionUploadUrl"
         :data="uploadData"
         accept=".res"
+        multiple
         :on-change="handleOnChange"
         :on-success="handleTemplateSuccess"
         :show-file-list="false"
@@ -217,7 +217,7 @@ const uploadData = computed(() => {
     types: `resource,${currentData.value.id},.res`,
   };
 });
-const fileTemplateList = ref([]);
+//const fileTemplateList = ref([]);
 let segList = ref([]);
 let segLevelList = ref([]);
 let rightPopStatus = ref(false);
@@ -392,24 +392,29 @@ const defaultProps = {
   class: customNodeClass,
 };
 
-const handleTemplateSuccess = (res) => {
+const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
   //console.log(res);
   if (res.isSuccess) {
-    ElMsg(res.data);
+    //ElMsg(res.data);
+    ElMsg(`${uploadFile.name}： 文件${res.data}`);
+  } else {
+    //ElMsg(res.message, "error");
+    ElMsg(`${uploadFile.name}：${res.message}`, "error");
+  }
+  let pFlag = uploadFiles.every((x) => x.percentage == 100);
+  if (pFlag) {
     sysApi.getResourcesList().then((res1) => {
       let list = res1;
       loadData(list);
     });
-  } else {
-    ElMsg(res.message, "error");
   }
 };
 
 const handleOnChange = (file, fileList) => {
-  let cusLoading = CusElLoading();
-  if (file.percentage == 100) {
-    cusLoading.close();
-  }
+  // let cusLoading = CusElLoading();
+  // if (file.percentage == 100) {
+  //   cusLoading.close();
+  // }
 };
 
 const delTree = () => {

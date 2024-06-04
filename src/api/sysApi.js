@@ -125,7 +125,11 @@ export default {
     getResourceFuncsList: () => {
         return axios.get(`${baseUrl}/Sys/GetResourceFuncList`).then(res => res.data)
     },
-
+    delResourceFuncs: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateResourceFuncStatus`, {
+            params
+        }).then(res => res.data)
+    },
     addSegDev: (params) => {
         return axios.post(`${baseUrl}/Sys/SaveSegmentDevice`, params).then(res => res.data)
     },
@@ -141,6 +145,27 @@ export default {
     },
     getAllDevicesList: () => {
         return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
+    },
+    getInternalFbsList: () => {
+        return axios.get(`${baseUrl}/Sys/GetInternalFbsList`).then(res => res.data)
+    },
+    validateInternalFbsName: params => {
+        return axios.get(`${baseUrl}/Sys/getInternalFbsList`, {
+            params
+        })
+    },
+    updateInternalFbsName: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateInternalFbsName`, {
+            params
+        }).then(res => res.data)
+    },
+    delInternalFbs: (params) => {
+        return axios.get(`${baseUrl}/Sys/UpdateInternalFbsStatus`, {
+            params
+        }).then(res => res.data)
+    },
+    addInternalFbs: (params) => {
+        return axios.post(`${baseUrl}/Sys/SaveInternalFbs`, params).then(res => res.data)
     },
 
 }

@@ -66,7 +66,6 @@
               </el-button>
 
               <el-upload
-                v-model:file-list="fileTemplateList"
                 :action="actionUploadUrl"
                 :data="uploadDataImg"
                 accept=".jpg,.jpge,.png"
@@ -177,15 +176,14 @@
       "
       style="text-align: center; padding: 10px"
     >
+      <!-- -->
       <el-upload
-        v-model:file-list="fileTemplateList"
-        :action="actionUploadUrl"
         :data="uploadData"
+        :action="actionUploadUrl"
         accept=".dev"
         multiple
         :on-change="handleOnChange"
         :on-success="handleTemplateSuccess"
-        :before-upload="beforeUpload"
         :show-file-list="false"
       >
         <el-link type="primary" :plain="true">上传数据</el-link>
@@ -257,7 +255,7 @@ const uploadDataImg = computed(() => {
     types: `control,${currentData.value.id},.dev,img`,
   };
 });
-const fileTemplateList = ref([]);
+//const fileTemplateList = ref([]);
 let segList = ref([]);
 let segLevelList = ref([]);
 let rightPopStatus = ref(false);
@@ -451,17 +449,30 @@ const defaultProps = {
   class: customNodeClass,
 };
 
+// const onProgress = (e, f, s) => {
+//   console.log("e,f,s", e, f, s);
+// };
+
+// const httpRequest = (params) => {
+//   debugger;
+//   console.log("params", params);
+// };
+
 const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
-  console.log("res,res:::", uploadFile, uploadFiles);
+  //console.log("res,res:::", uploadFile, uploadFiles);
   //console.log(res);
   if (res.isSuccess) {
-    ElMsg(res.data);
+    ElMsg(`${uploadFile.name}： 文件${res.data}`);
+  } else {
+    ElMsg(`${uploadFile.name}：${res.message}`, "error");
+  }
+  let pFlag = uploadFiles.every((x) => x.percentage == 100);
+  //console.log("pFlag", pFlag);
+  if (pFlag) {
     sysApi.getControlsList().then((res1) => {
       let list = res1;
       loadData(list);
     });
-  } else {
-    ElMsg(res.message, "error");
   }
 };
 let uploadImgPath = ref("");
@@ -488,14 +499,10 @@ const handleUploadImgSuccess = (res) => {
 };
 
 const handleOnChange = (file, fileList) => {
-  let cusLoading = CusElLoading();
-  if (file.percentage == 100) {
-    cusLoading.close();
-  }
-};
-
-const beforeUpload = (file) => {
-  console.log("beforeUpload", file);
+  // let cusLoading = CusElLoading("上传中……");
+  // if (file.percentage == 100) {
+  //   cusLoading.close();
+  // }
 };
 
 const saveTree = async (formEl) => {

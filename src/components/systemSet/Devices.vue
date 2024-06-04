@@ -179,9 +179,9 @@
       style="text-align: center; padding: 10px"
     >
       <el-upload
-        v-model:file-list="fileTemplateList"
         :action="actionUploadUrl"
         :data="uploadData"
+        multiple
         accept=".dev"
         :on-change="handleOnChange"
         :on-success="handleTemplateSuccess"
@@ -256,7 +256,7 @@ const uploadDataImg = computed(() => {
     types: `dev,${currentData.value.id},.dev,img`,
   };
 });
-const fileTemplateList = ref([]);
+//const fileTemplateList = ref([]);
 let segList = ref([]);
 let segLevelList = ref([]);
 let rightPopStatus = ref(false);
@@ -468,16 +468,21 @@ const defaultProps = {
   class: customNodeClass,
 };
 
-const handleTemplateSuccess = (res) => {
+const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
   //console.log(res);
   if (res.isSuccess) {
-    ElMsg(res.data);
+    //ElMsg(res.data);
+    ElMsg(`${uploadFile.name}： 文件${res.data}`);
+  } else {
+    //ElMsg(res.message, "error");
+    ElMsg(`${uploadFile.name}：${res.message}`, "error");
+  }
+  let pFlag = uploadFiles.every((x) => x.percentage == 100);
+  if (pFlag) {
     sysApi.getDevicesList().then((res1) => {
       let list = res1;
       loadData(list);
     });
-  } else {
-    ElMsg(res.message, "error");
   }
 };
 let uploadImgPath = ref("");
@@ -501,37 +506,12 @@ const handleUploadImgSuccess = (res) => {
   }
 };
 const handleOnChange = (file, fileList) => {
-  let cusLoading = CusElLoading();
-  if (file.percentage == 100) {
-    cusLoading.close();
-  }
+  // let cusLoading = CusElLoading("上传中……");
+  // if (file.percentage == 100) {
+  //   cusLoading.close();
+  // }
 };
 
-const saveTree_older = async (formEl) => {
-  if (!formEl) return;
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      let addObj = {
-        id: 0,
-        name: newTree.value.name,
-        parentId: currentData.value.id,
-        status: 1,
-      };
-      sysApi.addDevices(addObj).then((res) => {
-        ElMessage({
-          message: "保存成功",
-          type: "success",
-        });
-        newTree.value.name = "";
-        sysApi.getDevicesList().then((res1) => {
-          let list = res1;
-          loadData(list);
-          dialogTreeVisible.value = false;
-        });
-      });
-    }
-  });
-};
 const saveTree = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
