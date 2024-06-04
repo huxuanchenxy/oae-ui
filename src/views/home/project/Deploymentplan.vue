@@ -850,13 +850,25 @@ const isSegLinkDevFun = (edges,segModel,devModel) => {
 const clearAllStats = () => {
   graph.setAutoPaint(false);
   graph.getNodes().forEach(function(node) {
+    let isSelected = getIsSelected(node);
     graph.clearItemStates(node);
+    if (isSelected) graph.setItemState(node, 'selected', true);
   });
   graph.getEdges().forEach(function(edge) {
+    let isSelected = getIsSelected(edge);
     graph.clearItemStates(edge);
+    if (isSelected) graph.setItemState(edge, 'selected', true);
   });
   graph.paint();
   graph.setAutoPaint(true);
+}
+const getIsSelected = (elg6) => {
+  for (let el of elg6.get('states')) {
+    if (el === 'selected') {
+      return true;
+    }
+  }
+  return false;
 }
 const setEMBRES = (deviceNodeModel) => {
   for (let res of deviceNodeModel.resources) {
