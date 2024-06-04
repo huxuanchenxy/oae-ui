@@ -15,9 +15,9 @@
         <el-row>
           <el-col :span="1"
             ><el-upload
-              v-model:file-list="fileTemplateList"
               :action="actionUploadUrl"
               :data="uploadData"
+              multiple
               accept=".fbt"
               :on-change="handleOnChange"
               :on-success="handleTemplateSuccess"
@@ -43,6 +43,18 @@
             label="操作时间"
             :formatter="dateFormatter"
           />
+          <el-table-column label="操作" min-width="150">
+            <template #default="scope">
+              <el-link
+                link
+                type="primary"
+                size="small"
+                @click.prevent="deleteRow(scope.$index, scope.row)"
+              >
+                删除
+              </el-link>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -65,39 +77,57 @@ const uploadData = computed(() => {
     types: `resourcefunc,0,.fbt`,
   };
 });
-const fileTemplateList = ref([]);
+//const fileTemplateList = ref([]);
 
 //let rightPopStatus = ref(false);
 //let currentData = ref({});
 
 const tableData = ref([]);
 
-const handleTemplateSuccess = (res) => {
+const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
   //console.log(res);
   if (res.isSuccess) {
-    ElMsg(res.data);
-    sysApi.getResourcesList().then((res1) => {
-      let list = res1;
-      loadData(list);
-    });
+    //ElMsg(res.data);
+    ElMsg(`${uploadFile.name}： 文件${res.data}`);
   } else {
-    ElMsg(res.message, "error");
+    //ElMsg(res.message, "error");
+    ElMsg(`${uploadFile.name}：${res.message}`, "error");
+  }
+  let pFlag = uploadFiles.every((x) => x.percentage == 100);
+  if (pFlag) {
+    // sysApi.getResourcesList().then((res1) => {
+    //   let list = res1;
+    //   loadData(list);
+    // });
+    sysApi.getResourceFuncsList().then((res) => {
+      tableData.value = res;
+    });
   }
 };
 
 const handleOnChange = (file, fileList) => {
-  let cusLoading = CusElLoading();
-  if (file.percentage == 100) {
-    cusLoading.close();
-  }
+  // let cusLoading = CusElLoading();
+  // if (file.percentage == 100) {
+  //   cusLoading.close();
+  // }
 };
 
 const dateFormatter = (row, column) => {
   console.log("row,column:", row[column.property]);
   const date = new Date(row[column.property]);
-  return `${date.getFullYear()}-${
-    date.getMonth() + 1
-  }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  return `${date.getFullYear()}-${getZero(date.getMonth() + 1)}-${getZero(
+    date.getDate()
+  )} ${getZero(date.getHours())}:${getZero(date.getMinutes())}:${getZero(
+    date.getSeconds()
+  )}`;
+};
+
+const getZero = (num) => {
+  // 单数前面加0
+  if (parseInt(num) < 10) {
+    num = "0" + num;
+  }
+  return num;
 };
 
 const saveBase = () => {};
@@ -108,6 +138,29 @@ onBeforeMount(() => {
     tableData.value = res;
   });
 });
+
+const deleteRow = (index, row) => {
+  console.log("delete Row", index, row);
+  let msg = `确定要删除资源功能块：${row.name}吗?`;
+  ElMessageBox.confirm(msg, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      let params = {
+        id: row.id,
+      };
+      sysApi.delResourceFuncs(params).then((res1) => {
+        tableData.value.splice(index, 1);
+        ElMessage({
+          type: "success",
+          message: "删除成功",
+        });
+      });
+    })
+    .catch(() => {});
+};
 </script>
     
     <style >

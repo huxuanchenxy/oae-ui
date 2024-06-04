@@ -181,9 +181,9 @@
       style="text-align: center; padding: 10px"
     >
       <el-upload
-        v-model:file-list="fileTemplateList"
         :action="actionUploadUrl"
         :data="uploadData"
+        multiple
         accept=".xlm,.dev,.seg"
         :on-change="handleOnChange"
         :on-success="handleTemplateSuccess"
@@ -284,7 +284,7 @@ const uploadData = computed(() => {
     types: `seg,${currentData.value.id},.seg`,
   };
 });
-const fileTemplateList = ref([]);
+//const fileTemplateList = ref([]);
 let segList = ref([]);
 let segLevelList = ref([]);
 let defaultExpandedKeys = ref([]);
@@ -463,25 +463,31 @@ const defaultProps = {
   class: customNodeClass,
 };
 
-const handleTemplateSuccess = (res) => {
+const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
   //console.log(res);
   if (res.isSuccess) {
-    ElMsg(res.data);
+    //ElMsg(res.data);
     // sysApi.getSegmentsList().then((res1) => {
     //   let list = res1;
     //   loadData(list);
     // });
-    initloadTree();
+    //initloadTree();
+    ElMsg(`${uploadFile.name}： 文件${res.data}`);
   } else {
-    ElMsg(res.message, "error");
+    //ElMsg(res.message, "error");
+    ElMsg(`${uploadFile.name}：${res.message}`, "error");
+  }
+  let pFlag = uploadFiles.every((x) => x.percentage == 100);
+  if (pFlag) {
+    initloadTree();
   }
 };
 
 const handleOnChange = (file, fileList) => {
-  let cusLoading = CusElLoading();
-  if (file.percentage == 100) {
-    cusLoading.close();
-  }
+  // let cusLoading = CusElLoading();
+  // if (file.percentage == 100) {
+  //   cusLoading.close();
+  // }
 };
 
 // const saveTree_older = async (formEl) => {

@@ -195,6 +195,10 @@
     v-if="resourcefuncsObj.status"
     v-model="resourcefuncsObj"
   ></ResourceFuncs>
+  <GenericFunc
+    v-if="genericfuncsObj.status"
+    v-model="genericfuncsObj"
+  ></GenericFunc>
 </template>
 
 <script setup>
@@ -217,10 +221,14 @@ import Devices from "@/components/systemSet/Devices.vue";
 import Controls from "@/components/systemSet/Controls.vue";
 import Resources from "@/components/systemSet/Resources.vue";
 import ResourceFuncs from "@/components/systemSet/ResourceFuncs.vue";
-import { useDeploymentMenuStore,useDeploymentNodeIDStore } from '@/store/deploymentStore.js';
+import GenericFunc from "@/components/systemSet/GenericFunc.vue";
+import {
+  useDeploymentMenuStore,
+  useDeploymentNodeIDStore,
+} from "@/store/deploymentStore.js";
 
 const deploymentMenuStore = useDeploymentMenuStore();
-const deploymentNodeIDStore =useDeploymentNodeIDStore();
+const deploymentNodeIDStore = useDeploymentNodeIDStore();
 const commonstore = commonStore();
 const tagsStore = pagetagsStore();
 
@@ -324,6 +332,9 @@ let controlsObj = ref({
 let resourcefuncsObj = ref({
   status: false,
 });
+let genericfuncsObj = ref({
+  status: false,
+});
 const customNodeClass = (data, node) => {
   //console.log("cusNodeClass:::", data);
   if (data.isPenultimate) {
@@ -377,6 +388,8 @@ const handleNodeClick = async (data) => {
     resourcesObj.value.status = true;
   } else if (data.funcName == "控制器资源功能块管理") {
     resourcefuncsObj.value.status = true;
+  } else if (data.funcName == "通用功能块") {
+    genericfuncsObj.value.status = true;
   } else if (data.funcUrl) {
     data.isPenultimate = true;
     const curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
@@ -443,7 +456,7 @@ const showContextMenu = (e, data, node, n) => {
     var ppObj = curFuncList.value.find((x) => x.id == data.funcParentId);
     url = `${ppObj.funcUrl}`;
   }
-  currentModule.value = url.split("/")[3];
+  currentModule.value = url?.split("/")[3];
   // console.log(currentModule.value)
   curData.value = data;
   curNode.value = node;
@@ -890,7 +903,7 @@ const showOrHidden = () => {
   }
 };
 deploymentMenuStore.$subscribe((mutate, state) => {
-  console.log('subscribe',state,listOneFuncList.value)
+  console.log("subscribe", state, listOneFuncList.value);
 });
 </script> 
 
