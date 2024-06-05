@@ -77,7 +77,7 @@ const routes = [{
                     import ('../views/home/project/Deploymentplan.vue'),
             },
             {
-                "path": "/applications/:id",
+                "path": "/applications/:pid/:id",
                 "name": "applications",
                 component: () =>
                     import ('../views/home/project/functionblock/index.vue'),

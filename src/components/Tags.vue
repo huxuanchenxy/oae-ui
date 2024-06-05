@@ -80,13 +80,13 @@ const loadTagData = (curFuncList) => {
     let parName = "";
     let addPath = "";
     let thirdName = "";
-    if (pathArrays.length == 2) {
+    if (pathArrays.length <= 4) {
       var objFunc = curFuncList.find((obj) => obj.funcUrl == path);
       id = objFunc?.id;
       name = objFunc?.funcName;
       addPath = objFunc?.funcUrl;
       commonstore.changeCurTreeNode(id, "", "");
-    } else if (pathArrays.length >= 4) {
+    } else if (pathArrays.length > 4) {
       //pId = pathArrays[2];
       id = pathArrays[3];
       let cObj = curFuncList.find((l) => l.id == id);

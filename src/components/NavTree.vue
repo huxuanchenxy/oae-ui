@@ -397,12 +397,12 @@ const handleNodeClick = async (data) => {
     let pathArrays = path.split("/");
     let id = "";
     let name = "";
-    if (pathArrays.length == 2) {
+    if (pathArrays.length <= 4) {
       let objFunc = curFuncList.find((l) => l.funcUrl == path);
       id = objFunc.id;
       name = objFunc.funcName;
     }
-    if (pathArrays.length >= 4) {
+    if (pathArrays.length > 4) {
       id = pathArrays[3];
       let cObj = curFuncList.find((l) => l.id == id);
       path = cObj.funcUrl;
@@ -416,7 +416,7 @@ const handleNodeClick = async (data) => {
     };
     //cPath = `${cObj.funcUrl}/${cObj.funcParentId}/${cObj.id}`;
     tagsStore.AddTag(model);
-    if (pathArrays.length >= 4) {
+    if (pathArrays.length > 4) {
       getModuleData(id, data.funcUrl);
     } else {
       //router.push({ path: data.funcUrl });
