@@ -56,6 +56,7 @@
           </template>
         </el-tree>
       </div>
+      <button @click="addTree(36, [])">TJCS</button>
     </div>
     <div class="sp" @click="showOrHidden()" :title="treeTitle">
       <div :class="{ arrowLeft: isShowTree, arrowRight: !isShowTree }"></div>
@@ -599,23 +600,6 @@ const saveModule = async (formEl) => {
   });
 };
 
-onMounted(() => {
-  // sysApi.getFuncList().then((res) => {
-  //  console.log("sysApi--2", res);
-  //   curFuncList.value = res;
-  //   sessionStorage.setItem("curFuncLists", JSON.stringify(res));
-  //   listOneFuncList.value = curFuncList.value?.filter((obj) => {
-  //     return obj.funcParentId == "";
-  //   });
-  // });
-  // curFuncList.value = JSON.parse(sessionStorage.getItem("curFuncLists"));
-  // console.log("curFuncList:::", curFuncList.value);
-  // listOneFuncList.value = curFuncList.value?.filter((obj) => {
-  //   return obj.funcParentId == 0;
-  // });
-  // processMenuData(listOneFuncList.value);
-});
-
 const addTreeAlgorithm = (newAlgorithm) => {
   let curLevel = curData.value.funcLevelId;
   let curFuncName = curData.value.funcName;
@@ -655,43 +639,24 @@ const addTreeAlgorithm = (newAlgorithm) => {
   //console.log("curFuncName:::", curFuncName);
 };
 
-
-const addTree = (newAlgorithm) => {
-  //let curLevel = curData.value.funcLevelId;
-  let curFuncName = curData.value.funcName;
-
-  var newObj = {
-    id: 0,
-    funcName: "",
-    funcUrl: "",
-    funcParentId: 0,
-    funcLevelId: 0,
-    isEdit: false,
-    type: newAlgorithm.type,
-  };
-  if (curFuncName == "算法") {
-    newObj.funcName = newAlgorithm.text;
-    //newObj.funcLevelId = curLevel + 1;
-    var ppObj = curFuncList.value.find(
-      (x) => x.id == curData.value.funcParentId
-    );
-    newObj.funcUrl = `${ppObj.funcUrl}/algorithm/${newAlgorithm.text}`;
-    let newId = Math.max(...curFuncList.value.map((obj) => obj.id)) + 1;
-    newObj.id = newId;
-    newObj.funcParentId = curData.value.id;
-    newObj.operation = "right,del,open,rename";
-    newObj.operationType = "algorithm";
-    if (curData.value.child) {
-      curData.value.child.push(newObj);
-    } else {
-      curData.value.child = [];
-      curData.value.child.push(newObj);
-    }
-    listOneFuncList.value = [...listOneFuncList.value];
-  }
-  handleNodeClick(newObj); 
+const addTree = (id, newArray) => { 
+  getTreeObj(listOneFuncList.value, id);
+  currentData.child = newArray; 
+  listOneFuncList.value = [...listOneFuncList.value];
 };
 
+const getTreeObj = (list, id) => {
+  for (let i = 0; i < list.length; i++) {
+    let obj = list[i];
+    if (obj.id == id) {
+      currentData = obj;
+      break;
+    }
+    if (obj.child) {
+      getTreeObj(obj.child, id);
+    }
+  }
+};
 
 const delTree = () => {
   const parent = curNode.value.parent;
