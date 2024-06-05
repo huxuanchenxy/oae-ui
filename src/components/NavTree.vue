@@ -56,7 +56,6 @@
           </template>
         </el-tree>
       </div>
-      <button @click="addTree(36, [])">TJCS</button>
     </div>
     <div class="sp" @click="showOrHidden()" :title="treeTitle">
       <div :class="{ arrowLeft: isShowTree, arrowRight: !isShowTree }"></div>
@@ -639,9 +638,9 @@ const addTreeAlgorithm = (newAlgorithm) => {
   //console.log("curFuncName:::", curFuncName);
 };
 
-const addTree = (id, newArray) => { 
+const addTree = (id, newArray) => {
   getTreeObj(listOneFuncList.value, id);
-  currentData.child = newArray; 
+  currentData.child = newArray;
   listOneFuncList.value = [...listOneFuncList.value];
 };
 
