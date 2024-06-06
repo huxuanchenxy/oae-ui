@@ -476,8 +476,7 @@ export const initGraph=((plugins)=> {
  */
 export const createGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
     const node={
-        // id:uuidv4(),
-        id:functionBlock.id,
+        id:uuidv4(),
         type:'functionBlockShape',
         eventInput:functionBlock.input_events,
         eventOutput:functionBlock.output_events,
