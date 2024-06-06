@@ -12,6 +12,14 @@ export default {
     getFuncList: () => {
         return axios.get(`${baseUrl}/Sys/GetSysFuncList`).then(res => res.data)
     },
+    getAllDevicesList: () => {
+        return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
+    },
+    getTreeForAppList: () => {
+        return axios.get(`${baseUrl}/Sys/GetTreeForApplication`, {
+            params
+        }).then(res => res.data)
+    },
     addSysFuncList: (params) => {
         return axios.post(`${baseUrl}/Sys/AddSysFuncList`, params).then(res => res.data)
     },
@@ -143,9 +151,7 @@ export default {
             params
         }).then(res => res.data)
     },
-    getAllDevicesList: () => {
-        return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
-    },
+
     getInternalFbsList: () => {
         return axios.get(`${baseUrl}/Sys/GetInternalFbsList`).then(res => res.data)
     },
