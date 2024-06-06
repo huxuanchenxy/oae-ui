@@ -15,7 +15,7 @@ export default {
     getAllDevicesList: () => {
         return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
     },
-    getTreeForAppList: () => {
+    getTreeForAppList: (params) => {
         return axios.get(`${baseUrl}/Sys/GetTreeForApplication`, {
             params
         }).then(res => res.data)
