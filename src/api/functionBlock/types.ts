@@ -1,5 +1,6 @@
 import {SystemEventInput} from "@/api/systeminter/systemevent/types";
 import {SystemEventOutput} from "@/api/systeminter/systemevent/types";
+import {Controller} from "@/api/controller/types";
 import {SystemVariInput} from "../systeminter/systemvari/types";
 export interface FunctionBlock {
     raw_id:string
@@ -10,6 +11,7 @@ export interface FunctionBlock {
     output_events:BlockOutputEventForm[],
     inputs:BlockInputVariForm[],
     outputs:BlockOutputVariForm[],
+    controller:Controller
     // internals:string[],
     x:number,
     y:number,
@@ -24,6 +26,7 @@ export interface FunctionBlockTree {
     output_events:BlockOutputEventForm[],
     inputs:BlockInputVariForm[],
     outputs:BlockOutputVariForm[],
+    controller:Controller
     // internals:string[],
     x:number,
     y:number,

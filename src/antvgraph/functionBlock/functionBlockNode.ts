@@ -225,6 +225,20 @@ G6.registerNode("functionBlockShape", {
             // 在 G6 3.3 及之后的版本中，必须指定 name，可以是任意字符串，但需要在同一个自定义元素类型中保持唯一性
             name: "title",
         });
+        group.addShape("text", {
+            // attrs: style
+            attrs: {
+                width: 20,
+                height: 20,
+                x: -width/2+80 ,
+                y: height/2+30,
+                text:cfg.controller,
+                fill: "#666",
+                fontSize: 12,
+            },
+            // 在 G6 3.3 及之后的版本中，必须指定 name，可以是任意字符串，但需要在同一个自定义元素类型中保持唯一性
+            name: "bottom",
+        });
         return keyShape;
     },
     // 返回路径，如果事件大于等于5个，需要扩展高度，如果参数大于6个需要扩展高度。
@@ -331,13 +345,16 @@ G6.registerNode("functionBlockShape", {
             });
         }
     },
-});
+},
+'single-node'
+);
 
-export const initGraph=(()=> {
+export const initGraph=((plugins)=> {
     let graph = new G6.Graph({
         container: "container",
         width: 1300,
         height: 1500,
+        plugins: [plugins],
         defaultEdge: {
             type: "quadratic",
             style: {
@@ -348,6 +365,8 @@ export const initGraph=(()=> {
         modes: {
             default: [
                 // 'drag-canvas',
+                'click-select',
+                'drag-edge',
                 // config the shouldBegin for drag-node to avoid node moving while dragging on the anchor-point circles
                 {
                     type: "drag-node",
@@ -490,6 +509,27 @@ export const updateGraphNode=((functionBlock:FunctionBlock,graph:Graph)=>{
         centerText:originModel.centerText,
         device:originModel.device,
         color:"red",
+    }
+    graph.addItem('node',node)
+});
+export const updateGraphNodeController=((functionBlock:FunctionBlock,graph:Graph)=>{
+    let originNode=graph.findById(functionBlock.raw_id);
+    let originModel=originNode.getModel();
+    graph.removeItem(originNode);
+    const node={
+        id:functionBlock.raw_id,
+        type:'functionBlockShape',
+        eventInput:originModel.input_events,
+        eventOutput:originModel.output_events,
+        paramInput:originModel.inputs,
+        paramOutput:originModel.outputs,
+        x:originModel.x,
+        y:originModel.y,
+        title:originModel.title,
+        centerText:originModel.centerText,
+        device:originModel.device,
+        color:"red",
+        controller:functionBlock.controller.text
     }
     graph.addItem('node',node)
 });

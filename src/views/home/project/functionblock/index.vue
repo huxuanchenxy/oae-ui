@@ -215,7 +215,7 @@
 import { ElTree } from 'element-plus'
 import type Node from 'element-plus/es/components/tree/src/model/node'
 import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
-import {createGraphNode,updateGraphNode,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
+import {createGraphNode,updateGraphNode,updateGraphNodeController,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
 import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
   BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
 import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
@@ -225,7 +225,9 @@ import  cache  from "@/plugins/cache.ts";
 import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
 import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
 import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
+import {listSegDataList} from "@/api/controller";
 import { VXETable, VxeTableInstance } from 'vxe-table'
+import G6 from "@antv/g6";
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 let inputEventList = ref<BlockInputEventForm[]>([]);
 let outputEventList = ref<BlockOutputEventForm[]>([]);
@@ -243,11 +245,13 @@ let currentBlockId="";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
 const cacheKey="graph_fbbs";
+let mouseX,mouseY;
 let graphCacheKey=cacheKey+"-"+project+"-"+module;
 const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
 const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
 const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
 const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
+let data=ref<FunctionBlockTree[]>([]);
 const dialogAlgAndEvent = reactive<DialogOption>({
   visible: false,
   title: ''
@@ -257,66 +261,41 @@ const defaultProps = {
   children: 'children',
   label: 'centerText',
 }
-const data: FunctionBlockTree[] = [
-  {
-    id: 1,
-    title: 'title 1',
-    centerText: 'Level one 1',
-    children: [
-      {
-        id: 4,
-        title: 'title two 1-1',
-        centerText: 'Level two 1-1',
-        children: [
-          {
-            id: 9,
-            title: 'title three 1-1-1',
-            centerText: 'Level three 1-1-1',
-          },
-          {
-            id: 10,
-            title: 'title three 1-1-2',
-            centerText: 'Level three 1-1-2',
-          },
-        ],
-      },
-    ],
+const contextMenu = new G6.Menu({
+  getContent(evt) {
+    return "<ul><li>删除</li>";
   },
-  {
-    id: 2,
-    title: 'title one 2',
-    centerText: 'Level one 2',
-    children: [
-      {
-        id: 5,
-        title: 'title two 2-1',
-        centerText: 'Level two 2-1',
-      },
-      {
-        id: 6,
-        title: 'title two 2-2',
-        centerText: 'Level two 2-2',
-      },
-    ],
+  handleMenuClick: (target, item) => {
+    if(item){
+      //如果右键的是节点或其他
+      deleteNode(item);
+    }
+    saveDataToServer()
   },
-  {
-    id: 3,
-    title: 'title one 3',
-    centerText: 'Level one 3',
-    children: [
-      {
-        id: 7,
-        title: 'title two 3-1',
-        centerText: 'Level two 3-1',
-      },
-      {
-        id: 8,
-        title: 'title two 3-2',
-        centerText: 'Level two 3-2',
-      },
-    ],
-  },
-]
+  // 在哪些类型的元素上响应
+  itemTypes: ['node', 'edge', 'canvas'],
+});
+const deleteNode=async (item)=> {
+  const nodes = graph.findAllByState('node', 'selected');
+  const edges = graph.findAllByState('edge', 'selected');
+  console.log(nodes)
+  const nodeIds = nodes.map((node) => node.get('id'));
+  const edgeIds = edges.map((edge) => edge.get('id'));
+  if (nodeIds.length != 0||edgeIds.length != 0) {
+    await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
+    nodeIds.forEach((nodeId)=>{
+      graph.removeItem(nodeId);
+    })
+    edgeIds.forEach((edgeId)=>{
+      graph.removeItem(edgeId);
+    })
+  }else{
+    proxy?.$modal.msgWarning("您没有选中任何节点");
+  }
+}
+let segData;
+let resourceData;
+
 const cancelAlgAndEventDialog = () => {
   dialogAlgAndEvent.visible = false;
 }
@@ -390,12 +369,36 @@ const changeGraphData=(()=>{
   }
 })
 onMounted(() => {
-  graph=initGraph();//初始化画布
+  initData();//初始化基础数据
+  graph=initGraph(contextMenu);//初始化画布
   changeGraphData();//加载图像
   initGraphEvent();//初始化画布事件
-  initData();//初始化基础数据
-  console.log(variType)
 });
+
+const initTreeData=(()=>{
+  segData=listSegDataList();
+  // resourceData=listResourceDataList();
+  data.value= [
+    {
+      id: 1,
+      centerText: '通讯功能快',
+      // children: [
+      //   {
+      //     id: 4,
+      //     title: 'title two 1-1',
+      //     centerText: 'Level two 1-1',
+      //   },
+      // ],
+      children:segData
+    },
+    {
+      id: 2,
+      centerText: '资源功能块',
+      children: resourceData
+    }
+  ]
+  console.log(data)
+})
 const initData=(()=>{
   module=4;
   //初始化下拉框数据
@@ -403,8 +406,9 @@ const initData=(()=>{
   systemOutputEvents.value=getSystemOutputEvents(project,module);
   systemInputVaris.value=getSystemInputVaris(project,module)
   systemOutputVaris.value=getSystemOutputVaris(project,module);
-}
-)
+  initTreeData();
+})
+
 //-------输入事件开始
 const formatSystemInputEvent = (value: string) => {
   return systemInputEvents.value.find(x=>x.key==value)?.text;
@@ -576,7 +580,6 @@ const submitAlgAndEventForm=(()=>{
     .left{
       flex:0.8;
       width: 1800px;
-      border: 1px solid red;
     }
     .right{
       flex:0.2
