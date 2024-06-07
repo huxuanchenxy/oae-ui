@@ -20,6 +20,9 @@ export default {
             params
         }).then(res => res.data)
     },
+    getResourceFuncByTypeGroup: () => {
+        return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
+    },
     addSysFuncList: (params) => {
         return axios.post(`${baseUrl}/Sys/AddSysFuncList`, params).then(res => res.data)
     },
