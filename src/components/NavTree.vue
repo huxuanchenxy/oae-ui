@@ -906,6 +906,8 @@ const showOrHidden = () => {
 };
 deploymentMenuStore.$subscribe((mutate, state) => {
   console.log("subscribe", state, listOneFuncList.value);
+  let tmp = state.deploymentMenu;
+  addTree(tmp.menuID,tmp.child)
 });
 </script> 
 

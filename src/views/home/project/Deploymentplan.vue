@@ -300,6 +300,7 @@ import { useDeploymentMenuStore,useDeploymentNodeIDStore } from '@/store/deploym
 
 const deploymentMenuStore = useDeploymentMenuStore();
 const deploymentNodeIDStore =useDeploymentNodeIDStore();
+const menuID = useRoute().params.id;
 
 let isCardShow = ref(false);
 let devices = ref([]);
@@ -378,10 +379,10 @@ let attrTmp;
 let segMapDev = {};
 // 部署方案动态树
 let deploymentMenu = [
-  {label: '控制器',
-  children: []},
-  {label: '网络段',
-  children: []},
+  {funcName: '控制器',
+  child: []},
+  {funcName: '网络段',
+  child: []},
 ]
 // 图形
 const container = ref();
@@ -733,35 +734,9 @@ const initGraph=()=>{
   });
 //鼠标事件
   graph.on('node:mouseenter', e => {
-    let item = e.item;
-    graph.setAutoPaint(false);
-    graph.getNodes().forEach((node) => {
-      graph.clearItemStates(node);
-      graph.setItemState(node, 'dark', true);
-    });
-    graph.setItemState(item, 'dark', false);
-    graph.setItemState(item, 'highlight', true);
-    graph.getEdges().forEach((edge) => {
-      if (edge.getSource() === item) {
-        graph.setItemState(edge.getTarget(), 'dark', false);
-        graph.setItemState(edge.getTarget(), 'highlight', true);
-        graph.setItemState(edge, 'highlight', true);
-        edge.toFront();
-      } else if (edge.getTarget() === item) {
-        graph.setItemState(edge.getSource(), 'dark', false);
-        graph.setItemState(edge.getSource(), 'highlight', true);
-        graph.setItemState(edge, 'highlight', true);
-        edge.toFront();
-      } else {
-        graph.setItemState(edge, 'dark', true);
-        graph.setItemState(edge, 'highlight', false);
-      }
-    });
-    graph.paint();
-    graph.setAutoPaint(true);
+    
   })
   graph.on('node:mouseleave', e => {
-    clearAllStats();
   })
 
 // // if create-edge is canceled before ending, update the 'links' on the anchor-point circles
@@ -791,6 +766,57 @@ const initGraph=()=>{
 //   })
 
   //节点的事件
+  graph.on('afteradditem', (e) => {
+    const model = e.model; // 获取添加的节点实例
+    // console.log('节点被添加:', e)
+    if (model.type === 'polyline') {
+      let sModel = e.item.get('sourceNode').get('model');
+      let tModel = e.item.get('targetNode').get('model');
+      let tarModle;
+      let segModel;
+      if (sModel.type === 'segment' && tModel.info.Type === 'target_device') {
+        tarModle = tModel;
+        segModel = sModel;
+      } else if (tModel.id === 'segment' && sModel.info.Type === 'target_device') {
+        tarModle = sModel;
+        segModel = tModel;
+      }
+      if (tarModle) {
+        for (let seg of deploymentMenu[1].child) {
+          if (seg.id === segModel.id) {
+            if (!seg.child) {
+              seg.child = [];
+              seg.child.push({funcName: '终端设备',child: []});
+            }
+            seg.child[0].child.push({funcName: tarModle.cardInfo.nameVal,id:tarModle.id,bigType:'deployment'});
+            break;
+          }
+        }
+      }
+    } else {
+      switch (model.nodeType) {
+        case 'Dev':
+          deploymentMenu[0].child.push({funcName: model.cardInfo.nameVal,id:model.id,bigType:'deployment'})
+          break;
+        case 'Seg':
+          deploymentMenu[1].child.push({funcName: model.cardInfo.nameVal,id:model.id,bigType:'deployment'})
+          break;
+        case 'Tar':
+          // 实测设备加载完时，线还未加载
+          break;
+        default:
+          break;
+      }
+    }
+    // console.log('节点被添加:', model,deploymentMenu); // 输出节点的数据
+    deploymentMenuStore.deploymentMenu ={menuID: menuID,child:deploymentMenu}
+    
+  });
+  graph.on('afterremoveitem', (e) => {
+    const node = e.item; // 获取添加的节点实例
+    console.log('节点被删除:', node); // 输出节点的数据
+    // 在这里可以执行其他逻辑
+  });
   graph.on('node:click', (evt) => {
     if (!evt.originalEvent.shiftKey) {
       let item = evt.item;
@@ -819,6 +845,7 @@ const initGraph=()=>{
   graph.on('canvas:click', (evt)=>{
     isLeaveCanvas = false;
     isCardShow.value = false;
+    clearAllStats();
   });
   graph.on('canvas:mouseleave', (evt)=>{
     isLeaveCanvas = true;
@@ -878,9 +905,37 @@ const setEMBRES = (deviceNodeModel) => {
   }
 }
 const nodeSelected = (item) => {
-  item.setState('selected', true);
   let model = item.getModel();
+  clearAllStats();
+  if (model.info.Type === 'device' || model.type === 'segment') {
+    graph.setAutoPaint(false);
+    graph.getNodes().forEach((node) => {
+      graph.clearItemStates(node);
+      graph.setItemState(node, 'dark', true);
+    });
+    graph.setItemState(item, 'dark', false);
+    graph.setItemState(item, 'highlight', true);
+    graph.getEdges().forEach((edge) => {
+      if (edge.getSource() === item) {
+        graph.setItemState(edge.getTarget(), 'dark', false);
+        graph.setItemState(edge.getTarget(), 'highlight', true);
+        graph.setItemState(edge, 'highlight', true);
+        edge.toFront();
+      } else if (edge.getTarget() === item) {
+        graph.setItemState(edge.getSource(), 'dark', false);
+        graph.setItemState(edge.getSource(), 'highlight', true);
+        graph.setItemState(edge, 'highlight', true);
+        edge.toFront();
+      } else {
+        graph.setItemState(edge, 'dark', true);
+        graph.setItemState(edge, 'highlight', false);
+      }
+    });
+    graph.paint();
+    graph.setAutoPaint(true);
+  }
   // console.log(model)
+  item.setState('selected', true);
   cardData.value = model.cardInfo;
   isLeaveCanvas = false;
   isCardShow.value = true;
@@ -934,10 +989,6 @@ const addNode = (x, y, data) => {
   node.type = type;
   node = cardDataInit(node)
   graph.addItem('node',node)
-
-  deploymentMenuStore.deploymentMenu = {id:2}
-  // deploymentStore.$patch({deploymentMenu: {id:1}})
-  // console.log(deploymentStore)
 }
 // 设备库
 const showOrHidden = () => {
@@ -959,7 +1010,13 @@ const allowdrag = (node) => {
   else return true;
 }
 const handleDragEnd = (draggingNode, dropNode, dropType, e) => {
-  addNode(e.x - leftTreeWidth, e.y - topTitleWidth, draggingNode.data);
+  // console.log('屏幕坐标',{x:e.x,y:e.y})
+  // console.log('屏幕坐标',{x:e.x - leftTreeWidth,y:e.y - topTitleWidth})
+  let viewPos = graph.getPointByClient(e.x,e.y);
+  // console.log('视口坐标',viewPos)
+  // let canvasPos = graph.getCanvasByPoint(viewPos.x,viewPos.y)
+  // console.log('画布坐标',canvasPos)
+  addNode(viewPos.x, viewPos.y, draggingNode.data);
 }
 // 下拉查询并快速定位
 const setDevicePosition = (val) => {
@@ -1119,11 +1176,55 @@ const syncNodeName = (name) => {
   if (oldName === name) return true;
   let nodes = graph.getNodes();
   if (nodes.some((el) => { return el.get('model').label === name})) {
-    // cardData.value.nameVal = oldName;
+    cardData.value.nameVal = oldName;
     return false;
   } else {
-    node.get('model').label = name
-    graph.refreshItem(node)
+    let model = node.get('model');
+    model.label = name
+    graph.refreshItem(node);
+    switch (model.nodeType) {
+      case 'Dev':
+        for (let el of deploymentMenu[0].child) {
+          if (el.id === model.id) {
+            el.funcName = name;
+            break;
+          }
+        }
+        break;
+      case 'Seg':
+        for (let el of deploymentMenu[1].child) {
+          if (el.id === model.id) {
+            el.funcName = name;
+            break;
+          }
+        }
+        break;
+      case 'Tar':
+        let edges = node.get('edges');
+        if (edges.length > 0) {
+          let sModel = edges[0].get('sourceNode').get('model');
+          let tModel = edges[0].get('targetNode').get('model');
+          let segModel;
+          if (sModel.id === model.id) segModel = tModel;
+          else if (tModel.id === model.id) segModel = sModel;
+          // 需要for循环拿到index
+          for (let seg of deploymentMenu[1].child) {
+            if (seg.id === segModel.id) {
+              for (let tar of deploymentMenu[1].child[index].child) {
+                if (tar.id === model.id) {
+                  tar.funcName = name;
+                  console.log(deploymentMenu[1])
+                }
+                break;
+              }
+            }
+            break;
+          }
+        }
+        break;
+      default:
+        break;
+    }
     return true;
   }
 }
@@ -1143,7 +1244,6 @@ const cardDataInit = (node) => {
   // 组装card
   // cardData.value = {}
   let card = {
-    nodeId: info.ID,
     name: '名称',
     nameVal: node.label,
     typeName: '类型',
@@ -1245,16 +1345,19 @@ const handleKeyUp = (e) => {
   if (e.key === 'Delete') {
     let edges = graph.findAllByState("edge", "selected");
     let nodes = graph.findAllByState("node", "selected");
+    console.log(nodes)
     if (edges.length > 0 && !isLeaveCanvas) {
       edges.forEach((el) => {
         graph.removeItem(el)
       });
+      clearAllStats();
     }
     if (nodes.length > 0 && !isLeaveCanvas) {
       nodes.forEach((el) => {
         graph.removeItem(el);
       })
       isCardShow.value = false;
+      clearAllStats();
     }
     // curGraphData = graph.save();
     // console.log(curGraphData)
