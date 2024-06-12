@@ -15,10 +15,13 @@ export default {
     getAllDevicesList: () => {
         return axios.get(`${baseUrl}/Sys/GetAllDeviceList`).then(res => res.data)
     },
-    getTreeForAppList: () => {
+    getTreeForAppList: (params) => {
         return axios.get(`${baseUrl}/Sys/GetTreeForApplication`, {
             params
         }).then(res => res.data)
+    },
+    getResourceFuncByTypeGroup: () => {
+        return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
     },
     addSysFuncList: (params) => {
         return axios.post(`${baseUrl}/Sys/AddSysFuncList`, params).then(res => res.data)

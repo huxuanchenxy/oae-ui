@@ -56,6 +56,7 @@ declare module '@vue/runtime-core' {
     Invari: typeof import('./../components/event_vari/invari/index.vue')['default']
     LogContent: typeof import('./../components/bottomContent/LogContent.vue')['default']
     NavTree: typeof import('./../components/NavTree.vue')['default']
+    OPCUA_RES: typeof import('./../components/pointTable/OPCUA_RES.vue')['default']
     PwdChange: typeof import('./../components/dialog/PwdChange.vue')['default']
     ResourceFuncs: typeof import('./../components/systemSet/ResourceFuncs.vue')['default']
     Resources: typeof import('./../components/systemSet/Resources.vue')['default']
