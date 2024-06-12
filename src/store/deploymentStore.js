@@ -11,7 +11,14 @@ export const useDeploymentMenuStore = defineStore("deploymentMenuStore", () => {
         nodeId
     };
   });
+  export const useDeploymentNodeDragStore = defineStore("deploymentNodeDragStore", () => {
+    let operation=ref({});
+    return {
+      operation
+    };
+  });
   export default {
     useDeploymentMenuStore,
-    useDeploymentNodeIDStore
+    useDeploymentNodeIDStore,
+    useDeploymentNodeDragStore
 };

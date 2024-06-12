@@ -25,8 +25,12 @@
           default-expand-all
           :expand-on-click-node="false"
           :props="defaultProps"
+          draggable
           @node-click="handleNodeClick"
           @node-contextmenu="showContextMenu"
+          @node-drop="handleNodeDrop"
+          :allow-drag="(node) => {return node.data.type}"
+          :allow-drop="handleAllowDrop"
         >
           <template #default="{ node, data }">
             <i
@@ -222,13 +226,16 @@ import Controls from "@/components/systemSet/Controls.vue";
 import Resources from "@/components/systemSet/Resources.vue";
 import ResourceFuncs from "@/components/systemSet/ResourceFuncs.vue";
 import GenericFunc from "@/components/systemSet/GenericFunc.vue";
+import { segMapDev,getSegMapDev } from "@/utils/segMapDevHelper.js";
 import {
   useDeploymentMenuStore,
   useDeploymentNodeIDStore,
+  useDeploymentNodeDragStore
 } from "@/store/deploymentStore.js";
 
 const deploymentMenuStore = useDeploymentMenuStore();
 const deploymentNodeIDStore = useDeploymentNodeIDStore();
+const deploymentNodeDragStore = useDeploymentNodeDragStore();
 const commonstore = commonStore();
 const tagsStore = pagetagsStore();
 
@@ -376,7 +383,7 @@ let curNode = ref();
 let curData = ref();
 
 const handleNodeClick = async (data) => {
-  //console.log("handleNodeClick******", data);
+  // console.log("handleNodeClick******", data);
   queryData(listOneFuncList.value);
   if (data.funcName == "网络段管理") {
     segmentsObj.value.status = true;
@@ -390,6 +397,8 @@ const handleNodeClick = async (data) => {
     resourcefuncsObj.value.status = true;
   } else if (data.funcName == "通用功能块") {
     genericfuncsObj.value.status = true;
+  } else if (data.bigType) {
+    deploymentNodeIDStore.nodeId = data.id;
   } else if (data.funcUrl) {
     data.isPenultimate = true;
     const curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
@@ -462,7 +471,39 @@ const showContextMenu = (e, data, node, n) => {
   curNode.value = node;
   //}
 };
+const handleAllowDrop = (sNode,eNode,type) => {
+  let sDate = sNode.data;
+  let eData = eNode.data;
+  // console.log(sNode.data,eNode.data)
+  if (eData.funcName === '未分配终端' && type === 'inner') {
+    if (eData.child.some((el) => {return el.id === sDate.id })) return false;
+    return true;
+  } else if (eData.funcName === '终端设备' && type === 'inner') {
+    if (eData.child.some((el) => {return el.id === sDate.id })) return false;
+    // seg和tar不符合规则，不可连接
+    if (
+      !segMapDev[eData.typeName].some((el) => {
+        return el.info.Name === sDate.typeName;
+      })
+    ) return false;
+    return true;
+  } else return false;
+}
 
+const handleNodeDrop =(sNode, eNode,pos,e) => {
+  // console.log('handleNodeDrop',sNode, eNode,pos,e)
+  let sData = sNode.data;
+  let eName = eNode.data.funcName;
+  deploymentNodeDragStore.operation = {op:'removeEdge',tarNodeId:sData.id}
+  // 不方便获取起始节点的父节点，所以即使未分配到终端，也先删边再加边
+  if (eName === '终端设备') {
+    let eParentData = eNode.parent.data;
+    // console.log('handleNodeDrop')
+    // 未分配到终端时，尽管执行删边操作，但由于没有连接边直接加边数据
+    // deploymentNodeDragStore.operation = {op:'removeEdge',tarNodeId:sData.id}
+    deploymentNodeDragStore.operation = {op:'addEdge',model:{source:sData.id,target:eParentData.id,type: 'polyline'}}
+  }
+}
 const onSubmit = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
@@ -797,6 +838,14 @@ onBeforeMount(() => {
     let list = JSON.parse(sessionStorage.getItem("curFuncLists"));
     loadData(list);
   }
+  sysApi.getAllDevicesList().then(async (res) => {
+    for (let dev of res) {
+      if (dev.name === "网络段") {
+        getSegMapDev(dev.children);
+        break;
+      }
+    }
+  });
 });
 
 const getModuleData = (id, path) => {
@@ -905,7 +954,7 @@ const showOrHidden = () => {
   }
 };
 deploymentMenuStore.$subscribe((mutate, state) => {
-  console.log("subscribe", state, listOneFuncList.value);
+  // console.log("subscribe", state);
   let tmp = state.deploymentMenu;
   addTree(tmp.menuID,tmp.child)
 });
