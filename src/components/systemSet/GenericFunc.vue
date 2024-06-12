@@ -1,8 +1,9 @@
 <template>
   <el-dialog
-    id="gericfuncSeg"
+    id="gericfuncDig"
     width="90%"
-    style="height: 80%; overflow: hidden"
+    :height="'auto'"
+    style="overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
     title="通用功能块管理"
@@ -11,8 +12,18 @@
     :close-on-press-escape="true"
   >
     <div class="wrapper">
-      <div class="left">
+      <div class="leftContent">
         <div id="genericfuncTree">
+          <div
+            class="search"
+            style="padding-left: 5px; padding-right: 5px; margin-bottom: 5px"
+          >
+            <el-input
+              placeholder="请输入内容"
+              :prefix-icon="Search"
+              v-model="treeSearch"
+            ></el-input>
+          </div>
           <!-- highlight-current -->
           <el-tree
             :data="segLevelList"
@@ -25,34 +36,25 @@
           </el-tree>
         </div>
       </div>
-      <div class="right">
-        <el-tabs
-          type="border-card"
-          v-show="
-            currentData?.jsonContent != '' && currentData?.jsonContent != null
-          "
-          style="max-height: 700px; overflow: hidden"
-        >
-          <el-tab-pane label="基本信息">
+      <div class="rightContent">
+        <el-tabs type="border-card" style="height: 100%; overflow: hidden">
+          <el-tab-pane label="详情信息">
             <el-table
               id="eltable"
               :data="tableData"
-              max-height="690"
-              style="width: 100%"
+              style="width: 100%; max-height: 700px; overflow: auto"
               row-key="name"
               default-expand-all
             >
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
-              <el-table-column prop="name" label="类型"> </el-table-column>
-              <el-table-column prop="displayName" label="分类名称">
+              <el-table-column prop="type" label="类型"> </el-table-column>
+              <el-table-column prop="parentName" label="分类名称">
               </el-table-column>
-              <el-table-column prop="type" label="功能块名称">
+              <el-table-column prop="name" label="功能块名称">
               </el-table-column>
-              <el-table-column prop="arraySize" label="版本号">
-              </el-table-column>
-              <el-table-column prop="initialValue" label="文件名">
-              </el-table-column>
+              <el-table-column prop="version" label="版本号"> </el-table-column>
+              <el-table-column prop="name" label="文件名"> </el-table-column>
               <el-table-column prop="option" label="操作"> </el-table-column>
             </el-table>
           </el-tab-pane>
@@ -84,7 +86,7 @@
         :action="actionUploadUrl"
         :data="uploadData"
         multiple
-        accept=".dev"
+        accept=".fbt"
         :on-change="handleOnChange"
         :on-success="handleTemplateSuccess"
         :show-file-list="false"
@@ -141,12 +143,14 @@
 import { baseUrl } from "@/api/baseUrl";
 import sysApi from "@/api/sysApi";
 import { ElMsg, CusElLoading } from "@/jslib/common.js";
+import { Search } from "@element-plus/icons-vue";
 const { modelValue } = defineProps({
   modelValue: {
     type: Object,
     default: {},
   },
 });
+let treeSearch = ref("");
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
@@ -156,6 +160,8 @@ const uploadData = computed(() => {
 
 //const fileTemplateList = ref([]);
 let segList = ref([]);
+//let tableList = ref([]);
+const tableData = ref([]);
 let segLevelList = ref([]);
 let rightPopStatus = ref(false);
 const dyStyle = reactive({
@@ -180,8 +186,6 @@ const newTree = ref({
   name: "",
 });
 
-const tableData = ref([]);
-
 const validateTreeName = (rule, value, callback) => {
   if (value !== "") {
     if (dialogTreeTitle.value == "重命名" && value == currentData.value.name) {
@@ -195,7 +199,7 @@ const validateTreeName = (rule, value, callback) => {
         name: value,
         pid,
       };
-      sysApi.validateDevicesName(params).then(async (res) => {
+      sysApi.validateInternalFbsName(params).then(async (res) => {
         if (res.data) {
           await callback();
         } else {
@@ -232,96 +236,6 @@ const queryData = (list) => {
 const handleNodeClick = async (data) => {
   queryData(segLevelList.value);
   data.isPenultimate = true;
-  currentData.value = data;
-
-  tableData.value = [];
-  if (data.jsonContent) {
-    //console.log("----", data.jsonContent);
-    let objJsonContent = JSON.parse(data.jsonContent);
-    //console.log("objJsonContent", objJsonContent);
-    let objNew = {
-      name: "DeviceType",
-      displayName:
-        objJsonContent.DisplayName == null
-          ? objJsonContent.Name
-          : objJsonContent.DisplayName,
-      type: "",
-      arraySize: "",
-      option: "",
-      initialValue: objJsonContent.Name,
-      // enabled: true,
-    };
-    tableData.value.push(objNew);
-    objJsonContent?.VarDeclaration?.forEach((arr) => {
-      let optionsArray = "";
-      if (arr.Option) {
-        optionsArray = [{ optionKey: "", optionValue: "请选择" }];
-        var arrOption = arr.Option.split(",");
-        arrOption?.forEach((a) => {
-          var arrContent = a.split(":");
-          let optionKey = arrContent[0];
-          let optionValue = arrContent[1];
-          optionsArray.push({ optionKey, optionValue });
-        });
-      }
-
-      objNew = {
-        name: arr.Name,
-        displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
-        type: arr.Type,
-        arraySize: arr.ArraySize,
-        option: arr.Option,
-        initialValue: arr.InitialValue,
-        enabled: arr.Enabled == "1" ? true : false,
-        optionsArray: optionsArray,
-        //optionsSelect: arr?.OptionSelect,
-      };
-      tableData.value.push(objNew);
-    });
-    if (objJsonContent?.ResourceTypeName) {
-      let objNewRes = {
-        name: null, // objJsonContent?.ResourceTypeName.Name,
-        displayName: "动态接口变量表", // objJsonContent.DisplayName,
-        type: null,
-        arraySize: null,
-        option: null,
-        initialValue: null,
-        // enabled: true,
-        children: [],
-      };
-
-      if (objJsonContent?.ResourceTypeName?.VarDeclaration) {
-        objJsonContent?.ResourceTypeName?.VarDeclaration?.forEach((arr) => {
-          let optionsArray = "";
-          if (arr.Option && arr.Option != "") {
-            optionsArray = [{ optionKey: "", optionValue: "请选择" }];
-            var arrOption = arr.Option.split(",");
-            arrOption?.forEach((a) => {
-              var arrContent = a.split(":");
-              let optionKey = arrContent[0];
-              let optionValue = arrContent[1];
-              optionsArray.push({ optionKey, optionValue });
-            });
-          }
-          let childObjNew = {
-            name: arr.Name,
-            displayName: arr.DisplayName == null ? arr.Name : arr.DisplayName,
-            type: arr.Type,
-            arraySize: arr.ArraySize,
-            option: arr.Option,
-            initialValue: arr.InitialValue,
-            enabled: arr.Enabled == "1" ? true : false,
-            optionsArray: optionsArray,
-            optionsSelect: arr?.OptionSelect,
-          };
-          objNewRes.children.push(childObjNew);
-          //tableData.value.push(objNew);
-        });
-        tableData.value.push(objNewRes);
-      }
-    }
-  }
-  // console.log("tableData.value", tableData.value);
 };
 const showContextMenu = (e, data, node, n) => {
   e.preventDefault();
@@ -356,9 +270,10 @@ const handleTemplateSuccess = (res, uploadFile, uploadFiles) => {
   }
   let pFlag = uploadFiles.every((x) => x.percentage == 100);
   if (pFlag) {
-    sysApi.getDevicesList().then((res1) => {
-      let list = res1;
+    sysApi.getInternalFbsList().then((res1) => {
+      let list = res1.list;
       loadData(list);
+      tableData.value = res1.lsIfbs;
     });
   }
 };
@@ -382,14 +297,15 @@ const saveTree = async (formEl) => {
         status: 1,
       };
       if (dialogTreeTitle.value == "新建") {
-        sysApi.addDevices(addObj).then((res) => {
+        sysApi.addInternalFbs(addObj).then((res) => {
           ElMessage({
             message: "保存成功",
             type: "success",
           });
           newTree.value.name = "";
-          sysApi.getDevicesList().then((res1) => {
-            let list = res1;
+          sysApi.getInternalFbsList().then((res1) => {
+            let list = res1.list;
+            tableData.value = res.lsIfbs;
             loadData(list);
           });
         });
@@ -397,7 +313,7 @@ const saveTree = async (formEl) => {
         if (newTree.value.name == currentData.value.name) {
         } else {
           addObj.id = currentData.value.id;
-          sysApi.updateDevicesName(addObj).then((res1) => {
+          sysApi.updateInternalFbsName(addObj).then((res1) => {
             ElMessage({
               message: "重命名成功",
               type: "success",
@@ -411,12 +327,12 @@ const saveTree = async (formEl) => {
 };
 
 const delTree = () => {
-  let msg = `确定要删除终端设备${currentData.value.name}吗?`;
+  let msg = `确定要删除通用功能块:${currentData.value.name}吗?`;
   if (
     currentData.value.jsonContent == "" &&
     currentData.value.child?.length > 0
   ) {
-    msg = `确定要删除分组${currentData.value.name}，以及分组下的终端设备吗?`;
+    msg = `确定要删除分组${currentData.value.name}，以及分组下的通用功能块吗?`;
   } else if (currentData.value.jsonContent == "") {
     msg = `确定要删除分组${currentData.value.name}吗?`;
   }
@@ -431,9 +347,10 @@ const delTree = () => {
       let params = {
         id: currentData.value.id,
       };
-      sysApi.delDevices(params).then((res1) => {
-        sysApi.getDevicesList().then((res) => {
-          let list = res;
+      sysApi.delInternalFbs(params).then((res1) => {
+        sysApi.getInternalFbsList().then((res) => {
+          let list = res.list;
+          tableData.value = res.lsIfbs;
           loadData(list);
           ElMessage({
             type: "success",
@@ -498,7 +415,6 @@ const renameTree = () => {
 };
 
 const loadData = (list) => {
-  debugger;
   segList.value = list; //JSON.parse(sessionStorage.getItem("curFuncLists"));
   segLevelList.value = segList.value?.filter((obj) => {
     return obj.parentId == 0;
@@ -523,24 +439,25 @@ const processMenuData = (list) => {
 
 onBeforeMount(() => {
   sysApi.getInternalFbsList().then((res) => {
-    let list = res;
+    let list = res.list;
+    tableData.value = res.lsIfbs;
     loadData(list);
   });
 });
-</script>
-    
-    <style >
-#gericfuncSeg .el-dialog__body {
+</script> 
+  
+<style >
+#gericfuncDig .el-dialog__body {
   padding-top: 5px !important;
 }
 
-.wrapper {
+#gericfuncDig .wrapper {
   display: flex;
   overflow: hidden;
-  height: 800px;
+  justify-content: space-between;
 }
 
-.left {
+#gericfuncDig .wrapper .leftContent {
   flex: 1;
 
   background-color: #fff;
@@ -549,30 +466,30 @@ onBeforeMount(() => {
   border-radius: 5px;
   overflow: auto;
 }
-#genericfuncTree {
-  margin-top: 10px;
+#gericfuncDig .wrapper .left #genericfuncTree {
   margin-bottom: 20px;
 }
-#genericfuncTree .is-penultimate > .el-tree-node__content {
+#gericfuncDig
+  .wrapper
+  .leftContent
+  #genericfuncTree
+  .is-penultimate
+  > .el-tree-node__content {
   /* color: #fff; */
   color: #4290f7;
   font-weight: bold;
 }
-#genericfuncTree .is-penultimate > .el-tree-node__content .el-tree-node__label {
-  /* padding: 5px;
-      background: #4290f7; */
-}
 
-.right {
+#gericfuncDig .wrapper .rightContent {
   flex: 4;
   background-color: #fff;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4); */
-  border-radius: 5px;
+  /* border-radius: 5px; */
   margin-right: 10px;
   overflow: hidden;
 }
 
-.right #eltable .el-input__wrapper {
+#gericfuncDig .wrapper .right #eltable .el-input__wrapper {
   box-shadow: 0 0 0 1px #444549 inset;
 }
 </style>

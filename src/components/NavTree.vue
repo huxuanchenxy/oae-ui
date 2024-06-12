@@ -29,7 +29,11 @@
           @node-click="handleNodeClick"
           @node-contextmenu="showContextMenu"
           @node-drop="handleNodeDrop"
-          :allow-drag="(node) => {return node.data.type}"
+          :allow-drag="
+            (node) => {
+              return node.data.type;
+            }
+          "
           :allow-drop="handleAllowDrop"
         >
           <template #default="{ node, data }">
@@ -74,7 +78,7 @@
       <el-link
         style="padding: 10px"
         type="primary"
-        v-show="
+        v-if="
           currentData.operation?.includes('new') &&
           currentData.operationType === 'algorithm'
         "
@@ -84,13 +88,23 @@
       <el-link
         style="padding: 10px"
         type="primary"
-        v-show="
+        v-else-if="
           currentData.operation?.includes('new') &&
           currentData.operationType === 'bfb'
         "
         @click="
           newModule.name = '';
           dialogModuleVisible = true;
+        "
+        >新建</el-link
+      >
+      <el-link
+        style="padding: 10px"
+        type="primary"
+        v-else-if="currentData.operation?.includes('new')"
+        @click="
+          newModule.name = '';
+          dialogTreeVisible = true;
         "
         >新建</el-link
       >
@@ -110,14 +124,17 @@
     >
       <el-link
         type="primary"
-        v-show="currentData.operationType?.includes('algorithm')"
+        v-if="currentData.operationType?.includes('algorithm')"
         @click="delAlgorithm(currentData)"
         >删除</el-link
       >
       <el-link
-        v-show="currentData.operationType?.includes('module')"
+        v-else-if="currentData.operationType?.includes('module')"
         type="primary"
         @click="delModule(currentData)"
+        >删除</el-link
+      >
+      <el-link v-else type="primary" @click="delApplication(currentData)"
         >删除</el-link
       >
     </div>
@@ -191,6 +208,25 @@
     </template>
   </el-dialog>
 
+  <el-dialog
+    v-model="dialogTreeVisible"
+    :close-on-click-modal="false"
+    title="新建"
+    width="500"
+  >
+    <el-form :model="newModule" :rules="rulesModule" status-icon>
+      <el-form-item label="名称" prop="name">
+        <el-input v-model="newModule.name" placeholder="请输入" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogTreeVisible = false">取消</el-button>
+        <el-button type="primary" @click="addDiagTree()">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
+
   <Segments v-if="segmentsObj.status" v-model="segmentsObj"></Segments>
   <Devices v-if="devicesObj.status" v-model="devicesObj"></Devices>
   <Controls v-if="controlsObj.status" v-model="controlsObj"></Controls>
@@ -226,11 +262,11 @@ import Controls from "@/components/systemSet/Controls.vue";
 import Resources from "@/components/systemSet/Resources.vue";
 import ResourceFuncs from "@/components/systemSet/ResourceFuncs.vue";
 import GenericFunc from "@/components/systemSet/GenericFunc.vue";
-import { segMapDev,getSegMapDev } from "@/utils/segMapDevHelper.js";
+import { segMapDev, getSegMapDev } from "@/utils/segMapDevHelper.js";
 import {
   useDeploymentMenuStore,
   useDeploymentNodeIDStore,
-  useDeploymentNodeDragStore
+  useDeploymentNodeDragStore,
 } from "@/store/deploymentStore.js";
 
 const deploymentMenuStore = useDeploymentMenuStore();
@@ -242,6 +278,7 @@ const tagsStore = pagetagsStore();
 let popStatus = ref(false);
 let dialogVisible = ref(false);
 let dialogModuleVisible = ref(false);
+let dialogTreeVisible = ref(false);
 let isEdit = ref(false);
 let currentData = reactive({ funcLevelId: 0 });
 let newAlgorithm = reactive(JSON.parse(JSON.stringify(algorithmDS)));
@@ -471,39 +508,53 @@ const showContextMenu = (e, data, node, n) => {
   curNode.value = node;
   //}
 };
-const handleAllowDrop = (sNode,eNode,type) => {
+const handleAllowDrop = (sNode, eNode, type) => {
   let sDate = sNode.data;
   let eData = eNode.data;
   // console.log(sNode.data,eNode.data)
-  if (eData.funcName === '未分配终端' && type === 'inner') {
-    if (eData.child.some((el) => {return el.id === sDate.id })) return false;
+  if (eData.funcName === "未分配终端" && type === "inner") {
+    if (
+      eData.child.some((el) => {
+        return el.id === sDate.id;
+      })
+    )
+      return false;
     return true;
-  } else if (eData.funcName === '终端设备' && type === 'inner') {
-    if (eData.child.some((el) => {return el.id === sDate.id })) return false;
+  } else if (eData.funcName === "终端设备" && type === "inner") {
+    if (
+      eData.child.some((el) => {
+        return el.id === sDate.id;
+      })
+    )
+      return false;
     // seg和tar不符合规则，不可连接
     if (
       !segMapDev[eData.typeName].some((el) => {
         return el.info.Name === sDate.typeName;
       })
-    ) return false;
+    )
+      return false;
     return true;
   } else return false;
-}
+};
 
-const handleNodeDrop =(sNode, eNode,pos,e) => {
+const handleNodeDrop = (sNode, eNode, pos, e) => {
   // console.log('handleNodeDrop',sNode, eNode,pos,e)
   let sData = sNode.data;
   let eName = eNode.data.funcName;
-  deploymentNodeDragStore.operation = {op:'removeEdge',tarNodeId:sData.id}
+  deploymentNodeDragStore.operation = { op: "removeEdge", tarNodeId: sData.id };
   // 不方便获取起始节点的父节点，所以即使未分配到终端，也先删边再加边
-  if (eName === '终端设备') {
+  if (eName === "终端设备") {
     let eParentData = eNode.parent.data;
     // console.log('handleNodeDrop')
     // 未分配到终端时，尽管执行删边操作，但由于没有连接边直接加边数据
     // deploymentNodeDragStore.operation = {op:'removeEdge',tarNodeId:sData.id}
-    deploymentNodeDragStore.operation = {op:'addEdge',model:{source:sData.id,target:eParentData.id,type: 'polyline'}}
+    deploymentNodeDragStore.operation = {
+      op: "addEdge",
+      model: { source: sData.id, target: eParentData.id, type: "polyline" },
+    };
   }
-}
+};
 const onSubmit = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
@@ -698,6 +749,27 @@ const getTreeObj = (list, id) => {
   }
 };
 
+//operation: "right,del,rename,open",
+//operationType: "module",
+const addDiagTree = (
+  operationType = "",
+  operation = "right,del,rename,open"
+) => {
+  let addModule = {
+    id: currentData.id + newModule.value.name,
+    funcName: newModule.value.name,
+    funcParentId: currentData.id,
+    funcLevelId: currentData.funcLevelId + 1,
+    isEdit: false,
+    operationType,
+    operation,
+  };
+  if (!currentData.child) currentData.child = [];
+  currentData.child.push(addModule);
+  dialogTreeVisible.value = false;
+  listOneFuncList.value = [...listOneFuncList.value];
+};
+
 const delTree = () => {
   const parent = curNode.value.parent;
   const children = parent.data.child;
@@ -749,6 +821,10 @@ const delModule = (data) => {
     })
     .catch(() => {});
 };
+
+const delApplication = (data) => {
+  
+}
 
 const RenameTree = (newName) => {
   curData.value.funcName = newName;
@@ -956,7 +1032,7 @@ const showOrHidden = () => {
 deploymentMenuStore.$subscribe((mutate, state) => {
   // console.log("subscribe", state);
   let tmp = state.deploymentMenu;
-  addTree(tmp.menuID,tmp.child)
+  addTree(tmp.menuID, tmp.child);
 });
 </script> 
 
