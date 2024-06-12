@@ -276,7 +276,7 @@ const container = ref<any>(null);
 let graph;
 let graphWidth;
 let graphHeight;
-const startGraphSize=[60,25];
+const startGraphSize=[60,25];//第一个是宽度，第二个是高度
 const stateGraphSize=[60,25];
 const algGraphSize=[50,25];
 const algEveSize=[50,25];

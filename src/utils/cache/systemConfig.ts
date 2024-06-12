@@ -1,10 +1,7 @@
 //UTIL包内的业务ts都是用来变更最大的JSON文件的
 import cache from "@/plugins/cache.ts";
 export const cacheKey = "systemConfig";
-export const getJsonAll = (project, module) => {
-    if (!module) {
-        return;
-    }
+export const getJsonAll = (project) => {
     let jsonAll = cache.local.getJSON(cacheKey);
     //如果连缓存都没有，直接return初始数据 todo 后续不用初始值，会删除
     if (!jsonAll) {

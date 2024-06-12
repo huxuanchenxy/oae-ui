@@ -36,7 +36,8 @@ export interface BlockInputEventForm {
     blockId:string
     key:string,
     text:string,
-    relatedEvent:SystemEventInput;
+    relatedEvent:SystemEventInput,
+    graphId:string
 }
 
 export interface BlockInputEventVO {
@@ -45,13 +46,15 @@ export interface BlockInputEventVO {
     text:string,
     relatedEvent:SystemEventInput;
     type:string,
-    relateEventName:string
+    relateEventName:string,
+    graphId:string
 }
 export interface BlockOutputEventForm {
     blockId:string
     key:string,
     text:string,
-    relatedEvent:SystemEventInput;
+    relatedEvent:SystemEventInput,
+    graphId:string
 }
 
 export interface BlockOutputEventVO  {
@@ -60,7 +63,8 @@ export interface BlockOutputEventVO  {
     text:string,
     relatedEvent:SystemEventInput;
     type:string,
-    relateEventName:string
+    relateEventName:string,
+    graphId:string
 }
 export interface BlockInputVariForm {
     blockId:string
@@ -68,7 +72,8 @@ export interface BlockInputVariForm {
     text:string,
     type:string,
     relatedEvents:Array<BlockInputEventForm>,
-    relatedVari:SystemVariInput
+    relatedVari:SystemVariInput,
+    graphId:string
 }
 
 export interface BlockInputVariVO {
@@ -79,7 +84,8 @@ export interface BlockInputVariVO {
     relatedVari:SystemVariInput,
     type:string,
     relateEventName:string,
-    relatedVariName:string
+    relatedVariName:string,
+    graphId:string
 }
 
 export interface BlockOutputVariForm {
@@ -88,7 +94,8 @@ export interface BlockOutputVariForm {
     text:string,
     type:string,
     relatedEvents:Array<BlockInputEventForm>,
-    relatedVari:SystemVariInput
+    relatedVari:SystemVariInput,
+    graphId:string
 }
 
 export interface BlockOutputVariVO {
@@ -99,5 +106,6 @@ export interface BlockOutputVariVO {
     relatedVari:SystemVariInput,
     type:string,
     relateEventName:string,
-    relatedVariName:string
+    relatedVariName:string,
+    graphId:string
 }

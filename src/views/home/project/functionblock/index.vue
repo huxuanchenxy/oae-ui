@@ -1,6 +1,6 @@
 <template>
 <div class="main">
-  <div class="left"  id="container" ></div>
+  <div class="left"  id="container"  ref="container"></div>
   <div class="right">
     <el-tree
         ref="treeRef"
@@ -215,19 +215,24 @@
 import { ElTree } from 'element-plus'
 import type Node from 'element-plus/es/components/tree/src/model/node'
 import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
-import {createGraphNode,updateGraphNode,updateGraphNodeController,initGraph} from "@/antvgraph/functionBlock/functionBlockNode";
-import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
-  BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
+// import {createGraphNode,updateGraphNode,updateGraphNodeController
+//   // ,initGraph
+// } from "@/antvgraph/functionBlock/functionBlockNode";
+import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,
+  BlockOutputEventForm,BlockInputVariForm,BlockOutputVariForm} from '@/api/functionBlock/type';
 import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
 import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
+import type { Link} from '@/api/functionBlockLink/type';
 import { v4 as uuidv4 } from 'uuid';
 import  cache  from "@/plugins/cache.ts";
 import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
+import {saveOrUpdateLink} from "@/api/functionBlockLink";
 import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
 import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
 import {listSegDataList} from "@/api/controller";
 import { VXETable, VxeTableInstance } from 'vxe-table'
 import G6 from "@antv/g6";
+import {processParallelEdgesOnAnchorPoint,setLinkState,updateGraphNode} from "@/antvgraph/functionBlock/functionBlockNode";
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 let inputEventList = ref<BlockInputEventForm[]>([]);
 let outputEventList = ref<BlockOutputEventForm[]>([]);
@@ -245,13 +250,25 @@ let currentBlockId="";
 // let module=route.params.id;
  let module=4;//todo 后续改成route.params.id
 const cacheKey="graph_fbbs";
-let mouseX,mouseY;
 let graphCacheKey=cacheKey+"-"+project+"-"+module;
 const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
 const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
 const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
 const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
+const eventOrVariSize=[60,25];//第一个是宽度，第二个是调度
+const startGraphSize=[60,25];//第一个是宽度，第二个是调度
+const centerGraphSize=[100,25];//第一个是宽度，第二个是调度
+const comboWidth=200;
+const eventOrVariPadding=40;
+const container = ref<any>(null);
+let graphWidth;
+let graphHeight;
 let data=ref<FunctionBlockTree[]>([]);
+let sourceAnchorIdx, targetAnchorIdx;
+let oldInputEvents=new Array<BlockInputEventForm>();
+let oldOutputEvents=new Array<BlockOutputEventForm>();
+let oldInputVaris=new Array<BlockInputVariForm>();
+let oldOutputVaris=new Array<BlockOutputVariForm>();
 const dialogAlgAndEvent = reactive<DialogOption>({
   visible: false,
   title: ''
@@ -278,7 +295,6 @@ const contextMenu = new G6.Menu({
 const deleteNode=async (item)=> {
   const nodes = graph.findAllByState('node', 'selected');
   const edges = graph.findAllByState('edge', 'selected');
-  console.log(nodes)
   const nodeIds = nodes.map((node) => node.get('id'));
   const edgeIds = edges.map((edge) => edge.get('id'));
   if (nodeIds.length != 0||edgeIds.length != 0) {
@@ -301,7 +317,44 @@ const cancelAlgAndEventDialog = () => {
 }
 
 const initGraphEvent=(()=>{
-  graph.on('node:dblclick', nodeDbClick);
+  graph.on('combo:dblclick', nodeDbClick);
+  graph.on('afterupdateitem', (e) => {
+    saveDataToServer();
+  });
+  graph.on("aftercreateedge", (evt) => {
+    let data={id:evt.edge.get("id"),from:evt.edge.getSource()._cfg?.id,to:evt.edge.getTarget()._cfg?.id}
+    // saveOrUpdateLink(project,data);
+  });
+  graph.on('aftercreateedge', (e) => {
+    // update the sourceAnchor and targetAnchor for the newly added edge
+    graph.updateItem(e.edge, {
+      sourceAnchor: sourceAnchorIdx,
+      targetAnchor: targetAnchorIdx
+    })
+
+    // update the curveOffset for parallel edges
+    const edges = graph.save().edges;
+    processParallelEdgesOnAnchorPoint(edges);
+    graph.getEdges().forEach((edge, i) => {
+      graph.updateItem(edge, {
+        curveOffset: edges[i].curveOffset,
+        curvePosition: edges[i].curvePosition,
+      });
+    });
+  });
+  graph.on('node:mouseenter', e => {
+    const item=e.item;
+    setLinkState(item,true);
+  })
+  graph.on('node:mouseleave', e => {
+    const item=e.item;
+    setLinkState(item,false);
+  })
+  //边的事件
+  graph.on('edge:click', (evt) => {
+    const { item } = evt;
+    graph.setItemState(item, 'selected', true);
+  });
 });
 const nodeDbClick=((evt)=>{
   currentBlockId=evt.item.get("id");
@@ -311,20 +364,106 @@ const nodeDbClick=((evt)=>{
     outputEventList.value = block.output_events;
     inputVariList.value = block.inputs
     outputVariList.value = block.outputs;
+    oldInputEvents=block.input_events;
+    oldOutputEvents = block.output_events;
+    oldInputVaris = block.inputs
+    oldOutputVaris = block.outputs;
   }else{
     inputEventList.value=new Array();
     outputEventList.value = new Array();
     inputVariList.value = new Array();
     outputVariList.value = new Array();
   }
-  console.log(inputEventList.value)
+  //需要把原先的给保存进去，因为在确定更新后要对比进行更新，删除和新增
   dialogAlgAndEvent.visible = true;
 });
 const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{
-  createGraphNode(functionBlock,graph)
+  // createGraphNode(functionBlock,graph)
   //双向绑定更新
   //大JSON更新
 });
+const addCombo=(comboX,comboY,functionBlock)=>{
+  let topStartX=comboX;
+  let topStartY=comboY;
+  let bottomStartX;
+  let bottomStartY;
+  const comboId=uuidv4();
+  let inputEvents=functionBlock.input_events;
+  let outputEvents=functionBlock.output_events;
+  let inputVaris=functionBlock.inputs;
+  let outputVaris=functionBlock.outputs;
+  const comboConfig={
+    id:comboId,
+    type:'rect',
+    size:[comboWidth,200]
+  }
+  graph.addItem('combo',comboConfig)
+  inputEvents.forEach((inputEvent,index)=>{
+    let inputEventNode = {
+      id:uuidv4(),
+      label: inputEvent.text,
+      x: topStartX,
+      y: topStartY+index*eventOrVariPadding,
+      size:eventOrVariSize,
+      comboId:comboId,
+      type:'rect-node',
+    };
+    graph.addItem('node', inputEventNode);
+  })
+  outputEvents.forEach((outputEvent,index)=>{
+    let outputEventNode = {
+      id:uuidv4(),
+      label: outputEvent.text,
+      x: topStartX+comboWidth,
+      y: topStartY+index*eventOrVariPadding,
+      size:eventOrVariSize,
+      comboId:comboId,
+      type:'rect-node',
+    };
+    graph.addItem('node', outputEventNode);
+  })
+  if (inputEvents.length>outputEvents.length){
+    bottomStartY=topStartY+inputEvents.length*eventOrVariPadding+50;
+  }else{
+    bottomStartY=topStartY+outputEvents.length*eventOrVariPadding+50;
+  }
+  let centerNode = {
+    id:uuidv4(),
+    label: "center",
+    x: comboX+100,
+    y: bottomStartY-eventOrVariPadding,
+    size:centerGraphSize,
+    comboId:comboId,
+    type:'rect',
+  };
+  graph.addItem('node', centerNode);
+  inputVaris.forEach((inputVari,index)=>{
+    let inputEventNode = {
+      id:uuidv4(),
+      label: inputVari.text,
+      x: comboX,
+      y: bottomStartY+index*eventOrVariPadding,
+      size:eventOrVariSize,
+      comboId:comboId,
+      type:'rect-node',
+    };
+    graph.addItem('node', inputEventNode);
+  })
+  outputVaris.forEach((outputVari,index)=>{
+    let outputEventNode = {
+      id:uuidv4(),
+      label: outputVari.text,
+      x: comboX+200,
+      y: bottomStartY+index*eventOrVariPadding,
+      size:eventOrVariSize,
+      comboId:comboId,
+      type:'rect-node',
+    };
+    graph.addItem('node', outputEventNode);
+  })
+
+  saveDataToServer()
+}
 /**
  * 拖动结束后加上combo
  * @param draggingNode
@@ -340,18 +479,19 @@ const handleDragEnd = (
 ) => {
   //先加功能块
   let functionBlock:FunctionBlock={
-    input_events:['inputevent1'],
-    output_events:['outputevent1'],
-    inputs:['inputvari1'],
-    outputs:['outputvari2'],
-    x:ev.x,
-    y:ev.y,
-    centerText:dropNode.data.label,
-    title:dropNode.data.title,
-    device:dropNode.data.device
+    input_events:[{key:1,text:'inputevent1'},{key:2,text:'inputevent2'},],
+    output_events:[{key:3,text:'output_events'},{key:4,text:'output_events2'}],
+    inputs:[{key:5,text:'inputs'},{key:6,text:'inputs2'}],
+    outputs:[{key:7,text:'outputs'},{key:8,text:'outputs2'}],
+    // x:ev.x,
+    // y:ev.y,
+    // centerText:dropNode.data.label,
+    // title:dropNode.data.title,
+    // device:dropNode.data.device
   }
-  addFunctionBlockNode(functionBlock)
-  saveDataToServer();
+  addCombo(ev.x,ev.y,functionBlock);
+  // addFunctionBlockNode(functionBlock)
+  // saveDataToServer();
 }
 
 const saveDataToServer=()=>{
@@ -370,8 +510,7 @@ const changeGraphData=(()=>{
 })
 onMounted(() => {
   initData();//初始化基础数据
-  graph=initGraph(contextMenu);//初始化画布
-  changeGraphData();//加载图像
+  // changeGraphData();//加载图像
   initGraphEvent();//初始化画布事件
 });
 
@@ -397,18 +536,31 @@ const initTreeData=(()=>{
       children: resourceData
     }
   ]
-  console.log(data)
 })
 const initData=(()=>{
-  module=4;
   //初始化下拉框数据
   systemInputEvents.value=getSystemInputEvents(project,module);
   systemOutputEvents.value=getSystemOutputEvents(project,module);
   systemInputVaris.value=getSystemInputVaris(project,module)
   systemOutputVaris.value=getSystemOutputVaris(project,module);
   initTreeData();
+  graphWidth=container.value.offsetWidth;
+  graphHeight=container.value.offsetHeight;
+  initGraph(initGraphData(),graphWidth,graphHeight);
 })
-
+const initGraphData=()=>{
+  let graphJson=cache.local.getJSON(graphCacheKey);
+  if(!graphJson){
+    //如果不存在数据，就用初始数据
+    graphJson=  {
+      nodes: [
+        { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize,type:'rect'},
+      ]
+    };
+  }
+  //返回图形数据
+  return graphJson;
+}
 //-------输入事件开始
 const formatSystemInputEvent = (value: string) => {
   return systemInputEvents.value.find(x=>x.key==value)?.text;
@@ -572,6 +724,69 @@ const submitAlgAndEventForm=(()=>{
   dialogAlgAndEvent.visible = false;
   proxy?.$modal.msgSuccess("操作成功");
 });
+const initGraph=(data,graphWidth,graphHeight)=>{
+  if(graph){
+    graph.destroy();
+  }
+  graph = new G6.Graph({
+    container: 'container',
+    graphWidth,
+    graphHeight,
+    plugins: [contextMenu],
+    modes: {
+      default: [
+        'click-select',
+        {
+          type: 'create-edge',
+          shouldBegin: e => {
+            // avoid beginning at other shapes on the node
+            if (e.target && e.target.get('name') !== 'anchor-point') return false;
+            sourceAnchorIdx = e.target.get('anchorPointIdx');
+            e.target.set('links', e.target.get('links') + 1); // cache the number of edge connected to this anchor-point circle
+            return true;
+          },
+          shouldEnd: e => {
+            // avoid ending at other shapes on the node
+            if (e.target && e.target.get('name') !== 'anchor-point') return false;
+            if (e.target) {
+              targetAnchorIdx = e.target.get('anchorPointIdx');
+              e.target.set('links', e.target.get('links') + 1);  // cache the number of edge connected to this anchor-point circle
+              return true;
+            }
+            targetAnchorIdx = undefined;
+            return true;
+          },
+          // update the sourceAnchor
+          // getEdgeConfig: () => {
+          //   return {
+          //     sourceAnchor: sourceAnchorIdx
+          //   }
+          // }
+        },
+        {
+          type: 'drag-combo',
+          trigger: 'drag',
+        },
+      ],
+    },
+    defaultNode: {
+      type: 'rect',
+      style: {
+        fill: '#eee',
+        stroke: '#ccc',
+      }
+    },
+    defaultEdge: {
+      type: 'polyline',
+      style: {
+        stroke: '#F6BD16',
+        lineWidth: 2,
+      },
+    },
+  });
+  graph.data(data);
+  graph.render();
+}
 </script>
 <style scoped lang="scss">
   .main{
