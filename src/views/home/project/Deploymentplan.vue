@@ -362,6 +362,10 @@
     </el-dialog>
   </div>
   <OPCUA_RES v-if="opcuaPointObj.status" v-model="opcuaPointObj"></OPCUA_RES>
+  <MODBUS_RES
+    v-if="modbusPointObj.status"
+    v-model="modbusPointObj"
+  ></MODBUS_RES>
 </template>
 
 <script setup>
@@ -376,13 +380,13 @@ import { ElMessage } from "element-plus";
 import {
   useDeploymentMenuStore,
   useDeploymentNodeIDStore,
-  useDeploymentNodeDragStore
+  useDeploymentNodeDragStore,
 } from "@/store/deploymentStore.js";
-import { segMapDev,getSegMapDev } from "@/utils/segMapDevHelper.js";
+import { segMapDev, getSegMapDev } from "@/utils/segMapDevHelper.js";
 import OPCUA_RES from "@/components/pointTable/OPCUA_RES.vue";
-
+import MODBUS_RES from "@/components/pointTable/MODBUS_RES.vue";
 const deploymentMenuStore = useDeploymentMenuStore();
-const deploymentNodeIDStore =useDeploymentNodeIDStore();
+const deploymentNodeIDStore = useDeploymentNodeIDStore();
 const deploymentNodeDragStore = useDeploymentNodeDragStore();
 const menuID = useRoute().params.id;
 
@@ -469,13 +473,10 @@ const defaultProps = {
 
 // 部署方案动态树
 let deploymentMenu = [
-  {funcName: '控制器',
-  child: []},
-  {funcName: '网络段',
-  child: []},
-  {funcName: '未分配终端',
-  child: []},
-]
+  { funcName: "控制器", child: [] },
+  { funcName: "网络段", child: [] },
+  { funcName: "未分配终端", child: [] },
+];
 // 图形
 const container = ref();
 const clickWidth = 3;
@@ -845,15 +846,15 @@ const initGraph = () => {
       tModel.cardInfo.edge = edgeId;
       isSegLinkDev = false;
     }
-    changeTarToMenuWhenLink(sModel,tModel);
-    deploymentMenuStore.deploymentMenu ={menuID: menuID,child:deploymentMenu}
+    changeTarToMenuWhenLink(sModel, tModel);
+    deploymentMenuStore.deploymentMenu = {
+      menuID: menuID,
+      child: deploymentMenu,
+    };
   });
-//鼠标事件
-  graph.on('node:mouseenter', e => {
-    
-  })
-  graph.on('node:mouseleave', e => {
-  })
+  //鼠标事件
+  graph.on("node:mouseenter", (e) => {});
+  graph.on("node:mouseleave", (e) => {});
 
   // // if create-edge is canceled before ending, update the 'links' on the anchor-point circles
   //   graph.on('afterremoveitem', e => {
@@ -882,39 +883,56 @@ const initGraph = () => {
   //   })
 
   //节点的事件
-  graph.on('afteradditem', (e) => {
+  graph.on("afteradditem", (e) => {
     const model = e.model; // 获取添加的节点实例
     // console.log('节点被添加:', e)
     if (isDragDrop) {
       isDragDrop = false;
       return;
     }
-    if (model.type === 'polyline') {
+    if (model.type === "polyline") {
       if (model.source === model.target) return;
-      let sModel = e.item.get('sourceNode').get('model');
-      let tModel = e.item.get('targetNode').get('model');
-      changeTarToMenuWhenLink(sModel,tModel);
+      let sModel = e.item.get("sourceNode").get("model");
+      let tModel = e.item.get("targetNode").get("model");
+      changeTarToMenuWhenLink(sModel, tModel);
       // console.log('节点被添加:', deploymentMenu[2].child);
     } else {
       switch (model.cardInfo.largeType) {
-        case 'device':
-          deploymentMenu[0].child.push({funcName: model.cardInfo.nameVal,id:model.id,bigType:'deployment'})
+        case "device":
+          deploymentMenu[0].child.push({
+            funcName: model.cardInfo.nameVal,
+            id: model.id,
+            bigType: "deployment",
+          });
           break;
-        case 'segment':
-          deploymentMenu[1].child.push({funcName: model.cardInfo.nameVal,id:model.id,bigType:'deployment'})
+        case "segment":
+          deploymentMenu[1].child.push({
+            funcName: model.cardInfo.nameVal,
+            id: model.id,
+            bigType: "deployment",
+          });
           break;
-        case 'target_device':
+        case "target_device":
           // 实测设备加载完时，线还未加载
-          deploymentMenu[2].child.push({funcName: model.cardInfo.nameVal,id:model.id,bigType:'deployment',type:'target_device',typeName:model.info.Name});
+          deploymentMenu[2].child.push({
+            funcName: model.cardInfo.nameVal,
+            id: model.id,
+            bigType: "deployment",
+            type: "target_device",
+            typeName: model.info.Name,
+          });
           break;
         default:
           break;
       }
     }
-    deploymentMenuStore.deploymentMenu ={menuID: menuID,child:deploymentMenu}
+    deploymentMenuStore.deploymentMenu = {
+      menuID: menuID,
+      child: deploymentMenu,
+    };
     // console.log('节点被添加:', deploymentMenu[2].child); // 输出节点的数据
   });
-  graph.on('afterremoveitem', (e) => {
+  graph.on("afterremoveitem", (e) => {
     const model = e.item; // 获取添加的节点实例
     // console.log('节点被删除:', e); // 输出节点的数据
     // 在这里可以执行其他逻辑
@@ -922,40 +940,55 @@ const initGraph = () => {
       isDragDrop = false;
       return;
     }
-    if (e.type === 'edge') {
-      // console.log('节点被删除:', graph.findById(model.source)); 
+    if (e.type === "edge") {
+      // console.log('节点被删除:', graph.findById(model.source));
       let sNode = graph.findById(model.source);
       let tNode = graph.findById(model.target);
       if (!sNode || !tNode) return;
-      let sModel = sNode.get('model');
-      let tModel = tNode.get('model');
+      let sModel = sNode.get("model");
+      let tModel = tNode.get("model");
       let tarModel;
-      if (sModel.type === 'segment' && tModel.info.Type === 'target_device') {
+      if (sModel.type === "segment" && tModel.info.Type === "target_device") {
         tarModel = tModel;
-      } else if (tModel.type === 'segment' && sModel.info.Type === 'target_device') {
+      } else if (
+        tModel.type === "segment" &&
+        sModel.info.Type === "target_device"
+      ) {
         tarModel = sModel;
       }
       if (tarModel) {
         delTarFromMenuWhenLink(tarModel);
-        deploymentMenu[2].child.push({funcName: tarModel.cardInfo.nameVal,id:tarModel.id,bigType:'deployment',type:'target_device',typeName:tarModel.info.Name});
+        deploymentMenu[2].child.push({
+          funcName: tarModel.cardInfo.nameVal,
+          id: tarModel.id,
+          bigType: "deployment",
+          type: "target_device",
+          typeName: tarModel.info.Name,
+        });
       }
     } else {
       // console.log('节点被删除:',model)
       switch (model.cardInfo.largeType) {
-        case 'device':
-        deploymentMenu[0].child = deploymentMenu[0].child.filter((el) => {return el.id !== model.id})
+        case "device":
+          deploymentMenu[0].child = deploymentMenu[0].child.filter((el) => {
+            return el.id !== model.id;
+          });
           break;
-        case 'segment':
-          let index = deploymentMenu[1].child.findIndex((el) => {return el.id === model.id})
+        case "segment":
+          let index = deploymentMenu[1].child.findIndex((el) => {
+            return el.id === model.id;
+          });
           let tars = deploymentMenu[1].child[index].child[0].child;
           tars.forEach((el) => {
             deploymentMenu[2].child.push(el);
-          })
-          deploymentMenu[1].child.splice(index,1);
+          });
+          deploymentMenu[1].child.splice(index, 1);
           break;
-        case 'target_device':
+        case "target_device":
           let oldLen = deploymentMenu[2].child.length;
-          deploymentMenu[2].child = deploymentMenu[2].child.filter((el) => {return el.id !== model.id})
+          deploymentMenu[2].child = deploymentMenu[2].child.filter((el) => {
+            return el.id !== model.id;
+          });
           // 没有删除，就要从link中删除
           if (deploymentMenu[2].child.length === oldLen) {
             delTarFromMenuWhenLink(model);
@@ -965,9 +998,12 @@ const initGraph = () => {
           break;
       }
     }
-    deploymentMenuStore.deploymentMenu ={menuID: menuID,child:deploymentMenu}
+    deploymentMenuStore.deploymentMenu = {
+      menuID: menuID,
+      child: deploymentMenu,
+    };
   });
-  graph.on('node:click', (evt) => {
+  graph.on("node:click", (evt) => {
     if (!evt.originalEvent.shiftKey) {
       let item = evt.item;
       // console.log('click',evt)
@@ -1003,29 +1039,29 @@ const initGraph = () => {
   });
 };
 const delEdgeByTar = (tarNodeId) => {
-  let edges = graph.findById(tarNodeId).get('edges');
+  let edges = graph.findById(tarNodeId).get("edges");
   // console.log('delEdgeByTar',edges)
   for (let edge of edges) {
-    let sModel = edge.get('sourceNode').get('model');
-    let tModel = edge.get('targetNode').get('model');
-    if (sModel.type === 'segment' || tModel.type === 'segment') {
+    let sModel = edge.get("sourceNode").get("model");
+    let tModel = edge.get("targetNode").get("model");
+    if (sModel.type === "segment" || tModel.type === "segment") {
       isDragDrop = true;
       graph.removeItem(edge);
       break;
     }
   }
-}
+};
 deploymentNodeDragStore.$subscribe((mutate, state) => {
   // console.log("subscribe", mutate);
   let op = state.operation;
   // console.log('deploymentNodeDragStore',mutate.events.key)
-  if (mutate.events.key === 'value') {
-    if (op.op === 'removeEdge') {
-      delEdgeByTar(op.tarNodeId)
-    } else if (op.op === 'addEdge') {
-      delEdgeByTar(op.model.source)
+  if (mutate.events.key === "value") {
+    if (op.op === "removeEdge") {
+      delEdgeByTar(op.tarNodeId);
+    } else if (op.op === "addEdge") {
+      delEdgeByTar(op.model.source);
       isDragDrop = true;
-      graph.addItem('edge',op.model);
+      graph.addItem("edge", op.model);
       // console.log('addEdge')
     }
   }
@@ -1035,43 +1071,60 @@ const delTarFromMenuWhenLink = (model) => {
     // debugger
     if (!seg.child || seg.child.length === 0) continue;
     let len = seg.child[0].child.length;
-    seg.child[0].child = seg.child[0].child.filter((el) => {return el.id !== model.id})
+    seg.child[0].child = seg.child[0].child.filter((el) => {
+      return el.id !== model.id;
+    });
     let newLen = seg.child[0].child.length;
     if (newLen < len) {
       if (newLen === 0) {
-        seg.child = []
+        seg.child = [];
       }
       break;
     }
   }
-}
-const changeTarToMenuWhenLink = (sModel,tModel) => {
+};
+const changeTarToMenuWhenLink = (sModel, tModel) => {
   let segModel;
   let tarModel;
-  if (sModel.type === 'segment' && tModel.info.Type === 'target_device') {
+  if (sModel.type === "segment" && tModel.info.Type === "target_device") {
     tarModel = tModel;
     segModel = sModel;
-  } else if (tModel.type === 'segment' && sModel.info.Type === 'target_device') {
+  } else if (
+    tModel.type === "segment" &&
+    sModel.info.Type === "target_device"
+  ) {
     tarModel = sModel;
     segModel = tModel;
   }
   if (tarModel) {
     // console.log('tarModel',tarModel);
     // console.log('deploymentMenu[2].child before',deploymentMenu[2].child);
-    deploymentMenu[2].child = deploymentMenu[2].child.filter((el) => {return el.id !== tarModel.id});
+    deploymentMenu[2].child = deploymentMenu[2].child.filter((el) => {
+      return el.id !== tarModel.id;
+    });
     // console.log('deploymentMenu[2].child after',deploymentMenu[2].child);
     for (let seg of deploymentMenu[1].child) {
       if (seg.id === segModel.id) {
         if (!seg.child || seg.child.length === 0) {
           seg.child = [];
-          seg.child.push({funcName: '终端设备',child: [],typeName: segModel.info.Name});
+          seg.child.push({
+            funcName: "终端设备",
+            child: [],
+            typeName: segModel.info.Name,
+          });
         }
-        seg.child[0].child.push({funcName: tarModel.cardInfo.nameVal,id:tarModel.id,bigType:'deployment',type:'target_device',typeName: tarModel.info.Name});
+        seg.child[0].child.push({
+          funcName: tarModel.cardInfo.nameVal,
+          id: tarModel.id,
+          bigType: "deployment",
+          type: "target_device",
+          typeName: tarModel.info.Name,
+        });
         break;
       }
     }
   }
-}
+};
 const isSegLinkTarFun = (edges, segModel, tarModel) => {
   for (let edge of edges) {
     // 同一个设备只能连一个网络段
@@ -1142,35 +1195,35 @@ const setEMBRES = (deviceNodeModel) => {
 const nodeSelected = (item) => {
   let model = item.getModel();
   clearAllStats();
-  if (model.info.Type === 'device' || model.type === 'segment') {
+  if (model.info.Type === "device" || model.type === "segment") {
     graph.setAutoPaint(false);
     graph.getNodes().forEach((node) => {
       graph.clearItemStates(node);
-      graph.setItemState(node, 'dark', true);
+      graph.setItemState(node, "dark", true);
     });
-    graph.setItemState(item, 'dark', false);
-    graph.setItemState(item, 'highlight', true);
+    graph.setItemState(item, "dark", false);
+    graph.setItemState(item, "highlight", true);
     graph.getEdges().forEach((edge) => {
       if (edge.getSource() === item) {
-        graph.setItemState(edge.getTarget(), 'dark', false);
-        graph.setItemState(edge.getTarget(), 'highlight', true);
-        graph.setItemState(edge, 'highlight', true);
+        graph.setItemState(edge.getTarget(), "dark", false);
+        graph.setItemState(edge.getTarget(), "highlight", true);
+        graph.setItemState(edge, "highlight", true);
         edge.toFront();
       } else if (edge.getTarget() === item) {
-        graph.setItemState(edge.getSource(), 'dark', false);
-        graph.setItemState(edge.getSource(), 'highlight', true);
-        graph.setItemState(edge, 'highlight', true);
+        graph.setItemState(edge.getSource(), "dark", false);
+        graph.setItemState(edge.getSource(), "highlight", true);
+        graph.setItemState(edge, "highlight", true);
         edge.toFront();
       } else {
-        graph.setItemState(edge, 'dark', true);
-        graph.setItemState(edge, 'highlight', false);
+        graph.setItemState(edge, "dark", true);
+        graph.setItemState(edge, "highlight", false);
       }
     });
     graph.paint();
     graph.setAutoPaint(true);
   }
   // console.log(model)
-  item.setState('selected', true);
+  item.setState("selected", true);
   cardData.value = model.cardInfo;
   isLeaveCanvas = false;
   isCardShow.value = true;
@@ -1225,9 +1278,9 @@ const addNode = (x, y, data) => {
   }
   // 注册的node
   node.type = type;
-  node = cardDataInit(node)
-  graph.addItem('node',node)
-}
+  node = cardDataInit(node);
+  graph.addItem("node", node);
+};
 // 设备库
 const showOrHidden = () => {
   //monacoEditor.layout();
@@ -1250,12 +1303,12 @@ const allowdrag = (node) => {
 const handleDragEnd = (draggingNode, dropNode, dropType, e) => {
   // console.log('屏幕坐标',{x:e.x,y:e.y})
   // console.log('屏幕坐标',{x:e.x - leftTreeWidth,y:e.y - topTitleWidth})
-  let viewPos = graph.getPointByClient(e.x,e.y);
+  let viewPos = graph.getPointByClient(e.x, e.y);
   // console.log('视口坐标',viewPos)
   // let canvasPos = graph.getCanvasByPoint(viewPos.x,viewPos.y)
   // console.log('画布坐标',canvasPos)
   addNode(viewPos.x, viewPos.y, draggingNode.data);
-}
+};
 // 下拉查询并快速定位
 const setDevicePosition = (val) => {
   let nodes = graph.findAllByState("node", "selected");
@@ -1441,15 +1494,19 @@ const syncNodeName = (name) => {
   let oldName = node.get("model").label;
   if (oldName === name) return true;
   let nodes = graph.getNodes();
-  if (nodes.some((el) => { return el.get('model').label === name})) {
+  if (
+    nodes.some((el) => {
+      return el.get("model").label === name;
+    })
+  ) {
     cardData.value.nameVal = oldName;
     return false;
   } else {
-    let model = node.get('model');
-    model.label = name
+    let model = node.get("model");
+    model.label = name;
     graph.refreshItem(node);
     switch (model.cardInfo.largeType) {
-      case 'device':
+      case "device":
         for (let el of deploymentMenu[0].child) {
           if (el.id === model.id) {
             el.funcName = name;
@@ -1457,7 +1514,7 @@ const syncNodeName = (name) => {
           }
         }
         break;
-      case 'segment':
+      case "segment":
         for (let el of deploymentMenu[1].child) {
           if (el.id === model.id) {
             el.funcName = name;
@@ -1465,11 +1522,11 @@ const syncNodeName = (name) => {
           }
         }
         break;
-      case 'target_device':
-        let edges = node.get('edges');
+      case "target_device":
+        let edges = node.get("edges");
         if (edges.length > 0) {
-          let sModel = edges[0].get('sourceNode').get('model');
-          let tModel = edges[0].get('targetNode').get('model');
+          let sModel = edges[0].get("sourceNode").get("model");
+          let tModel = edges[0].get("targetNode").get("model");
           let segModel;
           if (sModel.id === model.id) segModel = tModel;
           else if (tModel.id === model.id) segModel = sModel;
@@ -1496,7 +1553,10 @@ const syncNodeName = (name) => {
       default:
         break;
     }
-    deploymentMenuStore.deploymentMenu ={menuID: menuID,child:deploymentMenu}
+    deploymentMenuStore.deploymentMenu = {
+      menuID: menuID,
+      child: deploymentMenu,
+    };
     return true;
   }
 };
@@ -1516,7 +1576,7 @@ const cardDataInit = (node) => {
   // 组装card
   // cardData.value = {}
   let card = {
-    name: '名称',
+    name: "名称",
     nameVal: node.label,
     typeName: "类型",
     typeVal: info.Name,
@@ -1666,9 +1726,19 @@ onUnmounted(() => {
 let opcuaPointObj = ref({
   status: false,
 });
+let modbusPointObj = ref({
+  id: "",
+  status: false,
+});
 const pointTableHandle = (res) => {
-  console.log("res", res);
-  opcuaPointObj.value.status = true;
+  //console.log("res", res);
+  let resName = res.typeVal.name;
+  if (resName == "OPCUA_RES") {
+    opcuaPointObj.value.status = true;
+  } else if (resName == "MODBUSTCP_RES" || resName == "MODBUSRTU_RES") {
+    modbusPointObj.value.id = resName;
+    modbusPointObj.value.status = true;
+  }
 };
 </script>
 
