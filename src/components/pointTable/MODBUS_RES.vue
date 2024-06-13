@@ -14,23 +14,18 @@
         <h1 style="font-size: 20px">{{ modelValue.id }}</h1>
       </div>
     </template>
-    <el-tabs
-      v-model="activeName"
-      class="demo-tabs"
-      @tab-change="handleClick"
-      @tab-click="handleClick"
-    >
+    <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
       <el-tab-pane label="DI" name="DI">
-       
+        <ModbusTable></ModbusTable>
       </el-tab-pane>
       <el-tab-pane label="DO" name="DO">
-
+        <ModbusTable></ModbusTable>
       </el-tab-pane>
       <el-tab-pane label="AI" name="AI">
-
+        <ModbusTable></ModbusTable>
       </el-tab-pane>
       <el-tab-pane label="AO" name="AO">
-        
+        <ModbusTable></ModbusTable>
       </el-tab-pane>
     </el-tabs>
   </el-dialog>
@@ -38,7 +33,7 @@
 
 <script setup>
 import { onMounted } from "vue";
-import {ModbusTable} from 
+import ModbusTable from "@/components/pointTable/ModbusTable.vue";
 const { modelValue } = defineProps({
   modelValue: {
     type: Object,
@@ -47,20 +42,21 @@ const { modelValue } = defineProps({
 });
 
 let tableDataObj = ref({
-    status:true,
-    tableData:[]
+  status: true,
+  type: {},
+  tableData: [],
 });
 
 const activeName = ref("DI");
-let tableData = ref([]);
-let items = ref({});
+
+//let items = ref([]);
 const handleClick = (tab, event) => {
   //console.log(tab, event);
-  console.log("activeName",activeName.value);
+  console.log("activeName", activeName.value);
 };
 
 onMounted(() => {
-  items.value = modelValue.items;
+  //items.value.find(x=>x.)
   console.log("items onMounted:::", activeName.value, items.value);
 });
 </script>
