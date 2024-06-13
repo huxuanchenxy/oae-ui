@@ -1,14 +1,19 @@
 <template>
   <el-dialog
     width="90%"
+    id="opcua_resDig"
     style="height: 80%; overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
-    title="OPCUA"
     show-close
     :close-on-click-modal="true"
     :close-on-press-escape="false"
   >
+    <template #header="">
+      <div class="my-header">
+        <h1 style="font-size: 20px">OPCUA_RES</h1>
+      </div>
+    </template>
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="节点类型">
         <el-input v-model="formInline.user" placeholder="节点类型" clearable />
@@ -64,5 +69,10 @@ const onSubmit = () => {
 };
 </script>
 
-<style lang="scss" scoped>
+<style   scoped>
+</style>
+<style>
+#opcua_resDig .el-dialog__body {
+  padding-top: 5px !important;
+}
 </style>

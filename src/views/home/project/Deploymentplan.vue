@@ -1729,15 +1729,17 @@ let opcuaPointObj = ref({
 let modbusPointObj = ref({
   id: "",
   status: false,
+  items: [],
 });
 const pointTableHandle = (res) => {
-  //console.log("res", res);
+  console.log("res", res);
   let resName = res.typeVal.name;
   if (resName == "OPCUA_RES") {
     opcuaPointObj.value.status = true;
   } else if (resName == "MODBUSTCP_RES" || resName == "MODBUSRTU_RES") {
     modbusPointObj.value.id = resName;
     modbusPointObj.value.status = true;
+    modbusPointObj.value.items = res.items;
   }
 };
 </script>
