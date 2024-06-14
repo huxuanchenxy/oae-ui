@@ -242,7 +242,7 @@
               <vxe-table
                   show-overflow
                   keep-source
-                  ref="tableRef"
+                  ref="tableReadRef"
                   :row-config="{keyField: 'id'}"
                   :column-config="{resizable: true}"
                   :print-config="{}"
@@ -250,21 +250,36 @@
                   :loading="loading"
                   :tree-config="{transform: true, rowField: 'id', parentField: 'parentId'}"
                   :edit-config="{trigger: 'click', mode: 'row', showStatus: true}"
-                  :data="tableData">
+                  :data="tableReadData">
                 <vxe-column type="checkbox" width="60"></vxe-column>
-                <vxe-column field="name" title="Name"  tree-node :edit-render="{}" >
+                <vxe-column field="name" title="变量名"  tree-node :edit-render="{}" >
                   <template #edit="{ row }">
                     <vxe-input v-model="row.name" mode="text"></vxe-input>
                   </template>
                 </vxe-column>
-                <vxe-column field="size" title="Size" width="100" :edit-render="{}">
+                <vxe-column field="ioType" title="IO类型" width="100" :edit-render="{}">
                   <template #edit="{ row }">
-                    <vxe-input v-model="row.size" mode="text"></vxe-input>
+                    <vxe-select v-model="row.ioType" transfer>
+                      <vxe-option key="DI" value="DI" label="DI"></vxe-option>
+                      <vxe-option key="DO" value="DO" label="DO"></vxe-option>
+                      <vxe-option key="AI" value="AI" label="AI"></vxe-option>
+                      <vxe-option key="AO" value="AO" label="AO"></vxe-option>
+                    </vxe-select>
                   </template>
                 </vxe-column>
-                <vxe-column field="date" title="Date" :edit-render="{}">
+                <vxe-column field="address" title="寄存器地址" :edit-render="{}">
                   <template #edit="{ row }">
-                    <vxe-input v-model="row.date" type="date" transfer></vxe-input>
+                    <vxe-input v-model="row.address" type="text" ></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column field="len" title="长度" :edit-render="{}">
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.len" type="text" ></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column field="comment" title="备注" :edit-render="{}">
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.comment" type="text" ></vxe-input>
                   </template>
                 </vxe-column>
                 <vxe-column title="操作" width="640">
@@ -282,8 +297,8 @@
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="saveConfig">确 定</el-button>
-        <el-button @click="cancelConfig">取 消</el-button>
+        <el-button type="primary" @click="saveReadConfig">确 定</el-button>
+        <el-button @click="cancelReadConfig">取 消</el-button>
       </div>
     </template>
   </el-dialog>
@@ -447,32 +462,25 @@ import {
 import { segMapDev, getSegMapDev } from "@/utils/segMapDevHelper.js";
 import OPCUA_RES from "@/components/pointTable/OPCUA_RES.vue";
 import MODBUS_RES from "@/components/pointTable/MODBUS_RES.vue";
-import {  VxeTablePropTypes, VxeTableInstance } from 'vxe-table'
+import {   VxeTableInstance } from 'vxe-table'
 import {Delete, Download} from "@element-plus/icons-vue";
+import {CardInfo,CardInfo_dynamic} from "@/api/deploy/types";
 const deploymentMenuStore = useDeploymentMenuStore();
 const deploymentNodeIDStore = useDeploymentNodeIDStore();
 const deploymentNodeDragStore = useDeploymentNodeDragStore();
 const menuID = useRoute().params.id;
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const activeName = ref('read')
-
-interface RowVO {
-  id: number
-  parentId: number | null
-  name: string
-  type: string
-  size: number
-  date: string
-}
-
+let configList=new Array<CardInfo_dynamic>()
+let selectedNodeId:string;
 const loading = ref(false)
-const tableData = ref<RowVO[]>([])
+const tableReadData = ref<CardInfo_dynamic[]>([])
 
-const tableRef = ref<VxeTableInstance<RowVO>>()
+const tableReadRef = ref<VxeTableInstance<CardInfo_dynamic>>()
 
 let isCardShow = ref(false);
 let devices = ref([]);
-let cardData = ref({
+let cardData:CardInfo = ref({
   name: "",
   nameVal: "",
   typeName: "",
@@ -490,6 +498,7 @@ let cardData = ref({
       options: [{ id: "", label: "" }],
     },
   ],
+  dynamic:[]
 });
 // 动态接口
 let dynamic = ref([
@@ -1308,6 +1317,7 @@ const nodeSelected = (item) => {
   }
   // console.log(model)
   item.setState("selected", true);
+  selectedNodeId=model.id;
   cardData.value = model.cardInfo;
   isLeaveCanvas = false;
   isCardShow.value = true;
@@ -1448,6 +1458,7 @@ const showDialog = (largeType) => {
     if (node !== "") getEmbResOptions(node.get("model"));
     dialogVisible_seg.value = true;
   } else if (largeType === "target_device") {
+    tableReadData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="read");
     dialog_config.visible = true;
   }
 };
@@ -1825,76 +1836,31 @@ const pointTableHandle = (res) => {
     modbusPointObj.value.items = res.items;
   }
 };
-const saveConfig=()=>{
-  proxy?.$modal.msgSuccess("操作成功");
-  dialog_config.visible = false;
-}
-const cancelConfig=()=>{
-  dialog_config.visible = false;
-}
 
-const findList = () => {
-  return new Promise(resolve => {
-    tableData.value = [
-      { id: 10000, parentId: null, name: 'vxe-table test abc1', type: 'mp3', size: 1024, date: '2020-08-01' },
-      { id: 10050, parentId: null, name: 'Test2', type: 'mp4', size: 0, date: '2021-04-01' },
-      { id: 24300, parentId: 10050, name: 'Test3', type: 'avi', size: 1024, date: '2020-03-01' },
-      { id: 20045, parentId: 24300, name: 'vxe-table test abc4', type: 'html', size: 600, date: '2021-04-01' },
-      { id: 10053, parentId: 24300, name: 'vxe-table test abc96', type: 'avi', size: 0, date: '2021-04-01' },
-      { id: 24330, parentId: 10053, name: 'vxe-table test abc5', type: 'txt', size: 25, date: '2021-10-01' },
-      { id: 21011, parentId: 10053, name: 'Test6', type: 'pdf', size: 512, date: '2020-01-01' },
-      { id: 22200, parentId: 10053, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23666, parentId: null, name: 'Test8', type: 'xlsx', size: 2048, date: '2020-11-01' },
-      { id: 23677, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23671, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23672, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23688, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23681, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23682, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 24555, parentId: null, name: 'vxe-table test abc9', type: 'avi', size: 224, date: '2020-10-01' },
-      { id: 24566, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 24577, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' }
-    ]
-  })
-}
-
-const searchReadMethod = () => {
-  const $table = tableRef.value
+const insertReadRow = async (currRow: CardInfo_dynamic, locat: string) => {
+  const $table = tableReadRef.value
   if ($table) {
-    // 清除所有状态
-    $table.clearAll()
-    return findList()
-  }
-  return Promise.resolve()
-}
-
-const insertReadRow = async (currRow: RowVO, locat: string) => {
-  const $table = tableRef.value
-  if ($table) {
-    const date = new Date()
     // 如果 null 则插入到目标节点顶部
     // 如果 -1 则插入到目标节点底部
     // 如果 row 则有插入到效的目标节点该行的位置
-    const rid = Date.now()
-    // if (locat === 'current') {
-      const record = {
-        name: `新数据${rid}`,
-        id: rid,
-        parentId: currRow.parentId, // 父节点必须与当前行一致
-        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-      }
-      const { row: newRow } = await $table.insertAt(record, currRow)
-      await $table.setEditRow(newRow) // 插入子节点
-    // } else if (locat === 'top') {
+    // // if (locat === 'current') {
     //   const record = {
     //     name: `新数据${rid}`,
     //     id: rid,
-    //     parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+    //     parentId: currRow.parentId, // 父节点必须与当前行一致
     //     date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
     //   }
-    //   const { row: newRow } = await $table.insert(record)
-    //   await $table.setTreeExpand(currRow, true) // 将父节点展开
+    //   const { row: newRow } = await $table.insertAt(record, currRow)
     //   await $table.setEditRow(newRow) // 插入子节点
+    // // } else if (locat === 'top') {
+      const record = {
+        name: `${currRow.id}-1`,
+        id: uuidv4,
+        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+      }
+      const { row: newRow } = await $table.insert(record)
+      await $table.setTreeExpand(currRow, true) // 将父节点展开
+      await $table.setEditRow(newRow) // 插入子节点
     // } else if (locat === 'bottom') {
     //   const record = {
     //     name: `新数据${rid}`,
@@ -1908,15 +1874,15 @@ const insertReadRow = async (currRow: RowVO, locat: string) => {
     // }
   }
 }
-const removeReadRow = async (row: RowVO) => {
+const removeReadRow = async (row: CardInfo_dynamic) => {
   console.log(row)
-  const $table = tableRef.value
+  const $table = tableReadRef.value
   if ($table) {
     await $table.remove(row)
   }
 }
 const removeReadRows = () => {
-  const $table = tableRef.value
+  const $table = tableReadRef.value
   if ($table) {
     const selectRecords = $table.getCheckboxRecords()
     selectRecords.forEach((row)=>{
@@ -1925,15 +1891,11 @@ const removeReadRows = () => {
   }
 }
 const insertReadEvent = async () => {
-  const $table = tableRef.value
+  const $table = tableReadRef.value
   if ($table) {
-    const date = new Date()
-    const rid = Date.now()
     const record = {
-      name: `新数据${rid}`,
-      id: rid,
+      id: uuidv4(),
       parentId: null,
-      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
     }
     const { row: newRow } = await $table.insert(record)
     await $table.setEditRow(newRow)
@@ -1941,33 +1903,43 @@ const insertReadEvent = async () => {
 }
 
 const getReadInsertEvent = () => {
-  const $table = tableRef.value
+  const $table = tableReadRef.value
   if ($table) {
-    const insertRecords = $table.getInsertRecords()
-    proxy?.$modal.msgSuccess(`新增：${insertRecords.length}`);
+    return $table.getInsertRecords()
   }
 }
 
 const getReadRemoveEvent = () => {
-  const $table = tableRef.value
+  const $table = tableReadRef.value
   if ($table) {
-    const removeRecords = $table.getRemoveRecords()
-    console.log(removeRecords.length)
+    return $table.getRemoveRecords()
   }
 }
 
 const getReadUpdateEvent = () => {
-  const $table = tableRef.value
+  const $table = tableReadRef.value
   if ($table) {
-    const updateRecords = $table.getUpdateRecords()
-    proxy?.$modal.msgSuccess(`更新：${updateRecords.length}`)
+    return $table.getUpdateRecords()
   }
 }
+const saveReadConfig=()=>{
+  proxy?.$modal.msgSuccess("操作成功");
+  dialog_config.visible = false;
+  let inserts:CardInfo_dynamic[]=getReadInsertEvent();
+  inserts.forEach((insert:CardInfo_dynamic)=>{
+    insert.nodeId=selectedNodeId;
+    insert.type="read";
+    configList.push(insert);
+  })
+  console.log("增加后",configList)
+  let removes=getReadRemoveEvent();
+  let updates=getReadUpdateEvent();
+}
+const cancelReadConfig=()=>{
+  selectedNodeId="";
+  dialog_config.visible = false;
+}
 
-nextTick(() => {
-  // 将表格和工具栏进行关联
-  findList()
-})
 </script>
 
 <style lang="scss" scoped>
