@@ -235,8 +235,8 @@
         <el-tab-pane label="读" name="read">
           <div class="config">
             <div class="config_dml_button">
-              <el-button type="primary" @click="insertEvent">新增</el-button>
-              <el-button type="primary" :icon="Delete">批量删除</el-button>
+              <el-button type="primary" @click="insertReadEvent">新增</el-button>
+              <el-button type="primary" :icon="Delete" @click="removeReadRows">批量删除</el-button>
             </div>
             <div>
               <vxe-table
@@ -269,8 +269,8 @@
                 </vxe-column>
                 <vxe-column title="操作" width="640">
                   <template #default="{ row }">
-                    <vxe-button mode="text" status="primary" @click="insertRow(row, 'current')">新增组内变量</vxe-button>
-                    <vxe-button mode="text" status="danger" @click="removeRow(row)">删除节点</vxe-button>
+                    <vxe-button mode="text" status="primary" @click="insertReadRow(row, 'current')">新增组内变量</vxe-button>
+                    <vxe-button mode="text" status="danger" @click="removeReadRow(row)">删除节点</vxe-button>
                   </template>
                 </vxe-column>
               </vxe-table>
@@ -469,134 +469,7 @@ const loading = ref(false)
 const tableData = ref<RowVO[]>([])
 
 const tableRef = ref<VxeTableInstance<RowVO>>()
-const toolbarRef = ref<VxeToolbarInstance>()
 
-const findList = () => {
-  return new Promise(resolve => {
-    tableData.value = [
-      { id: 10000, parentId: null, name: 'vxe-table test abc1', type: 'mp3', size: 1024, date: '2020-08-01' },
-      { id: 10050, parentId: null, name: 'Test2', type: 'mp4', size: 0, date: '2021-04-01' },
-      { id: 24300, parentId: 10050, name: 'Test3', type: 'avi', size: 1024, date: '2020-03-01' },
-      { id: 20045, parentId: 24300, name: 'vxe-table test abc4', type: 'html', size: 600, date: '2021-04-01' },
-      { id: 10053, parentId: 24300, name: 'vxe-table test abc96', type: 'avi', size: 0, date: '2021-04-01' },
-      { id: 24330, parentId: 10053, name: 'vxe-table test abc5', type: 'txt', size: 25, date: '2021-10-01' },
-      { id: 21011, parentId: 10053, name: 'Test6', type: 'pdf', size: 512, date: '2020-01-01' },
-      { id: 22200, parentId: 10053, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23666, parentId: null, name: 'Test8', type: 'xlsx', size: 2048, date: '2020-11-01' },
-      { id: 23677, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23671, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23672, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23688, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23681, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 23682, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 24555, parentId: null, name: 'vxe-table test abc9', type: 'avi', size: 224, date: '2020-10-01' },
-      { id: 24566, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
-      { id: 24577, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' }
-    ]
-  })
-}
-
-const searchMethod = () => {
-  const $table = tableRef.value
-  if ($table) {
-    // 清除所有状态
-    $table.clearAll()
-    return findList()
-  }
-  return Promise.resolve()
-}
-
-const insertRow = async (currRow: RowVO, locat: string) => {
-  const $table = tableRef.value
-  if ($table) {
-    const date = new Date()
-    // 如果 null 则插入到目标节点顶部
-    // 如果 -1 则插入到目标节点底部
-    // 如果 row 则有插入到效的目标节点该行的位置
-    const rid = Date.now()
-    if (locat === 'current') {
-      const record = {
-        name: `新数据${rid}`,
-        id: rid,
-        parentId: currRow.parentId, // 父节点必须与当前行一致
-        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-      }
-      const { row: newRow } = await $table.insertAt(record, currRow)
-      await $table.setEditRow(newRow) // 插入子节点
-    } else if (locat === 'top') {
-      const record = {
-        name: `新数据${rid}`,
-        id: rid,
-        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
-        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-      }
-      const { row: newRow } = await $table.insert(record)
-      await $table.setTreeExpand(currRow, true) // 将父节点展开
-      await $table.setEditRow(newRow) // 插入子节点
-    } else if (locat === 'bottom') {
-      const record = {
-        name: `新数据${rid}`,
-        id: rid,
-        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
-        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-      }
-      const { row: newRow } = await $table.insertAt(record, -1)
-      await $table.setTreeExpand(currRow, true) // 将父节点展开
-      await $table.setEditRow(newRow) // 插入子节点
-    }
-  }
-}
-const removeRow = async (row: RowVO) => {
-  const $table = tableRef.value
-  if ($table) {
-    await $table.remove(row)
-  }
-}
-
-const insertEvent = async () => {
-  const $table = tableRef.value
-  if ($table) {
-    const date = new Date()
-    const rid = Date.now()
-    const record = {
-      name: `新数据${rid}`,
-      id: rid,
-      parentId: null,
-      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    }
-    const { row: newRow } = await $table.insert(record)
-    await $table.setEditRow(newRow)
-  }
-}
-
-const getInsertEvent = () => {
-  const $table = tableRef.value
-  if ($table) {
-    const insertRecords = $table.getInsertRecords()
-    proxy?.$modal.msgSuccess(`新增：${insertRecords.length}`);
-  }
-}
-
-const getRemoveEvent = () => {
-  const $table = tableRef.value
-  if ($table) {
-    const removeRecords = $table.getRemoveRecords()
-    console.log(removeRecords.length)
-  }
-}
-
-const getUpdateEvent = () => {
-  const $table = tableRef.value
-  if ($table) {
-    const updateRecords = $table.getUpdateRecords()
-    proxy?.$modal.msgSuccess(`更新：${updateRecords.length}`)
-  }
-}
-
-nextTick(() => {
-  // 将表格和工具栏进行关联
-  findList()
-})
 let isCardShow = ref(false);
 let devices = ref([]);
 let cardData = ref({
@@ -1959,6 +1832,142 @@ const saveConfig=()=>{
 const cancelConfig=()=>{
   dialog_config.visible = false;
 }
+
+const findList = () => {
+  return new Promise(resolve => {
+    tableData.value = [
+      { id: 10000, parentId: null, name: 'vxe-table test abc1', type: 'mp3', size: 1024, date: '2020-08-01' },
+      { id: 10050, parentId: null, name: 'Test2', type: 'mp4', size: 0, date: '2021-04-01' },
+      { id: 24300, parentId: 10050, name: 'Test3', type: 'avi', size: 1024, date: '2020-03-01' },
+      { id: 20045, parentId: 24300, name: 'vxe-table test abc4', type: 'html', size: 600, date: '2021-04-01' },
+      { id: 10053, parentId: 24300, name: 'vxe-table test abc96', type: 'avi', size: 0, date: '2021-04-01' },
+      { id: 24330, parentId: 10053, name: 'vxe-table test abc5', type: 'txt', size: 25, date: '2021-10-01' },
+      { id: 21011, parentId: 10053, name: 'Test6', type: 'pdf', size: 512, date: '2020-01-01' },
+      { id: 22200, parentId: 10053, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23666, parentId: null, name: 'Test8', type: 'xlsx', size: 2048, date: '2020-11-01' },
+      { id: 23677, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23671, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23672, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23688, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23681, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23682, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 24555, parentId: null, name: 'vxe-table test abc9', type: 'avi', size: 224, date: '2020-10-01' },
+      { id: 24566, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 24577, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' }
+    ]
+  })
+}
+
+const searchReadMethod = () => {
+  const $table = tableRef.value
+  if ($table) {
+    // 清除所有状态
+    $table.clearAll()
+    return findList()
+  }
+  return Promise.resolve()
+}
+
+const insertReadRow = async (currRow: RowVO, locat: string) => {
+  const $table = tableRef.value
+  if ($table) {
+    const date = new Date()
+    // 如果 null 则插入到目标节点顶部
+    // 如果 -1 则插入到目标节点底部
+    // 如果 row 则有插入到效的目标节点该行的位置
+    const rid = Date.now()
+    // if (locat === 'current') {
+      const record = {
+        name: `新数据${rid}`,
+        id: rid,
+        parentId: currRow.parentId, // 父节点必须与当前行一致
+        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      }
+      const { row: newRow } = await $table.insertAt(record, currRow)
+      await $table.setEditRow(newRow) // 插入子节点
+    // } else if (locat === 'top') {
+    //   const record = {
+    //     name: `新数据${rid}`,
+    //     id: rid,
+    //     parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+    //     date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    //   }
+    //   const { row: newRow } = await $table.insert(record)
+    //   await $table.setTreeExpand(currRow, true) // 将父节点展开
+    //   await $table.setEditRow(newRow) // 插入子节点
+    // } else if (locat === 'bottom') {
+    //   const record = {
+    //     name: `新数据${rid}`,
+    //     id: rid,
+    //     parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+    //     date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    //   }
+    //   const { row: newRow } = await $table.insertAt(record, -1)
+    //   await $table.setTreeExpand(currRow, true) // 将父节点展开
+    //   await $table.setEditRow(newRow) // 插入子节点
+    // }
+  }
+}
+const removeReadRow = async (row: RowVO) => {
+  console.log(row)
+  const $table = tableRef.value
+  if ($table) {
+    await $table.remove(row)
+  }
+}
+const removeReadRows = () => {
+  const $table = tableRef.value
+  if ($table) {
+    const selectRecords = $table.getCheckboxRecords()
+    selectRecords.forEach((row)=>{
+      removeReadRow(row)
+    })
+  }
+}
+const insertReadEvent = async () => {
+  const $table = tableRef.value
+  if ($table) {
+    const date = new Date()
+    const rid = Date.now()
+    const record = {
+      name: `新数据${rid}`,
+      id: rid,
+      parentId: null,
+      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    }
+    const { row: newRow } = await $table.insert(record)
+    await $table.setEditRow(newRow)
+  }
+}
+
+const getReadInsertEvent = () => {
+  const $table = tableRef.value
+  if ($table) {
+    const insertRecords = $table.getInsertRecords()
+    proxy?.$modal.msgSuccess(`新增：${insertRecords.length}`);
+  }
+}
+
+const getReadRemoveEvent = () => {
+  const $table = tableRef.value
+  if ($table) {
+    const removeRecords = $table.getRemoveRecords()
+    console.log(removeRecords.length)
+  }
+}
+
+const getReadUpdateEvent = () => {
+  const $table = tableRef.value
+  if ($table) {
+    const updateRecords = $table.getUpdateRecords()
+    proxy?.$modal.msgSuccess(`更新：${updateRecords.length}`)
+  }
+}
+
+nextTick(() => {
+  // 将表格和工具栏进行关联
+  findList()
+})
 </script>
 
 <style lang="scss" scoped>
