@@ -27,9 +27,11 @@
           <!-- highlight-current -->
           <el-tree
             :data="segLevelList"
+            ref="treeGenricRef"
             default-expand-all
             :expand-on-click-node="false"
             :props="defaultProps"
+            :filter-node-method="filterNode"
             @node-click="handleNodeClick"
             @node-contextmenu="showContextMenu"
           >
@@ -42,7 +44,8 @@
             <el-table
               id="eltable"
               :data="tableData"
-              style="width: 100%; max-height: 700px; overflow: auto"
+              max-height="700"
+              style="width: 100%; overflow: auto"
               row-key="name"
               default-expand-all
             >
@@ -151,6 +154,14 @@ const { modelValue } = defineProps({
   },
 });
 let treeSearch = ref("");
+let treeGenricRef = ref();
+const filterNode = (value, data) => {
+  if (!value) return true;
+  return data.name.includes(value);
+};
+watch(treeSearch, (val) => { 
+  treeGenricRef.value.filter(val);
+});
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
   return {
@@ -450,7 +461,8 @@ onBeforeMount(() => {
 #gericfuncDig .el-dialog__body {
   padding-top: 5px !important;
 }
-
+</style>
+<style scoped>
 #gericfuncDig .wrapper {
   display: flex;
   overflow: hidden;
@@ -459,7 +471,6 @@ onBeforeMount(() => {
 
 #gericfuncDig .wrapper .leftContent {
   flex: 1;
-
   background-color: #fff;
   margin-right: 10px;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */

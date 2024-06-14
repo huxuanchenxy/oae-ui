@@ -2,7 +2,8 @@
   <el-dialog
     id="eldiSeg"
     width="90%"
-    style="height: 80%; overflow: hidden"
+    :height="'auto'"
+    style="overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
     title="网络段管理"
@@ -11,7 +12,7 @@
     :close-on-press-escape="false"
   >
     <div class="wrapper">
-      <div class="left">
+      <div class="leftContent">
         <!-- <el-row>
           <el-col :span="6"
             ><el-upload
@@ -32,30 +33,42 @@
             ></el-col
           >
         </el-row> -->
-        <div id="segTree">
+        <div
+          class="search"
+          style="padding-left: 5px; padding-right: 5px; margin-bottom: 5px"
+        >
+          <el-input
+            placeholder="请输入内容"
+            :prefix-icon="Search"
+            v-model="treeSearch"
+          ></el-input>
+        </div>
+        <div id="devTree">
           <!-- highlight-current -->
           <el-tree
+            ref="treeRef"
             node-key="id"
             :data="segLevelList"
             :default-expanded-keys="defaultExpandedKeys"
             :expand-on-click-node="false"
             :props="defaultProps"
+            :filter-node-method="filterNodeTree"
             @node-click="handleNodeClick"
             @node-contextmenu="showContextMenu"
           >
           </el-tree>
         </div>
       </div>
-      <div class="right">
+      <div class="rightContent">
         <el-tabs
           type="border-card"
           v-show="
             currentData?.jsonContent != '' && currentData?.jsonContent != null
           "
-          style="max-height: 500px; overflow: auto"
+          style="max-height: 100%; overflow: auto"
         >
           <el-tab-pane label="基本信息">
-            <div style="display: flex; margin-bottom: 10px">
+            <div style="display: flex; margin-bottom: 15px">
               <el-button
                 type="primary"
                 :plain="false"
@@ -71,8 +84,8 @@
             <el-table
               :data="tableData"
               id="eltable"
-              style="width: 100%"
-              max-height="690"
+              max-height="688"
+              style="width: 100%; overflow: auto"
             >
               <el-table-column type="index" label="序号" width="80">
               </el-table-column>
@@ -272,11 +285,21 @@
 import { baseUrl } from "@/api/baseUrl";
 import sysApi from "@/api/sysApi";
 import { ElMsg, CusElLoading } from "@/jslib/common.js";
+import { Search } from "@element-plus/icons-vue";
 const { modelValue } = defineProps({
   modelValue: {
     type: Object,
     default: {},
   },
+});
+let treeSearch = ref("");
+let treeRef = ref();
+const filterNodeTree = (value, data) => {
+  if (!value) return true;
+  return data.name.includes(value);
+};
+watch(treeSearch, (val) => {
+  treeRef.value.filter(val);
 });
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
 const uploadData = computed(() => {
@@ -735,11 +758,11 @@ let filterText = ref("");
 let treeDeviceRef = ref();
 let tableDataDevice = ref([]);
 watch(filterText, (val) => {
-  console.log("fdaf", val);
+  //console.log("fdaf", val);
   treeDeviceRef.value.filter(val);
 });
 const filterNode = (value, data) => {
-  console.log("value,data", value, data);
+  //console.log("value,data", value, data);
   if (!value) return true;
   return data.name.includes(value);
 };
@@ -840,43 +863,46 @@ const deleteDeviceRow = (index, row) => {
   padding-top: 5px !important;
 }
 
-.wrapper {
+#eldiSeg .wrapper {
   display: flex;
   overflow: hidden;
-  height: 800px;
+  justify-content: space-between;
 }
 
-.left {
+#eldiSeg .left {
   flex: 1;
-
   background-color: #fff;
   margin-right: 10px;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  border-radius: 5px;
+  /* border-radius: 5px; */
+  /* border-right: 1px solid #dcdfe6;
+  border-bottom: 1px solid #dcdfe6;
+  border-left: 1px solid #dcdfe6; */
   overflow: auto;
 }
-#segTree {
-  margin-top: 10px;
+#eldiSeg .wrapper .leftContent #devTree {
+  margin-bottom: 20px;
 }
-#segTree .is-penultimate > .el-tree-node__content {
+#eldiSeg
+  .wrapper
+  .leftContent
+  #devTree
+  .is-penultimate
+  > .el-tree-node__content {
   /* color: #fff; */
   color: #4290f7;
   font-weight: bold;
 }
-#segTree .is-penultimate > .el-tree-node__content .el-tree-node__label {
-  /* padding: 5px;
-  background: #4290f7; */
-}
 
-.right {
+#eldiSeg .wrapper .rightContent {
   flex: 4;
   background-color: #fff;
-  box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4);
-  border-radius: 5px;
+  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4);
+  border-radius: 5px; */
   margin-right: 10px;
   overflow: hidden;
 }
-.right #eltable .el-input__wrapper {
+#eldiSeg .wrapper .rightContent #eltable .el-input__wrapper {
   box-shadow: 0 0 0 1px #444549 inset;
 }
 </style>
