@@ -1922,17 +1922,22 @@ const getReadUpdateEvent = () => {
     return $table.getUpdateRecords()
   }
 }
+//保存NODE配置，把DML的都要在configlist里操作一遍，否则表格关闭数据丢失
 const saveReadConfig=()=>{
   proxy?.$modal.msgSuccess("操作成功");
   dialog_config.visible = false;
+  //操作新增
   let inserts:CardInfo_dynamic[]=getReadInsertEvent();
   inserts.forEach((insert:CardInfo_dynamic)=>{
     insert.nodeId=selectedNodeId;
     insert.type="read";
     configList.push(insert);
   })
-  console.log("增加后",configList)
+  //操作删除
   let removes=getReadRemoveEvent();
+  let removeIds=removes.map(x=>x.id);
+  configList=configList.filter(x=>!removeIds.includes(x.id));
+  //操作更新
   let updates=getReadUpdateEvent();
 }
 const cancelReadConfig=()=>{
