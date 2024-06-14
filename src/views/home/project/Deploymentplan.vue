@@ -225,38 +225,67 @@
       </el-card>
     </div>
   </div>
-  <el-dialog v-model="dialogVisible_config" :show-close="false" width="1600">
-    <vxe-table
-        border
-        show-overflow
-        keep-source
-        ref="tableRef"
-        :row-config="{keyField: 'id'}"
-        :column-config="{resizable: true}"
-        :edit-config="{trigger: 'click', mode: 'row', showStatus: true}"
-        :tree-config="treeConfig"
-        :data="tableData">
-      <vxe-column field="name" title="Name" width="260" tree-node :edit-render="{}">
-        <template #edit="{ row }">
-          <vxe-input v-model="row.name" mode="text"></vxe-input>
-        </template>
-      </vxe-column>
-      <vxe-column field="size" title="Size" :edit-render="{}">
-        <template #edit="{ row }">
-          <vxe-input v-model="row.size" mode="text"></vxe-input>
-        </template>
-      </vxe-column>
-      <vxe-column field="type" title="Type" :edit-render="{}">
-        <template #edit="{ row }">
-          <vxe-input v-model="row.type" mode="text"></vxe-input>
-        </template>
-      </vxe-column>
-      <vxe-column field="date" title="Date" :edit-render="{}">
-        <template #edit="{ row }">
-          <vxe-input v-model="row.date" type="date" transfer></vxe-input>
-        </template>
-      </vxe-column>
-    </vxe-table>
+  <el-dialog  :title="dialog_config.title" v-model="dialog_config.visible"  :show-close="false" width="1600">
+    <div class="config_upanddown_button">
+      <el-button type="primary"><el-icon><Upload /></el-icon></el-button>
+      <el-button type="primary"><el-icon><Download /></el-icon></el-button>
+    </div>
+    <div>
+      <el-tabs v-model="activeName">
+        <el-tab-pane label="读" name="read">
+          <div class="config">
+            <div class="config_dml_button">
+              <el-button type="primary" @click="insertEvent">新增</el-button>
+              <el-button type="primary" :icon="Delete">批量删除</el-button>
+            </div>
+            <div>
+              <vxe-table
+                  show-overflow
+                  keep-source
+                  ref="tableRef"
+                  :row-config="{keyField: 'id'}"
+                  :column-config="{resizable: true}"
+                  :print-config="{}"
+                  :export-config="{}"
+                  :loading="loading"
+                  :tree-config="{transform: true, rowField: 'id', parentField: 'parentId'}"
+                  :edit-config="{trigger: 'click', mode: 'row', showStatus: true}"
+                  :data="tableData">
+                <vxe-column type="checkbox" width="60"></vxe-column>
+                <vxe-column field="name" title="Name"  tree-node :edit-render="{}" >
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.name" mode="text"></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column field="size" title="Size" width="100" :edit-render="{}">
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.size" mode="text"></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column field="date" title="Date" :edit-render="{}">
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.date" type="date" transfer></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column title="操作" width="640">
+                  <template #default="{ row }">
+                    <vxe-button mode="text" status="primary" @click="insertRow(row, 'current')">新增组内变量</vxe-button>
+                    <vxe-button mode="text" status="danger" @click="removeRow(row)">删除节点</vxe-button>
+                  </template>
+                </vxe-column>
+              </vxe-table>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="写" name="write">111</el-tab-pane>
+      </el-tabs>
+    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="primary" @click="saveConfig">确 定</el-button>
+        <el-button @click="cancelConfig">取 消</el-button>
+      </div>
+    </template>
   </el-dialog>
   <div>
     <el-dialog v-model="dialogVisible_res" :show-close="false" width="1600">
@@ -410,7 +439,6 @@ import { v4 as uuidv4 } from "uuid";
 import { baseUrl } from "@/api/baseUrl";
 import { ref } from "vue";
 import { toRaw } from "@vue/reactivity";
-import { ElMessage } from "element-plus";
 import {
   useDeploymentMenuStore,
   useDeploymentNodeIDStore,
@@ -419,11 +447,14 @@ import {
 import { segMapDev, getSegMapDev } from "@/utils/segMapDevHelper.js";
 import OPCUA_RES from "@/components/pointTable/OPCUA_RES.vue";
 import MODBUS_RES from "@/components/pointTable/MODBUS_RES.vue";
+import {  VxeTablePropTypes, VxeTableInstance } from 'vxe-table'
+import {Delete, Download} from "@element-plus/icons-vue";
 const deploymentMenuStore = useDeploymentMenuStore();
 const deploymentNodeIDStore = useDeploymentNodeIDStore();
 const deploymentNodeDragStore = useDeploymentNodeDragStore();
 const menuID = useRoute().params.id;
-import {  VxeTablePropTypes, VxeTableInstance } from 'vxe-table'
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const activeName = ref('read')
 
 interface RowVO {
   id: number
@@ -432,42 +463,140 @@ interface RowVO {
   type: string
   size: number
   date: string
-  hasChild?: boolean
 }
 
+const loading = ref(false)
+const tableData = ref<RowVO[]>([])
+
 const tableRef = ref<VxeTableInstance<RowVO>>()
+const toolbarRef = ref<VxeToolbarInstance>()
 
-const tableData = ref([
-  { id: 10000, parentId: null, name: 'test abc1', type: 'mp3', size: 1024, date: '2020-08-01' },
-  { id: 10050, parentId: null, name: 'Test2', type: 'mp4', size: null, date: '2021-04-01', hasChild: true },
-  { id: 23666, parentId: null, name: 'Test23', type: 'mp4', size: null, date: '2021-01-02', hasChild: true },
-  { id: 24555, parentId: null, name: 'test abc9', type: 'avi', size: 224, date: '2020-10-01' }
-])
+const findList = () => {
+  return new Promise(resolve => {
+    tableData.value = [
+      { id: 10000, parentId: null, name: 'vxe-table test abc1', type: 'mp3', size: 1024, date: '2020-08-01' },
+      { id: 10050, parentId: null, name: 'Test2', type: 'mp4', size: 0, date: '2021-04-01' },
+      { id: 24300, parentId: 10050, name: 'Test3', type: 'avi', size: 1024, date: '2020-03-01' },
+      { id: 20045, parentId: 24300, name: 'vxe-table test abc4', type: 'html', size: 600, date: '2021-04-01' },
+      { id: 10053, parentId: 24300, name: 'vxe-table test abc96', type: 'avi', size: 0, date: '2021-04-01' },
+      { id: 24330, parentId: 10053, name: 'vxe-table test abc5', type: 'txt', size: 25, date: '2021-10-01' },
+      { id: 21011, parentId: 10053, name: 'Test6', type: 'pdf', size: 512, date: '2020-01-01' },
+      { id: 22200, parentId: 10053, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23666, parentId: null, name: 'Test8', type: 'xlsx', size: 2048, date: '2020-11-01' },
+      { id: 23677, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23671, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23672, parentId: 23677, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23688, parentId: 23666, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23681, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 23682, parentId: 23688, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 24555, parentId: null, name: 'vxe-table test abc9', type: 'avi', size: 224, date: '2020-10-01' },
+      { id: 24566, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' },
+      { id: 24577, parentId: 24555, name: 'Test7', type: 'js', size: 1024, date: '2021-06-01' }
+    ]
+  })
+}
 
-const treeConfig = reactive<VxeTablePropTypes.TreeConfig<RowVO>>({
-  lazy: true,
-  transform: true,
-  hasChild: 'hasChild',
-  loadMethod ({ row }) {
-    // 异步加载子节点
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const childs = [
-          { id: row.id + 100000, parentId: row.id, name: row.name + 'Test45', type: 'mp4', size: null, date: '2021-10-03', hasChild: true },
-          { id: row.id + 150000, parentId: row.id, name: row.name + 'Test56', type: 'mp3', size: null, date: '2021-07-09', hasChild: false }
-        ]
-        resolve(childs)
-      }, 500)
-    })
+const searchMethod = () => {
+  const $table = tableRef.value
+  if ($table) {
+    // 清除所有状态
+    $table.clearAll()
+    return findList()
   }
-})
+  return Promise.resolve()
+}
+
+const insertRow = async (currRow: RowVO, locat: string) => {
+  const $table = tableRef.value
+  if ($table) {
+    const date = new Date()
+    // 如果 null 则插入到目标节点顶部
+    // 如果 -1 则插入到目标节点底部
+    // 如果 row 则有插入到效的目标节点该行的位置
+    const rid = Date.now()
+    if (locat === 'current') {
+      const record = {
+        name: `新数据${rid}`,
+        id: rid,
+        parentId: currRow.parentId, // 父节点必须与当前行一致
+        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      }
+      const { row: newRow } = await $table.insertAt(record, currRow)
+      await $table.setEditRow(newRow) // 插入子节点
+    } else if (locat === 'top') {
+      const record = {
+        name: `新数据${rid}`,
+        id: rid,
+        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      }
+      const { row: newRow } = await $table.insert(record)
+      await $table.setTreeExpand(currRow, true) // 将父节点展开
+      await $table.setEditRow(newRow) // 插入子节点
+    } else if (locat === 'bottom') {
+      const record = {
+        name: `新数据${rid}`,
+        id: rid,
+        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+        date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      }
+      const { row: newRow } = await $table.insertAt(record, -1)
+      await $table.setTreeExpand(currRow, true) // 将父节点展开
+      await $table.setEditRow(newRow) // 插入子节点
+    }
+  }
+}
+const removeRow = async (row: RowVO) => {
+  const $table = tableRef.value
+  if ($table) {
+    await $table.remove(row)
+  }
+}
+
+const insertEvent = async () => {
+  const $table = tableRef.value
+  if ($table) {
+    const date = new Date()
+    const rid = Date.now()
+    const record = {
+      name: `新数据${rid}`,
+      id: rid,
+      parentId: null,
+      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    }
+    const { row: newRow } = await $table.insert(record)
+    await $table.setEditRow(newRow)
+  }
+}
+
+const getInsertEvent = () => {
+  const $table = tableRef.value
+  if ($table) {
+    const insertRecords = $table.getInsertRecords()
+    proxy?.$modal.msgSuccess(`新增：${insertRecords.length}`);
+  }
+}
+
+const getRemoveEvent = () => {
+  const $table = tableRef.value
+  if ($table) {
+    const removeRecords = $table.getRemoveRecords()
+    console.log(removeRecords.length)
+  }
+}
 
 const getUpdateEvent = () => {
   const $table = tableRef.value
   if ($table) {
     const updateRecords = $table.getUpdateRecords()
+    proxy?.$modal.msgSuccess(`更新：${updateRecords.length}`)
   }
 }
+
+nextTick(() => {
+  // 将表格和工具栏进行关联
+  findList()
+})
 let isCardShow = ref(false);
 let devices = ref([]);
 let cardData = ref({
@@ -526,7 +655,10 @@ let resourceList = [];
 let embResOptions = ref([]);
 let dialogVisible_res = ref(false);
 let dialogVisible_seg = ref(false);
-let dialogVisible_config = ref(false);
+const dialog_config = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
 // 资源下拉选中改变前的值
 let lastValue = -1;
 
@@ -1443,7 +1575,7 @@ const showDialog = (largeType) => {
     if (node !== "") getEmbResOptions(node.get("model"));
     dialogVisible_seg.value = true;
   } else if (largeType === "target_device") {
-    dialogVisible_config.value = true;
+    dialog_config.visible = true;
   }
 };
 const getEmbResOptions = (model) => {
@@ -1737,10 +1869,7 @@ const saveAll = () => {
 };
 const saveAllClick = () => {
   saveAll();
-  ElMessage({
-    message: "保存成功",
-    type: "success",
-  });
+  proxy?.$modal.msgSuccess( "保存成功");
 };
 // let isKeyDown = true;
 const handleKeyDown = (e) => {
@@ -1823,6 +1952,13 @@ const pointTableHandle = (res) => {
     modbusPointObj.value.items = res.items;
   }
 };
+const saveConfig=()=>{
+  proxy?.$modal.msgSuccess("操作成功");
+  dialog_config.visible = false;
+}
+const cancelConfig=()=>{
+  dialog_config.visible = false;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -1898,4 +2034,18 @@ const pointTableHandle = (res) => {
 .g6-toolbar-display {
   display: none;
 }
+.config_upanddown_button{
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+.config{
+  .config_dml_button{
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+  }
+}
+
 </style>
