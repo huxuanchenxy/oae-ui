@@ -747,6 +747,7 @@ let curDevices = ref({
 let graph;
 let curGraphItemBegin;
 const cacheKey = "deployment";
+const cacheKey_configList= "deployment_configs";
 let curGraphData;
 let deploymentJson;
 // 连线时判定是否是网络段连接控制器，是则创建线后，将线存在网络段和控制器中
@@ -763,6 +764,8 @@ const initData = () => {
   }
   if (curGraphData) graph.data(curGraphData);
   graph.render();
+  configList = cache.local.getJSON(cacheKey_configList);
+  console.log(configList)
 };
 const getTypeShow = (type) => {
   switch (type) {
@@ -1756,6 +1759,8 @@ const getIntType = (str) => {
 };
 const saveAll = () => {
   deploymentJson = graph.save();
+  //configlist保存到deploymentJson
+  cache.local.setJSON(cacheKey_configList, configList);
   cache.local.setJSON(cacheKey, deploymentJson);
 };
 const saveAllClick = () => {
@@ -1962,7 +1967,6 @@ const cancelReadConfig=()=>{
 const changeReadChildIOType=(row)=>{
   let tableReadDatas=tableReadRef.value.getTableData().tableData;
   tableReadDatas.forEach(tableReadData=>{
-    console.log("子节点",tableReadData)
     if(tableReadData.parentId==row.id){
       tableReadData.ioType=row.ioType;
     }
