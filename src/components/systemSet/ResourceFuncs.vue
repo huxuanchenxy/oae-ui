@@ -5,11 +5,15 @@
     style="height: 80%; overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
-    title="控制器资源功能块管理"
     show-close
     :close-on-click-modal="true"
     :close-on-press-escape="false"
   >
+    <template #header="">
+      <div class="my-header">
+        <h1 style="font-size: 20px">控制器资源功能块管理</h1>
+      </div>
+    </template>
     <div class="wrapper">
       <div class="left">
         <el-row>
@@ -167,7 +171,8 @@ const deleteRow = (index, row) => {
 #eldiSeg .el-dialog__body {
   padding-top: 5px !important;
 }
-
+</style>
+<style scoped>
 .wrapper {
   display: flex;
   overflow: hidden;

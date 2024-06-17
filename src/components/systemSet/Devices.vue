@@ -6,11 +6,15 @@
     style="overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
-    title="终端设备管理"
     show-close
     :close-on-click-modal="true"
     :close-on-press-escape="false"
   >
+    <template #header="">
+      <div class="my-header">
+        <h1 style="font-size: 20px">终端设备管理</h1>
+      </div>
+    </template>
     <div class="wrapper">
       <div class="leftContent">
         <!-- <el-row>
@@ -64,7 +68,7 @@
           v-show="
             currentData?.jsonContent != '' && currentData?.jsonContent != null
           "
-          style="max-height: 100%; overflow: hidden"
+          style="height: 99%; overflow: hidden"
         >
           <el-tab-pane label="详情信息">
             <div style="display: flex; margin-bottom: 15px">
@@ -697,26 +701,6 @@ onBeforeMount(() => {
   padding-top: 5px !important;
 }
 
-#eldiDev .wrapper {
-  display: flex;
-  overflow: hidden;
-  justify-content: space-between;
-}
-
-#eldiDev .wrapper .leftContent {
-  flex: 1;
-  background-color: #fff;
-  margin-right: 10px;
-  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  /* border-radius: 5px; */
-  border-right: 1px solid #dcdfe6;
-  border-bottom: 1px solid #dcdfe6;
-  border-left: 1px solid #dcdfe6;
-  overflow: auto;
-}
-#eldiDev .wrapper .leftContent #devTree {
-  margin-bottom: 20px;
-}
 #eldiDev
   .wrapper
   .leftContent
@@ -727,6 +711,30 @@ onBeforeMount(() => {
   color: #4290f7;
   font-weight: bold;
 }
+</style>
+<style scoped>
+#eldiDev .wrapper {
+  display: flex;
+  overflow: hidden;
+  justify-content: space-between;
+  height: 800px;
+}
+
+#eldiDev .wrapper .leftContent {
+  flex: 1;
+  background-color: #fff;
+  margin-right: 10px;
+  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
+  /* border-radius: 5px; */
+  /* border-right: 1px solid #dcdfe6; */
+  border-bottom: 1px solid #dcdfe6;
+  border-left: 1px solid #dcdfe6;
+  overflow: auto;
+  height: 99%;
+}
+#eldiDev .wrapper .leftContent #devTree {
+  margin-bottom: 20px;
+}
 
 #eldiDev .wrapper .rightContent {
   flex: 4;
@@ -734,6 +742,7 @@ onBeforeMount(() => {
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4); */
   /* border-radius: 5px; */
   margin-right: 10px;
+  height: 100%;
   overflow: hidden;
 }
 
