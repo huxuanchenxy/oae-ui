@@ -274,8 +274,13 @@
                   </template>
                 </vxe-column>
                 <vxe-column field="address" title="寄存器地址" :edit-render="{}">
-                  <template #edit="{ row }">
-                    <vxe-input v-model="row.address" type="text" ></vxe-input>
+                  <template #edit="slotParams">
+                    <template v-if="slotParams.row.isGroup==1||slotParams.row.isIndeVari==1">
+                      <vxe-input v-model="slotParams.row.address" type="text" :on-blur="changeReadChildAddress(slotParams.row)" ></vxe-input>
+                    </template>
+                    <template v-else>
+                      {{slotParams.row.address}}
+                    </template>
                   </template>
                 </vxe-column>
                 <vxe-column field="len" title="长度" :edit-render="{}">
@@ -1852,39 +1857,26 @@ const pointTableHandle = (res) => {
 const insertReadRow = (currRow: CardInfo_dynamic, locat: string) => {
   const $table = tableReadRef.value
   if ($table) {
-    // 如果 null 则插入到目标节点顶部
-    // 如果 -1 则插入到目标节点底部
-    // 如果 row 则有插入到效的目标节点该行的位置
-    // // if (locat === 'current') {
-    //   const record = {
-    //     name: `新数据${rid}`,
-    //     id: rid,
-    //     parentId: currRow.parentId, // 父节点必须与当前行一致
-    //     date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    //   }
-    //   const { row: newRow } = await $table.insertAt(record, currRow)
-    //   await $table.setEditRow(newRow) // 插入子节点
-    // // } else if (locat === 'top') {
-      const record = {
-        name: `${currRow.id}-1`,
-        id: uuidv4(),
-        type:0,
-        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
-      }
-      const { row: newRow } = $table.insert(record)
-      $table.setTreeExpand(currRow, true) // 将父节点展开
-      $table.setEditRow(newRow) // 插入子节点
-    // } else if (locat === 'bottom') {
-    //   const record = {
-    //     name: `新数据${rid}`,
-    //     id: rid,
-    //     parentId: currRow.id, // 需要指定父节点，自动插入该节点中
-    //     date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    //   }
-    //   const { row: newRow } = await $table.insertAt(record, -1)
-    //   await $table.setTreeExpand(currRow, true) // 将父节点展开
-    //   await $table.setEditRow(newRow) // 插入子节点
-    // }
+    let allData=tableReadRef.value.getTableData().tableData;
+    let children=allData.filter(x=>x.parentId==currRow.id);
+    let address;
+    if (!children||children.length==0){
+      address=currRow.address;
+    }else{
+      address=parseInt(children[children.length-1].address)+parseInt(children[children.length-1].len)+1
+    }
+    const record:CardInfo_dynamic = {
+      id: uuidv4(),
+      type:0,
+      isGroup:0,
+      isIndeVari:0,
+      address:address,
+      parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+      ioType:currRow.ioType
+    }
+    const { row: newRow } = $table.insertAt(record,-1)
+    $table.setTreeExpand(currRow, true) // 将父节点展开
+    $table.setEditRow(newRow) // 插入子节点
   }
 }
 const removeReadRow = async (row: CardInfo_dynamic) => {
@@ -1969,6 +1961,19 @@ const changeReadChildIOType=(row)=>{
   tableReadDatas.forEach(tableReadData=>{
     if(tableReadData.parentId==row.id){
       tableReadData.ioType=row.ioType;
+    }
+  })
+}
+const changeReadChildAddress=(row)=>{
+  let tableReadDatas=tableReadRef.value.getTableData().tableData;
+  tableReadDatas=tableReadDatas.filter(x=>x.parentId==row.id);
+  tableReadDatas.forEach((tableReadData,index)=>{
+    if (index==0){
+      tableReadData.address=row.address;
+    }else{
+      console.log(parseInt(tableReadDatas[index-1].address)+parseInt(tableReadDatas[index-1].len));
+      tableReadData.address=tableReadDatas[index-1].len?(parseInt(tableReadDatas[index-1].address)+parseInt(tableReadDatas[index-1].len)+1):
+          parseInt(tableReadDatas[index-1].address)+1;
     }
   })
 }
