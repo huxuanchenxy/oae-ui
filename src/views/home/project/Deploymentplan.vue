@@ -284,8 +284,10 @@
                   </template>
                 </vxe-column>
                 <vxe-column field="len" title="长度" :edit-render="{}">
-                  <template #edit="{ row }">
-                    <vxe-input v-model="row.len" type="text" ></vxe-input>
+                  <template #edit="slotParams">
+                    <template v-if="slotParams.row.isGroup!=1">
+                      <vxe-input v-model="slotParams.row.len" type="text" ></vxe-input>
+                    </template>
                   </template>
                 </vxe-column>
                 <vxe-column field="comment" title="备注" :edit-render="{}">
@@ -1880,13 +1882,18 @@ const insertReadRow = (currRow: CardInfo_dynamic, locat: string) => {
   }
 }
 const removeReadRow = async (row: CardInfo_dynamic) => {
-  console.log(row)
+  await proxy?.$modal.confirm('是否确认删除？');
   const $table = tableReadRef.value
   if ($table) {
-    await $table.remove(row)
+    if(row.isGroup==1){
+      await $table.remove(row)
+    }else{
+      let tableReadDatas=tableReadRef.value.getTableData().tableData;
+      tableReadDatas=tableReadDatas.filter(x=>x.parentId!=row.id);
+    }
   }
 }
-const removeReadRows = () => {
+const removeReadRows = async () => {
   const $table = tableReadRef.value
   if ($table) {
     const selectRecords = $table.getCheckboxRecords()
@@ -1905,7 +1912,7 @@ const insertReadEvent = async (isGroup) => {
       isIndeVari:isIndeVari,
       parentId: null,
     }
-    const { row: newRow } = $table.insert(record)
+    const { row: newRow } = $table.insertAt(record,-1)
     await $table.setEditRow(newRow)
   }
 }
