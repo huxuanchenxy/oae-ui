@@ -6,11 +6,15 @@
     style="overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
-    title="网络段管理"
     show-close
     :close-on-click-modal="true"
     :close-on-press-escape="false"
   >
+    <template #header="">
+      <div class="my-header">
+        <h1 style="font-size: 20px">网络段管理</h1>
+      </div>
+    </template>
     <div class="wrapper">
       <div class="leftContent">
         <!-- <el-row>
@@ -65,7 +69,7 @@
           v-show="
             currentData?.jsonContent != '' && currentData?.jsonContent != null
           "
-          style="max-height: 100%; overflow: auto"
+          style="height: 99%; overflow: auto"
         >
           <el-tab-pane label="基本信息">
             <div style="display: flex; margin-bottom: 15px">
@@ -862,27 +866,6 @@ const deleteDeviceRow = (index, row) => {
 #eldiSeg .el-dialog__body {
   padding-top: 5px !important;
 }
-
-#eldiSeg .wrapper {
-  display: flex;
-  overflow: hidden;
-  justify-content: space-between;
-}
-
-#eldiSeg .left {
-  flex: 1;
-  background-color: #fff;
-  margin-right: 10px;
-  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  /* border-radius: 5px; */
-  /* border-right: 1px solid #dcdfe6;
-  border-bottom: 1px solid #dcdfe6;
-  border-left: 1px solid #dcdfe6; */
-  overflow: auto;
-}
-#eldiSeg .wrapper .leftContent #devTree {
-  margin-bottom: 20px;
-}
 #eldiSeg
   .wrapper
   .leftContent
@@ -893,13 +876,38 @@ const deleteDeviceRow = (index, row) => {
   color: #4290f7;
   font-weight: bold;
 }
+</style>
+<style scoped>
+#eldiSeg .wrapper {
+  display: flex;
+  overflow: hidden;
+  justify-content: space-between;
+  height: 800px;
+}
+
+#eldiSeg .leftContent {
+  flex: 1;
+  background-color: #fff;
+  margin-right: 10px;
+  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
+  /* border-radius: 5px; */
+  /* border-right: 1px solid #dcdfe6; */
+  border-bottom: 1px solid #dcdfe6;
+  border-left: 1px solid #dcdfe6;
+  height: 99%;
+  overflow: auto;
+}
+#eldiSeg .wrapper .leftContent #devTree {
+  margin-bottom: 20px;
+}
 
 #eldiSeg .wrapper .rightContent {
   flex: 4;
   background-color: #fff;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4);
   border-radius: 5px; */
-  margin-right: 10px;
+  /* margin-left: 15px; */
+  height: 100%;
   overflow: hidden;
 }
 #eldiSeg .wrapper .rightContent #eltable .el-input__wrapper {

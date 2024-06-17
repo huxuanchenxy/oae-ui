@@ -6,11 +6,15 @@
     style="overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
-    title="通用功能块管理"
     show-close
     :close-on-click-modal="true"
     :close-on-press-escape="true"
   >
+    <template #header="">
+      <div class="my-header">
+        <h1 style="font-size: 20px">通用功能块管理</h1>
+      </div>
+    </template>
     <div class="wrapper">
       <div class="leftContent">
         <div id="genericfuncTree">
@@ -39,7 +43,7 @@
         </div>
       </div>
       <div class="rightContent">
-        <el-tabs type="border-card" style="height: 100%; overflow: hidden">
+        <el-tabs type="border-card" style="height: 99%; overflow: hidden">
           <el-tab-pane label="详情信息">
             <el-table
               id="eltable"
@@ -159,7 +163,7 @@ const filterNode = (value, data) => {
   if (!value) return true;
   return data.name.includes(value);
 };
-watch(treeSearch, (val) => { 
+watch(treeSearch, (val) => {
   treeGenricRef.value.filter(val);
 });
 let actionUploadUrl = `${baseUrl}/sys/UploadFile`;
@@ -465,6 +469,7 @@ onBeforeMount(() => {
 <style scoped>
 #gericfuncDig .wrapper {
   display: flex;
+  height: 800px;
   overflow: hidden;
   justify-content: space-between;
 }
@@ -474,7 +479,8 @@ onBeforeMount(() => {
   background-color: #fff;
   margin-right: 10px;
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  border-radius: 5px;
+  /* border-radius: 5px; */
+  height: 99%;
   overflow: auto;
 }
 #gericfuncDig .wrapper .left #genericfuncTree {
@@ -497,6 +503,7 @@ onBeforeMount(() => {
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4); */
   /* border-radius: 5px; */
   margin-right: 10px;
+  height: 100%;
   overflow: hidden;
 }
 

@@ -6,7 +6,11 @@
     <el-table-column prop="variableName" label="变量名称" width="180" />
     <el-table-column prop="variableType" label="变量类型" width="180" />
     <el-table-column prop="dataType" label="数据类型" width="180" />
-    <el-table-column label="操作" width="180" />
+    <el-table-column label="操作" width="180">
+      <template #default="{ row }">
+        <el-link type="primary">清空</el-link>
+      </template>
+    </el-table-column>
   </el-table>
 </template>
 

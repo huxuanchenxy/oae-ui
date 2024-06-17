@@ -6,11 +6,15 @@
     style="overflow: hidden"
     top="2vh"
     v-model="modelValue.status"
-    title="控制器管理"
     show-close
     :close-on-click-modal="true"
     :close-on-press-escape="false"
   >
+    <template #header="">
+      <div class="my-header">
+        <h1 style="font-size: 20px">控制器管理</h1>
+      </div>
+    </template>
     <div class="wrapper">
       <div class="leftContent">
         <!-- <el-row>
@@ -64,7 +68,7 @@
           v-show="
             currentData?.jsonContent != '' && currentData?.jsonContent != null
           "
-          style="max-height: 100%; overflow: hidden"
+          style="height: 98%; overflow: hidden"
         >
           <el-tab-pane label="详情信息">
             <div style="display: flex; margin-bottom: 15px">
@@ -107,8 +111,7 @@
             <el-table
               id="eltable"
               :data="tableData"
-              max-height="688"
-              style="width: 100%; overflow: auto"
+              style="width: 100%; height: 100%; overflow: auto"
               row-key="name"
               default-expand-all
             >
@@ -696,27 +699,6 @@ onBeforeMount(() => {
 #eldiControl .el-dialog__body {
   padding-top: 5px !important;
 }
-
-#eldiControl .wrapper {
-  display: flex;
-  overflow: hidden;
-  justify-content: space-between;
-}
-
-#eldiControl .wrapper .leftContent {
-  flex: 1;
-  background-color: #fff;
-  margin-right: 10px;
-  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
-  /* border-radius: 5px; */
-  border-right: 1px solid #dcdfe6;
-  border-bottom: 1px solid #dcdfe6;
-  border-left: 1px solid #dcdfe6;
-  overflow: auto;
-}
-#eldiControl .wrapper .leftContent #divTree {
-  margin-bottom: 20px;
-}
 #eldiControl
   .wrapper
   .leftContent
@@ -727,6 +709,34 @@ onBeforeMount(() => {
   color: #4290f7;
   font-weight: bold;
 }
+</style>
+<style scoped>
+#eldiControl .wrapper {
+  display: flex;
+  overflow: hidden;
+  justify-content: space-between;
+  height: 800px;
+}
+
+#eldiControl .wrapper .leftContent {
+  flex: 1;
+  background-color: #fff;
+  margin-right: 10px;
+  /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 78.2%, 0.4); */
+  /* border-radius: 5px; */
+  /* border-right: 1px solid #dcdfe6; */
+  border-bottom: 1px solid #dcdfe6;
+  border-left: 1px solid #dcdfe6;
+  /* border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  border-left: 1px solid #000; */
+  height: 98%;
+  overflow: auto;
+}
+#eldiControl .wrapper .leftContent #divTree {
+  margin-bottom: 20px;
+}
+
 /* #segTree .is-penultimate > .el-tree-node__content .el-tree-node__label {
   padding: 5px;
     background: #4290f7;  
@@ -738,6 +748,10 @@ onBeforeMount(() => {
   /* box-shadow: 1px 3px 8px 5px hsla(0, 0%, 61.2%, 0.4);
   border-radius: 5px; */
   margin-right: 10px;
+  height: 100%;
+  /* border-right: 1px solid #dcdfe6;
+  border-bottom: 1px solid #dcdfe6;
+  border-left: 1px solid #dcdfe6; */
   overflow: hidden;
 }
 

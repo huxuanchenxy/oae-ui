@@ -753,13 +753,31 @@ const getTreeObj = (list, id) => {
 //operationType: "module",
 const addDiagTree = (
   operationType = "",
-  operation = "right,del,rename,open"
+  operation = "right,del,rename,open",
+  funcUrl = ""
 ) => {
+  console.log("currentData:::", currentData);
+  if (currentData.child) {
+    let existIndex = currentData.child.findIndex(
+      (x) => x.funcName == newModule.value.name
+    );
+    if (existIndex >= 0) {
+      ElNotification({
+        title: "提示信息",
+        message: newModule.value.name + "名称已存在",
+        position: "top-left",
+        type: "error",
+      });
+      return;
+    }
+  }
+
   let addModule = {
     id: currentData.id + newModule.value.name,
     funcName: newModule.value.name,
     funcParentId: currentData.id,
     funcLevelId: currentData.funcLevelId + 1,
+    funcUrl,
     isEdit: false,
     operationType,
     operation,
@@ -822,9 +840,7 @@ const delModule = (data) => {
     .catch(() => {});
 };
 
-const delApplication = (data) => {
-  
-}
+const delApplication = (data) => {};
 
 const RenameTree = (newName) => {
   curData.value.funcName = newName;
