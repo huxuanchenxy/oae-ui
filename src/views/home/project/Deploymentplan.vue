@@ -259,13 +259,18 @@
                   </template>
                 </vxe-column>
                 <vxe-column field="ioType" title="IO类型" width="100" :edit-render="{}">
-                  <template #edit="{ row }">
-                    <vxe-select v-model="row.ioType" transfer>
-                      <vxe-option key="DI" value="DI" label="DI"></vxe-option>
-                      <vxe-option key="DO" value="DO" label="DO"></vxe-option>
-                      <vxe-option key="AI" value="AI" label="AI"></vxe-option>
-                      <vxe-option key="AO" value="AO" label="AO"></vxe-option>
-                    </vxe-select>
+                  <template #edit="slotParams">
+                    <template v-if="slotParams.row.isGroup==1||slotParams.row.isIndeVari==1">
+                      <vxe-select v-model="slotParams.row.ioType" transfer :on-change="changeReadChildIOType(slotParams.row)">
+                        <vxe-option key="DI" value="DI" label="DI"></vxe-option>
+                        <vxe-option key="DO" value="DO" label="DO"></vxe-option>
+                        <vxe-option key="AI" value="AI" label="AI"></vxe-option>
+                        <vxe-option key="AO" value="AO" label="AO"></vxe-option>
+                      </vxe-select>
+                    </template>
+                    <template v-else>
+                      {{slotParams.row.ioType}}
+                    </template>
                   </template>
                 </vxe-column>
                 <vxe-column field="address" title="寄存器地址" :edit-render="{}">
@@ -285,7 +290,7 @@
                 </vxe-column>
                 <vxe-column title="操作" width="640">
                   <template #default="{ row }">
-                    <vxe-button v-if="row.type==1" mode="text" status="primary" @click="insertReadRow(row, 'current')">新增组内变量</vxe-button>
+                    <vxe-button v-if="row.isGroup==1" mode="text" status="primary" @click="insertReadRow(row, 'current')">新增组内变量</vxe-button>
                     <vxe-button mode="text" status="danger" @click="removeReadRow(row)">删除节点</vxe-button>
                   </template>
                 </vxe-column>
@@ -1459,6 +1464,7 @@ const showDialog = (largeType) => {
     if (node !== "") getEmbResOptions(node.get("model"));
     dialogVisible_seg.value = true;
   } else if (largeType === "target_device") {
+    console.log("configList",configList)
     tableReadData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="read");
     dialog_config.visible = true;
   }
@@ -1838,7 +1844,7 @@ const pointTableHandle = (res) => {
   }
 };
 
-const insertReadRow = async (currRow: CardInfo_dynamic, locat: string) => {
+const insertReadRow = (currRow: CardInfo_dynamic, locat: string) => {
   const $table = tableReadRef.value
   if ($table) {
     // 如果 null 则插入到目标节点顶部
@@ -1856,12 +1862,13 @@ const insertReadRow = async (currRow: CardInfo_dynamic, locat: string) => {
     // // } else if (locat === 'top') {
       const record = {
         name: `${currRow.id}-1`,
-        id: uuidv4,
+        id: uuidv4(),
+        type:0,
         parentId: currRow.id, // 需要指定父节点，自动插入该节点中
       }
-      const { row: newRow } = await $table.insert(record)
-      await $table.setTreeExpand(currRow, true) // 将父节点展开
-      await $table.setEditRow(newRow) // 插入子节点
+      const { row: newRow } = $table.insert(record)
+      $table.setTreeExpand(currRow, true) // 将父节点展开
+      $table.setEditRow(newRow) // 插入子节点
     // } else if (locat === 'bottom') {
     //   const record = {
     //     name: `新数据${rid}`,
@@ -1891,15 +1898,17 @@ const removeReadRows = () => {
     })
   }
 }
-const insertReadEvent = async (type) => {
+const insertReadEvent = async (isGroup) => {
   const $table = tableReadRef.value
+  const isIndeVari=isGroup==0?1:0;
   if ($table) {
     const record = {
       id: uuidv4(),
-      type:type,
+      isGroup:isGroup,
+      isIndeVari:isIndeVari,
       parentId: null,
     }
-    const { row: newRow } = await $table.insert(record)
+    const { row: newRow } = $table.insert(record)
     await $table.setEditRow(newRow)
   }
 }
@@ -1950,7 +1959,15 @@ const cancelReadConfig=()=>{
   selectedNodeId="";
   dialog_config.visible = false;
 }
-
+const changeReadChildIOType=(row)=>{
+  let tableReadDatas=tableReadRef.value.getTableData().tableData;
+  tableReadDatas.forEach(tableReadData=>{
+    console.log("子节点",tableReadData)
+    if(tableReadData.parentId==row.id){
+      tableReadData.ioType=row.ioType;
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>

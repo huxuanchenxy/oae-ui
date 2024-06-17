@@ -26,5 +26,7 @@ interface CardInfo_dynamic {
     ioType:string,
     address:string,
     len:number,
+    isGroup:number,
+    isIndeVari:number,
     comment:string
 }
