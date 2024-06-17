@@ -235,7 +235,8 @@
         <el-tab-pane label="读" name="read">
           <div class="config">
             <div class="config_dml_button">
-              <el-button type="primary" @click="insertReadEvent">新增</el-button>
+              <el-button type="primary" @click="insertReadEvent(0)">新增独立变量</el-button>
+              <el-button type="primary" @click="insertReadEvent(1)">新增变量组</el-button>
               <el-button type="primary" :icon="Delete" @click="removeReadRows">批量删除</el-button>
             </div>
             <div>
@@ -284,7 +285,7 @@
                 </vxe-column>
                 <vxe-column title="操作" width="640">
                   <template #default="{ row }">
-                    <vxe-button mode="text" status="primary" @click="insertReadRow(row, 'current')">新增组内变量</vxe-button>
+                    <vxe-button v-if="row.type==1" mode="text" status="primary" @click="insertReadRow(row, 'current')">新增组内变量</vxe-button>
                     <vxe-button mode="text" status="danger" @click="removeReadRow(row)">删除节点</vxe-button>
                   </template>
                 </vxe-column>
@@ -1890,11 +1891,12 @@ const removeReadRows = () => {
     })
   }
 }
-const insertReadEvent = async () => {
+const insertReadEvent = async (type) => {
   const $table = tableReadRef.value
   if ($table) {
     const record = {
       id: uuidv4(),
+      type:type,
       parentId: null,
     }
     const { row: newRow } = await $table.insert(record)
@@ -1924,8 +1926,6 @@ const getReadUpdateEvent = () => {
 }
 //保存NODE配置，把DML的都要在configlist里操作一遍，否则表格关闭数据丢失
 const saveReadConfig=()=>{
-  proxy?.$modal.msgSuccess("操作成功");
-  dialog_config.visible = false;
   //操作新增
   let inserts:CardInfo_dynamic[]=getReadInsertEvent();
   inserts.forEach((insert:CardInfo_dynamic)=>{
@@ -1939,6 +1939,12 @@ const saveReadConfig=()=>{
   configList=configList.filter(x=>!removeIds.includes(x.id));
   //操作更新
   let updates=getReadUpdateEvent();
+  updates.forEach((updateData)=>{
+    let oldConfig:CardInfo_dynamic=configList.filter(config=>config.id==updateData.id);
+    oldConfig=updateData;
+  })
+  proxy?.$modal.msgSuccess("操作成功");
+  dialog_config.visible = false;
 }
 const cancelReadConfig=()=>{
   selectedNodeId="";
