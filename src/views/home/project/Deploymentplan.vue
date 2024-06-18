@@ -251,7 +251,7 @@
                   :loading="loading"
                   :tree-config="{transform: true, rowField: 'id', parentField: 'parentId'}"
                   :edit-config="{trigger: 'click', mode: 'row', showStatus: true}"
-                  :edit-rules="validRules"
+                  :edit-rules="validReadRules"
                   :data="tableReadData">
                 <vxe-column type="checkbox" width="60"></vxe-column>
                 <vxe-column field="name" title="变量名"  tree-node :edit-render="{}" >
@@ -306,13 +306,84 @@
             </div>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="写" name="write">111</el-tab-pane>
+        <el-tab-pane label="写" name="write">
+          <div class="config">
+            <div class="config_dml_button">
+              <el-button type="primary" @click="insertWriteEvent(0)">新增独立变量</el-button>
+              <el-button type="primary" @click="insertWriteEvent(1)">新增变量组</el-button>
+              <el-button type="primary" :icon="Delete" @click="removeWriteRows">批量删除</el-button>
+            </div>
+            <div>
+              <vxe-table
+                  show-overflow
+                  keep-source
+                  ref="tableWriteRef"
+                  :row-config="{keyField: 'id'}"
+                  :column-config="{resizable: true}"
+                  :print-config="{}"
+                  :export-config="{}"
+                  :loading="loading"
+                  :tree-config="{transform: true, rowField: 'id', parentField: 'parentId'}"
+                  :edit-config="{trigger: 'click', mode: 'row', showStatus: true}"
+                  :edit-rules="validWriteRules"
+                  :data="tableWriteData">
+                <vxe-column type="checkbox" width="60"></vxe-column>
+                <vxe-column field="name" title="变量名"  tree-node :edit-render="{}" >
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.name" mode="text"></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column field="ioType" title="IO类型" width="100" :edit-render="{}">
+                  <template #edit="slotParams">
+                    <template v-if="slotParams.row.isGroup==1||slotParams.row.isIndeVari==1">
+                      <vxe-select v-model="slotParams.row.ioType" transfer :on-change="changeWriteChildIOType(slotParams.row)">
+                        <vxe-option key="DO" value="DO" label="DO"></vxe-option>
+                        <vxe-option key="AO" value="AO" label="AO"></vxe-option>
+                      </vxe-select>
+                    </template>
+                    <template v-else>
+                      {{slotParams.row.ioType}}
+                    </template>
+                  </template>
+                </vxe-column>
+                <vxe-column field="address" title="寄存器地址" :edit-render="{}">
+                  <template #edit="slotParams">
+                    <template v-if="slotParams.row.isGroup==1||slotParams.row.isIndeVari==1">
+                      <vxe-input v-model="slotParams.row.address" type="text" :on-blur="changeWriteChildAddress(slotParams.row)" ></vxe-input>
+                    </template>
+                    <template v-else>
+                      {{slotParams.row.address}}
+                    </template>
+                  </template>
+                </vxe-column>
+                <vxe-column field="len" title="长度" :edit-render="{}">
+                  <template #edit="slotParams">
+                    <template v-if="slotParams.row.isGroup!=1">
+                      <vxe-input v-model="slotParams.row.len" type="text" ></vxe-input>
+                    </template>
+                  </template>
+                </vxe-column>
+                <vxe-column field="comment" title="备注" :edit-render="{}">
+                  <template #edit="{ row }">
+                    <vxe-input v-model="row.comment" type="text" ></vxe-input>
+                  </template>
+                </vxe-column>
+                <vxe-column title="操作" width="640">
+                  <template #default="{ row }">
+                    <vxe-button v-if="row.isGroup==1" mode="text" status="primary" @click="insertWriteRow(row, 'current')">新增组内变量</vxe-button>
+                    <vxe-button mode="text" status="danger" @click="removeWriteRow(row)">删除节点</vxe-button>
+                  </template>
+                </vxe-column>
+              </vxe-table>
+            </div>
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="saveReadConfig">确 定</el-button>
-        <el-button @click="cancelReadConfig">取 消</el-button>
+        <el-button type="primary" @click="saveConfig">确 定</el-button>
+        <el-button @click="cancelConfig">取 消</el-button>
       </div>
     </template>
   </el-dialog>
@@ -489,8 +560,9 @@ let configList=new Array<CardInfo_dynamic>()
 let selectedNodeId:string;
 const loading = ref(false)
 const tableReadData = ref<CardInfo_dynamic[]>([])
-
 const tableReadRef = ref<VxeTableInstance<CardInfo_dynamic>>()
+const tableWriteData = ref<CardInfo_dynamic[]>([])
+const tableWriteRef = ref<VxeTableInstance<CardInfo_dynamic>>()
 
 let isCardShow = ref(false);
 let devices = ref([]);
@@ -1475,6 +1547,7 @@ const showDialog = (largeType) => {
     dialogVisible_seg.value = true;
   } else if (largeType === "target_device") {
     tableReadData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="read");
+    tableWriteData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="write");
     dialog_config.visible = true;
   }
 };
@@ -1854,7 +1927,7 @@ const pointTableHandle = (res) => {
     modbusPointObj.value.items = res.items;
   }
 };
-
+//---------------读变量开始-------------------
 const insertReadRow = (currRow: CardInfo_dynamic, locat: string) => {
   const $table = tableReadRef.value
   if ($table) {
@@ -1884,12 +1957,7 @@ const removeReadRow = async (row: CardInfo_dynamic) => {
   await proxy?.$modal.confirm('是否确认删除？');
   const $table = tableReadRef.value
   if ($table) {
-    if(row.isGroup==1){
-      await $table.remove(row)
-    }else{
-      let tableReadDatas=tableReadRef.value.getTableData().tableData;
-      tableReadDatas=tableReadDatas.filter(x=>x.parentId!=row.id);
-    }
+    $table.remove(row)
   }
 }
 const removeReadRows = async () => {
@@ -1937,27 +2005,50 @@ const getReadUpdateEvent = () => {
   }
 }
 //保存NODE配置，把DML的都要在configlist里操作一遍，否则表格关闭数据丢失
-const saveReadConfig=async ()=>{
-  const $table = tableReadRef.value
-  if ($table) {
-    const errMap =  await $table.fullValidate(true)
-    if (errMap) {
+const saveConfig=async ()=>{
+  const $readtable = tableReadRef.value
+  const $writetable = tableReadRef.value
+  if ($readtable&&$writetable) {
+    const errMapRead =  await $readtable.fullValidate(true)
+    const errMapWrite =  await $readtable.fullValidate(true)
+    if (errMapRead||errMapWrite) {
       proxy?.$modal.msgError( '校验不通过！')
     }else{
+      //--------读开始
       //操作新增
-      let inserts:CardInfo_dynamic[]=getReadInsertEvent();
-      inserts.forEach((insert:CardInfo_dynamic)=>{
+      let insertsRead:CardInfo_dynamic[]=getReadInsertEvent();
+      insertsRead.forEach((insert:CardInfo_dynamic)=>{
         insert.nodeId=selectedNodeId;
         insert.type="read";
         configList.push(insert);
       })
       //操作删除
-      let removes=getReadRemoveEvent();
-      let removeIds=removes.map(x=>x.id);
-      configList=configList.filter(x=>!removeIds.includes(x.id));
+      let removesRead=getReadRemoveEvent();
+      let removeIdsRead=removesRead.map(x=>x.id);
+      configList=configList.filter(x=>!removeIdsRead.includes(x.id));
       //操作更新
-      let updates=getReadUpdateEvent();
-      updates.forEach((updateData)=>{
+      let updatesRead=getReadUpdateEvent();
+      updatesRead.forEach((updateData)=>{
+        let oldConfig:CardInfo_dynamic=configList.filter(config=>config.id==updateData.id);
+        oldConfig=updateData;
+      })
+      //---------读结束
+      //---------写开始
+      //操作新增
+      let insertsWrite:CardInfo_dynamic[]=getWriteInsertEvent();
+      insertsWrite.forEach((insert:CardInfo_dynamic)=>{
+        insert.nodeId=selectedNodeId;
+        insert.type="write";
+        configList.push(insert);
+      })
+      console.log(insertsWrite)
+      //操作删除
+      let removesWrite=getWriteRemoveEvent();
+      let removeIdsWrite=removesWrite.map(x=>x.id);
+      configList=configList.filter(x=>!removeIdsWrite.includes(x.id));
+      //操作更新
+      let updatesWrite=getWriteUpdateEvent();
+      updatesWrite.forEach((updateData)=>{
         let oldConfig:CardInfo_dynamic=configList.filter(config=>config.id==updateData.id);
         oldConfig=updateData;
       })
@@ -1966,7 +2057,7 @@ const saveReadConfig=async ()=>{
     }
   }
 }
-const cancelReadConfig=()=>{
+const cancelConfig=()=>{
   selectedNodeId="";
   dialog_config.visible = false;
 }
@@ -1980,7 +2071,6 @@ const changeReadChildIOType=(row)=>{
 }
 const changeReadChildAddress=(row)=>{
   let tableReadDatas=tableReadRef.value.getTableData().tableData;
-  console.log(tableReadRef.value.getTableData())
   tableReadDatas=tableReadDatas.filter(x=>x.parentId==row.id);
   tableReadDatas.forEach((tableReadData,index)=>{
     if (index==0){
@@ -1991,19 +2081,7 @@ const changeReadChildAddress=(row)=>{
     }
   })
 }
-const validRules = ref<VxeTablePropTypes.EditRules>({
-  // len: [
-  //   {
-  //     validator ({ row }) {
-  //       if (row.isGroup!=1){
-  //         if(row.len==""){
-  //           return new Error('变量必须填写长度')
-  //         }
-  //       }
-  //       console.log("validate",row)
-  //     }
-  //   }
-  // ],
+const validReadRules = ref<VxeTablePropTypes.EditRules>({
   len: [
     {
       validator ({ row }) {
@@ -2037,6 +2115,128 @@ const validateAddress=(ioType,value)=>{
     return (value>=40000&&value<=49999)||(value>=400000&&value<=465535)
   }
 }
+//---------------读变量结束-------------------
+//---------------写变量开始-------------------
+const insertWriteRow = (currRow: CardInfo_dynamic, locat: string) => {
+  const $table = tableWriteRef.value
+  if ($table) {
+    let allData=tableWriteRef.value.getTableData().tableData;
+    let children=allData.filter(x=>x.parentId==currRow.id);
+    let address;
+    if (!children||children.length==0){
+      address=currRow.address;
+    }else{
+      address=parseInt(children[children.length-1].address)+parseInt(children[children.length-1].len)+1
+    }
+    const record:CardInfo_dynamic = {
+      id: uuidv4(),
+      type:0,
+      isGroup:0,
+      isIndeVari:0,
+      address:address,
+      parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+      ioType:currRow.ioType
+    }
+    const { row: newRow } = $table.insertAt(record,-1)
+    $table.setTreeExpand(currRow, true) // 将父节点展开
+    $table.setEditRow(newRow) // 插入子节点
+  }
+}
+const removeWriteRow = async (row: CardInfo_dynamic) => {
+  await proxy?.$modal.confirm('是否确认删除？');
+  const $table = tableWriteRef.value
+  if ($table) {
+    $table.remove(row)
+  }
+}
+const removeWriteRows = async () => {
+  const $table = tableWriteRef.value
+  if ($table) {
+    const selectRecords = $table.getCheckboxRecords()
+    selectRecords.forEach((row)=>{
+      removeWriteRow(row)
+    })
+  }
+}
+const insertWriteEvent = async (isGroup) => {
+  const $table = tableWriteRef.value
+  const isIndeVari=isGroup==0?1:0;
+  if ($table) {
+    const record = {
+      id: uuidv4(),
+      isGroup:isGroup,
+      isIndeVari:isIndeVari,
+      parentId: null,
+    }
+    const { row: newRow } = $table.insertAt(record,-1)
+    await $table.setEditRow(newRow)
+  }
+}
+
+const getWriteInsertEvent = () => {
+  const $table = tableWriteRef.value
+  if ($table) {
+    return $table.getInsertRecords()
+  }
+}
+
+const getWriteRemoveEvent = () => {
+  const $table = tableWriteRef.value
+  if ($table) {
+    return $table.getRemoveRecords()
+  }
+}
+
+const getWriteUpdateEvent = () => {
+  const $table = tableWriteRef.value
+  if ($table) {
+    return $table.getUpdateRecords()
+  }
+}
+const changeWriteChildIOType=(row)=>{
+  let tableWriteDatas=tableWriteRef.value.getTableData().tableData;
+  tableWriteDatas.forEach(tableWriteData=>{
+    if(tableReadData.parentId==row.id){
+      tableReadData.ioType=row.ioType;
+    }
+  })
+}
+const changeWriteChildAddress=(row)=>{
+  let tableWriteDatas=tableWriteRef.value.getTableData().tableData;
+  tableWriteDatas=tableWriteDatas.filter(x=>x.parentId==row.id);
+  tableWriteDatas.forEach((tableReadData,index)=>{
+    if (index==0){
+      tableWriteData.address=row.address;
+    }else{
+      tableWriteData.address=tableWriteDatas[index-1].len?(parseInt(tableWriteDatas[index-1].address)+parseInt(tableWriteDatas[index-1].len)+1):
+          parseInt(tableWriteDatas[index-1].address)+1;
+    }
+  })
+}
+const validWriteRules = ref<VxeTablePropTypes.EditRules>({
+  len: [
+    {
+      validator ({ row }) {
+        if (row.isGroup!=1){
+          if(row.len==""){
+            return new Error('变量必须填写长度')
+          }
+        }
+      }
+    }
+  ],
+  address: [
+    { required: true, message: '地址必须填写' },
+    {
+      validator ({ row }) {
+        if (row.isGroup==1&&!validateAddress(row.ioType,row.address)){
+          return new Error('地址不在范围内')
+        }
+      }
+    }
+  ],
+})
+//---------------写变量结束-------------------
 </script>
 
 <style lang="scss" scoped>
