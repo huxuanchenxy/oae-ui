@@ -251,6 +251,7 @@
                   :loading="loading"
                   :tree-config="{transform: true, rowField: 'id', parentField: 'parentId'}"
                   :edit-config="{trigger: 'click', mode: 'row', showStatus: true}"
+                  :edit-rules="validRules"
                   :data="tableReadData">
                 <vxe-column type="checkbox" width="60"></vxe-column>
                 <vxe-column field="name" title="变量名"  tree-node :edit-render="{}" >
@@ -475,7 +476,7 @@ import {
 import { segMapDev, getSegMapDev } from "@/utils/segMapDevHelper.js";
 import OPCUA_RES from "@/components/pointTable/OPCUA_RES.vue";
 import MODBUS_RES from "@/components/pointTable/MODBUS_RES.vue";
-import {   VxeTableInstance } from 'vxe-table'
+import {  VxeTablePropTypes , VxeTableInstance } from 'vxe-table'
 import {Delete, Download} from "@element-plus/icons-vue";
 import {CardInfo,CardInfo_dynamic} from "@/api/deploy/types";
 const deploymentMenuStore = useDeploymentMenuStore();
@@ -772,7 +773,6 @@ const initData = () => {
   if (curGraphData) graph.data(curGraphData);
   graph.render();
   configList = cache.local.getJSON(cacheKey_configList);
-  console.log(configList)
 };
 const getTypeShow = (type) => {
   switch (type) {
@@ -1474,7 +1474,6 @@ const showDialog = (largeType) => {
     if (node !== "") getEmbResOptions(node.get("model"));
     dialogVisible_seg.value = true;
   } else if (largeType === "target_device") {
-    console.log("configList",configList)
     tableReadData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="read");
     dialog_config.visible = true;
   }
@@ -1938,26 +1937,34 @@ const getReadUpdateEvent = () => {
   }
 }
 //保存NODE配置，把DML的都要在configlist里操作一遍，否则表格关闭数据丢失
-const saveReadConfig=()=>{
-  //操作新增
-  let inserts:CardInfo_dynamic[]=getReadInsertEvent();
-  inserts.forEach((insert:CardInfo_dynamic)=>{
-    insert.nodeId=selectedNodeId;
-    insert.type="read";
-    configList.push(insert);
-  })
-  //操作删除
-  let removes=getReadRemoveEvent();
-  let removeIds=removes.map(x=>x.id);
-  configList=configList.filter(x=>!removeIds.includes(x.id));
-  //操作更新
-  let updates=getReadUpdateEvent();
-  updates.forEach((updateData)=>{
-    let oldConfig:CardInfo_dynamic=configList.filter(config=>config.id==updateData.id);
-    oldConfig=updateData;
-  })
-  proxy?.$modal.msgSuccess("操作成功");
-  dialog_config.visible = false;
+const saveReadConfig=async ()=>{
+  const $table = tableReadRef.value
+  if ($table) {
+    const errMap =  await $table.fullValidate(true)
+    if (errMap) {
+      proxy?.$modal.msgError( '校验不通过！')
+    }else{
+      //操作新增
+      let inserts:CardInfo_dynamic[]=getReadInsertEvent();
+      inserts.forEach((insert:CardInfo_dynamic)=>{
+        insert.nodeId=selectedNodeId;
+        insert.type="read";
+        configList.push(insert);
+      })
+      //操作删除
+      let removes=getReadRemoveEvent();
+      let removeIds=removes.map(x=>x.id);
+      configList=configList.filter(x=>!removeIds.includes(x.id));
+      //操作更新
+      let updates=getReadUpdateEvent();
+      updates.forEach((updateData)=>{
+        let oldConfig:CardInfo_dynamic=configList.filter(config=>config.id==updateData.id);
+        oldConfig=updateData;
+      })
+      proxy?.$modal.msgSuccess("操作成功");
+      dialog_config.visible = false;
+    }
+  }
 }
 const cancelReadConfig=()=>{
   selectedNodeId="";
@@ -1973,16 +1980,62 @@ const changeReadChildIOType=(row)=>{
 }
 const changeReadChildAddress=(row)=>{
   let tableReadDatas=tableReadRef.value.getTableData().tableData;
+  console.log(tableReadRef.value.getTableData())
   tableReadDatas=tableReadDatas.filter(x=>x.parentId==row.id);
   tableReadDatas.forEach((tableReadData,index)=>{
     if (index==0){
       tableReadData.address=row.address;
     }else{
-      console.log(parseInt(tableReadDatas[index-1].address)+parseInt(tableReadDatas[index-1].len));
       tableReadData.address=tableReadDatas[index-1].len?(parseInt(tableReadDatas[index-1].address)+parseInt(tableReadDatas[index-1].len)+1):
           parseInt(tableReadDatas[index-1].address)+1;
     }
   })
+}
+const validRules = ref<VxeTablePropTypes.EditRules>({
+  // len: [
+  //   {
+  //     validator ({ row }) {
+  //       if (row.isGroup!=1){
+  //         if(row.len==""){
+  //           return new Error('变量必须填写长度')
+  //         }
+  //       }
+  //       console.log("validate",row)
+  //     }
+  //   }
+  // ],
+  len: [
+    {
+      validator ({ row }) {
+        if (row.isGroup!=1){
+          if(row.len==""){
+            return new Error('变量必须填写长度')
+          }
+        }
+      }
+    }
+  ],
+  address: [
+    { required: true, message: '地址必须填写' },
+    {
+      validator ({ row }) {
+        if (row.isGroup==1&&!validateAddress(row.ioType,row.address)){
+          return new Error('地址不在范围内')
+        }
+      }
+    }
+  ],
+})
+const validateAddress=(ioType,value)=>{
+  if(ioType=="DI"){
+    return (value>=10000&&value<=19999)||(value>=100000&&value<=165535)
+  }else if(ioType=="DO"){
+    return (value>="00000"&&value<="09999")||(value>="000000"&&value<="065535")
+  }else if(ioType=="AI"){
+    return (value>=30000&&value<=39999)||(value>=300000&&value<=365535)
+  }else if(ioType=="AO"){
+    return (value>=40000&&value<=49999)||(value>=400000&&value<=465535)
+  }
 }
 </script>
 
