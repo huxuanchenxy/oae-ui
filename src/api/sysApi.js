@@ -1,8 +1,57 @@
 import axios from './index'
+import  cache  from "@/plugins/cache.ts";
+import { v4 as uuidv4 } from "uuid";
 import {
     baseUrl
 } from './baseUrl'
-
+const deploymentCacheKey="deployment";
+//得到通讯功能块树节点和子节点
+const getSegNode=(segParentNode)=>{
+    let json=cache.local.getJSON(deploymentCacheKey);
+    if (!json||!json.nodes){
+        return null;
+    }
+    let nodes=json.nodes;
+    nodes=nodes.filter(x=>x.nodeType=="Seg");
+    let rltNodes=new Array();
+    nodes.forEach((node)=>{
+        let info=node.info;
+        info.parentId=segParentNode.parentId;
+        info.id=info.ID;
+        info.name=info.Name;
+        info.type='Seg';
+        rltNodes.push(info);
+    })
+    if (rltNodes.length==0){
+        return segParentNode;
+    }else{
+        segParentNode.children=rltNodes;
+    }
+    return segParentNode;
+}
+const getResourceNodes=(resParentNode)=>{
+    let json=cache.local.getJSON(deploymentCacheKey);
+    if (!json||!json.nodes){
+        return resParentNode;
+    }
+    let nodes=json.nodes;
+    nodes=nodes.filter(x=>x.nodeType=="Dev");
+    let rltNodes=new Array();
+    nodes.forEach((node)=>{
+        let info=node.info;
+        info.parentId=resParentNode.parentId;
+        info.name=info.Name;
+        info.id=info.ID;
+        info.type='Dev';
+        rltNodes.push(info);
+    })
+    if (rltNodes.length==0){
+        return resParentNode;
+    }else{
+        resParentNode.children=rltNodes;
+    }
+    return resParentNode;
+}
 export default {
     // saveSysUser: params => { 
     //     return axios.post(`${baseUrl}/SysUserAdd/SaveSysUser`,
@@ -20,11 +69,21 @@ export default {
             params
         }).then(res => {
             let rlt=res.data;
-            console.log(111,rlt)
-            rlt.push({id:3,parentId:0,name:"test"})
+            //加通讯功能块
+            let segNodeId=uuidv4();
+            let segParentNode={id:segNodeId,parentId:0,name:"通讯功能块（T）"};
+            let segNode=getSegNode(segParentNode);
+            rlt.push(segNode);
+            //加资源功能块
+            let resNodeId=uuidv4()
+            let resParentNode={id:resNodeId,parentId:0,name:"资源功能块（Z）"};
+            let resNode=getResourceNodes(resParentNode);
+            rlt.push(resNode);
+            console.log(rlt)
             return rlt;
         })
     },
+
     getResourceFuncByTypeGroup: () => {
         return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
     },
