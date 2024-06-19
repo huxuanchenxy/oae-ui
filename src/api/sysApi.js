@@ -18,7 +18,12 @@ export default {
     getTreeForAppList: (params) => {
         return axios.get(`${baseUrl}/Sys/GetTreeForApplication`, {
             params
-        }).then(res => res.data)
+        }).then(res => {
+            let rlt=res.data;
+            console.log(111,rlt)
+            rlt.push({id:3,parentId:0,name:"test"})
+            return rlt;
+        })
     },
     getResourceFuncByTypeGroup: () => {
         return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)

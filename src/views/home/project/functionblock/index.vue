@@ -117,7 +117,7 @@
           >
             <template #default="{ node, data }">
               <img
-                v-if="data.images !== '' && data.images.indexOf('.') > 0"
+                v-if="data.images&&data.images !== '' && data.images.indexOf('.') > 0"
                 :src="iconPath + data.images"
                 class="icon-tree"
               />
@@ -174,7 +174,7 @@
     children: "children",
     label: (data, node) => {
       // console.log(data)
-      if (data.jsonContent !== "") {
+      if (data.jsonContent&&data.jsonContent !== "") {
         data.info = JSON.parse(data.jsonContent);
         // console.log(data.info)
         // return data.info.DisplayName;
