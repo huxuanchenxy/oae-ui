@@ -1448,6 +1448,7 @@ const addNode = (x, y, data) => {
     // type: type,
     nodeType: nodeType,
     info: data.info,
+    jsonContent: data.jsonContent,
     cardInfo: {},
   };
   let type;
@@ -1462,6 +1463,7 @@ const addNode = (x, y, data) => {
   node.type = type;
   node = cardDataInit(node);
   graph.addItem("node", node);
+  console.log(node)
 };
 // 设备库
 const showOrHidden = () => {

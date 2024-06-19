@@ -1,803 +1,839 @@
 <template>
-<div class="main">
-  <div class="left"  id="container"  ref="container"></div>
-  <div class="right">
-    <el-tree
-        ref="treeRef"
-        style="max-width: 200px"
-        :data="data"
-        default-expand-all
-        node-key="id"
-        :props="defaultProps"
-        draggable
-        @node-drag-end="handleDragEnd"
-        allow-drag="true"
-    />
-  </div>
-  <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" :modal-append-to-body="false">
-    <el-tabs v-model="activeName" class="demo-tabs" >
-      <el-tab-pane label="输入事件" name="inputEventTab">
-        <div class="table_in">
-          <vxe-toolbar>
-            <template #buttons>
-              <vxe-button @click="insertInputEvent()">新增</vxe-button>
-              <vxe-button @click="removeInputEvents()">删除选中</vxe-button>
-            </template>
-          </vxe-toolbar>
-          <vxe-table
-              border
-              ref="inputEventTableRef"
-              show-overflow
-              :data="inputEventList"
-              :column-config="{resizable: true}"
-              :edit-config="{trigger: 'click', mode: 'cell'}">
-            <vxe-column type="checkbox" field="key" width="60"></vxe-column>
-            <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
-              <template #edit="{ row }">
-                <vxe-input v-model="row.text" type="text"></vxe-input>
-              </template>
-            </vxe-column>
-            <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatSystemInputEvent(row.relatedEvent) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.relatedEvent" transfer>
-                  <vxe-option v-for="item in systemInputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-          </vxe-table>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="输出事件" name="outputEventTab">
-        <div class="table_in">
-          <vxe-toolbar>
-            <template #buttons>
-              <vxe-button @click="insertOutputEvent()">新增</vxe-button>
-              <vxe-button @click="removeOutputEvents()">删除选中</vxe-button>
-            </template>
-          </vxe-toolbar>
-          <vxe-table
-              border
-              ref="outputEventTableRef"
-              show-overflow
-              :data="outputEventList"
-              :column-config="{resizable: true}"
-              :edit-config="{trigger: 'click', mode: 'cell'}">
-            <vxe-column type="checkbox" field="key" width="60"></vxe-column>
-            <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
-              <template #edit="{ row }">
-                <vxe-input v-model="row.text" type="text"></vxe-input>
-              </template>
-            </vxe-column>
-            <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatSystemOutputEvent(row.relatedEvent) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.relatedEvent" transfer>
-                  <vxe-option v-for="item in systemOutputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-          </vxe-table>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="输入变量" name="inputVariTab">
-        <div class="table_in">
-          <vxe-toolbar>
-            <template #buttons>
-              <vxe-button @click="insertInputVari()">新增</vxe-button>
-              <vxe-button @click="removeInputVaris()">删除选中</vxe-button>
-            </template>
-          </vxe-toolbar>
-          <vxe-table
-              border
-              ref="inputVariTableRef"
-              show-overflow
-              :data="inputVariList"
-              :column-config="{resizable: true}"
-              :edit-config="{trigger: 'click', mode: 'cell'}">
-            <vxe-column type="checkbox" field="key" width="60"></vxe-column>
-            <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
-              <template #edit="{ row }">
-                <vxe-input v-model="row.text" type="text"></vxe-input>
-              </template>
-            </vxe-column>
-            <vxe-column field="relatedEvents" title="关联事件" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatInputVariRelatedEvents(row.relatedEvents) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.relatedEvents" transfer multiple>
-                  <vxe-option v-for="item in inputEventList" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-            <vxe-column field="type" title="类型" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatVariType(row.type) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.type" transfer>
-                  <vxe-option v-for="item in variType" :key="item.value" :value="item.value" :label="item.label"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-            <vxe-column field="related" title="映射变量" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatSystemInputVari(row.relatedVari) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.relatedVari" transfer>
-                  <vxe-option v-for="item in systemInputVaris" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-          </vxe-table>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="输出变量" name="outputVariTab">
-        <div class="table_in">
-          <vxe-toolbar>
-            <template #buttons>
-              <vxe-button @click="insertOutputVari()">新增</vxe-button>
-              <vxe-button @click="removeOutputVaris()">删除选中</vxe-button>
-            </template>
-          </vxe-toolbar>
-          <vxe-table
-              border
-              ref="outputVariTableRef"
-              show-overflow
-              :data="outputVariList"
-              :column-config="{resizable: true}"
-              :edit-config="{trigger: 'click', mode: 'cell'}">
-            <vxe-column type="checkbox" field="key" width="60"></vxe-column>
-            <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
-              <template #edit="{ row }">
-                <vxe-input v-model="row.text" type="text"></vxe-input>
-              </template>
-            </vxe-column>
-            <vxe-column field="relatedEvents" title="关联事件" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatOutputVariRelatedEvents(row.relatedEvents) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.relatedEvents" transfer multiple>
-                  <vxe-option v-for="item in outputEventList" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-            <vxe-column field="type" title="类型" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatVariType(row.type) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.type" transfer>
-                  <vxe-option v-for="item in variType" :key="item.value" :value="item.value" :label="item.label"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-            <vxe-column field="related" title="映射变量" :edit-render="{}"  >
-              <template #default="{ row }">
-                <span>{{ formatSystemOutputVari(row.relatedVari) }}</span>
-              </template>
-              <template #edit="{ row }">
-                <vxe-select v-model="row.relatedVari" transfer>
-                  <vxe-option v-for="item in systemOutputVaris" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                </vxe-select>
-              </template>
-            </vxe-column>
-          </vxe-table>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="内部变量" name="inVariTab">
-        <div class="table_in">
-          <el-table :data="inVariList" style="width: 100%" height="150">
-            <el-table-column type="selection" width="55"  prop="key"/>
-            <el-table-column label="名称"   width="100" prop="text"/>
-            <el-table-column label="映射变量" prop="comment"/>
-          </el-table>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button type="primary" @click="submitAlgAndEventForm">确 定</el-button>
-        <el-button @click="cancelAlgAndEventDialog">取 消</el-button>
+    <div style="background-color: #def4fd">
+      <div style="padding: 10px; display: inline">
+        <el-dropdown>
+          <el-button class="el-dropdown-link" text size="large" disabled>
+            校验
+            <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>全部</el-dropdown-item>
+              <el-dropdown-item>应用1</el-dropdown-item>
+              <el-dropdown-item>应用2</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-dropdown>
+          <el-button class="el-dropdown-link" text size="large" disabled>
+            部署
+            <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>全部</el-dropdown-item>
+              <el-dropdown-item>应用1</el-dropdown-item>
+              <el-dropdown-item>应用2</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-button text size="large" disabled>编译</el-button>
+        <span style="margin-left: 10px; margin-right: 30px">|</span>
+        <el-button-group>
+          <el-tooltip effect="light" content="开始" placement="bottom">
+            <el-button icon="VideoPlay" disabled />
+          </el-tooltip>
+          <el-tooltip effect="light" content="暂停" placement="bottom">
+            <el-button icon="VideoPause" disabled />
+          </el-tooltip>
+          <el-tooltip effect="light" content="终止" placement="bottom">
+            <el-button icon="Failed" disabled />
+          </el-tooltip>
+          <el-tooltip effect="light" content="刷新" placement="bottom">
+            <el-button icon="RefreshRight" disabled />
+          </el-tooltip>
+          <el-tooltip effect="light" content="清缓存" placement="bottom">
+            <el-button icon="Failed" disabled />
+          </el-tooltip>
+          <el-tooltip effect="light" content="部署状态" placement="bottom">
+            <el-button icon="Failed" disabled />
+          </el-tooltip>
+          <el-tooltip effect="light" content="在线设备" placement="bottom">
+            <el-button icon="Failed" disabled />
+          </el-tooltip>
+        </el-button-group>
+        <span style="margin-left: 30px; margin-right: 30px">|</span>
+        <el-button-group>
+          <el-tooltip effect="light" content="保存" placement="bottom">
+            <el-button @click="saveAllClick"
+              ><span class="iconfont">&#xe6a2;</span></el-button
+            >
+          </el-tooltip>
+          <el-tooltip effect="light" content="刷新" placement="bottom">
+            <el-button icon="Refresh" @click="initData" />
+          </el-tooltip>
+          <el-tooltip effect="light" content="撤销" placement="bottom">
+            <el-button icon="Back" @click="toolbar.undo()" />
+          </el-tooltip>
+          <el-tooltip effect="light" content="回退" placement="bottom">
+            <el-button icon="Right" @click="toolbar.redo()" />
+          </el-tooltip>
+        </el-button-group>
       </div>
-    </template>
-  </el-dialog>
-</div>
-</template>
-<script setup lang="ts">
-import { ElTree } from 'element-plus'
-import type Node from 'element-plus/es/components/tree/src/model/node'
-import type { DragEvents } from 'element-plus/es/components/tree/src/model/useDragNode'
-// import {createGraphNode,updateGraphNode,updateGraphNodeController
-//   // ,initGraph
-// } from "@/antvgraph/functionBlock/functionBlockNode";
-import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,
-  BlockOutputEventForm,BlockInputVariForm,BlockOutputVariForm} from '@/api/functionBlock/type';
-import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
-import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
-import type { Link} from '@/api/functionBlockLink/type';
-import { v4 as uuidv4 } from 'uuid';
-import  cache  from "@/plugins/cache.ts";
-import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
-import {saveOrUpdateLink} from "@/api/functionBlockLink";
-import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
-import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
-import {listSegDataList} from "@/api/controller";
-import { VXETable, VxeTableInstance } from 'vxe-table'
-import G6 from "@antv/g6";
-import {processParallelEdgesOnAnchorPoint,setLinkState,updateGraphNode} from "@/antvgraph/functionBlock/functionBlockNode";
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-let inputEventList = ref<BlockInputEventForm[]>([]);
-let outputEventList = ref<BlockOutputEventForm[]>([]);
-let inputVariList = ref<BlockInputVariForm[]>([]);
-let outputVariList = ref<BlockOutputVariForm[]>([]);
-const activeName = ref('inputEventTab')
-const { variType } = toRefs<any>(proxy?.useDict("variType"));
+    </div>
+    <div class="wrapper">
+      <div
+        style="position: relative; height: 100%; flex-grow: 2; overflow: hidden"
+      >
+      <div><select style="text-align: center;width:100px;appearance:none;border:0;" selectedIndex=-1 placeholder="Select"><option label="text1" value="1"/><option label="text2" value="2"/></select></div>
+      <div id="container" ref="container"></div>
+      </div>
+      <div :class="{ rightShow: drawer, rightHidden: !drawer }">
+        <el-button
+          type="primary"
+          :title="funcTitle"
+          size="small"
+          class="func"
+          @click="showOrHidden"
+        >
+          <el-icon v-show="drawer" style="font-size: 14px"
+            ><CaretRight
+          /></el-icon>
+          <el-icon v-show="!drawer" style="font-size: 14px"><CaretLeft /></el-icon
+          >设备库
+        </el-button>
+        <!-- <div class="right"> -->
+        <el-card>
+          <el-input v-model="filterText" placeholder="Filter keyword" />
+          <el-tree
+            ref="treeRef"
+            style="max-height: 840px; overflow-y: auto"
+            accordion
+            draggable
+            :data="devices"
+            :props="defaultProps"
+            :filter-node-method="filterNode"
+            @node-drag-end="handleDragEnd"
+            :allow-drag="allowdrag"
+            :allow-drop="
+              () => {
+                return false;
+              }
+            "
+          >
+            <template #default="{ node, data }">
+              <img
+                v-if="data.images !== '' && data.images.indexOf('.') > 0"
+                :src="iconPath + data.images"
+                class="icon-tree"
+              />
+              <span>{{ node.label }}</span>
+            </template>
+          </el-tree>
+        </el-card>
+      </div>
+    </div>
+    <div>
+      <el-dialog
+        v-model="dialogVisible_title"
+        width="300"
+        :show-close="false"
+      >
+      <div>名称</div>
+      <div><el-input v-model="addNodeBefore.title"></el-input></div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible_title = false">取消</el-button>
+          <el-button type="primary" @click="addNode"
+            >确认</el-button
+          >
+          </span>
+        </template>
+      </el-dialog>
+    </div>
+  </template>
+  
+  <script setup>
+  import cache from "@/plugins/cache.ts";
+  import sysApi from "@/api/sysApi";
+  import G6 from "@antv/g6";
+  import { v4 as uuidv4 } from "uuid";
+  import { baseUrl } from "@/api/baseUrl";
+  import { ref } from "vue";
+  import { toRaw } from "@vue/reactivity";
+  import { ElMessage } from "element-plus";
+  
+  let cacheKey = 'functionBlock';
+  let functionBlockJson = {};
+  
+  // 设备库变量
+  let devices = ref([]);
+  const projectID = useRoute().params.pid;
+  const procedureID = useRoute().params.id;
+  const iconPath = baseUrl + "/devimgs/";
+  // const iconPath = 'http://10.89.34.70:8081/devimgs/';
+  const drawer = ref(true);
+  let funcTitle = ref("隐藏设备库");
+  const filterText = ref("");
+  const treeRef = ref();
+  const defaultProps = {
+    children: "children",
+    label: (data, node) => {
+      // console.log(data)
+      if (data.jsonContent !== "") {
+        data.info = JSON.parse(data.jsonContent);
+        // console.log(data.info)
+        // return data.info.DisplayName;
+      }
+      return data.name;
+    },
+  };
+  // 设备库函数
+  const showOrHidden = () => {
+    //monacoEditor.layout();
+    drawer.value = !drawer.value;
+    funcTitle.value = drawer.value ? "隐藏设备库" : "显示设备库";
+  };
+  watch(filterText, (val) => {
+    treeRef.value.filter(val);
+  });
+  const filterNode = (value, data) => {
+    if (!value) return true;
+    // value = value.toUpperCase();
+    // return data.name.includes(value);
+    return data.label.includes(value);
+  };
+  const allowdrag = (node) => {
+    if (node.data.jsonContent === "") return false;
+    else return true;
+  };
+  const handleDragEnd = (draggingNode, dropNode, dropType, e) => {
+    // console.log('屏幕坐标',{x:e.x,y:e.y})
+    // console.log('屏幕坐标',{x:e.x - leftTreeWidth,y:e.y - topTitleWidth})
+    let viewPos = graph.getPointByClient(e.x, e.y);
+    // console.log('视口坐标',viewPos)
+    // let canvasPos = graph.getCanvasByPoint(viewPos.x,viewPos.y)
+    // console.log('画布坐标',canvasPos)
+    addNodeBefore.value.x=viewPos.x;
+    addNodeBefore.value.y=viewPos.y;
+    addNodeBefore.value.data=draggingNode.data;
+    // dialogVisible_title.value = true;
+    addNodeBefore.value.title = 'test'
+    addNode()
+  };
+//   G6图形
+const anchorAttr = {
+    toTopAndBottom: 5,
+    size: [10,10],
+    spacing: 5, //间距
+}
+// minSize为最小显示大小
+// 根据名字以及输入事件+输出事件或输入变量+输出变量的长度改变宽度
+// 根据输入事件+输入变量或输出事件+输出变量的数量改变高度
+// center和type的高度定长
+const minSize = [100,60];
+const initCenterLack = [20,20];
+const initLabelHeight = 40;
+const htmlHeight = 20;
+const lineWidthOut = 2;
+const lineWidthIn = 1;
+// 强制连边时，从锚点x位置先偏移edgeOffX画折线，之后自动
+const edgeOffX = 10;
+
 let graph;
-let systemInputEvents=ref<SystemEventInput[]>([]);
-let systemOutputEvents=ref<SystemEventOutput[]>([]);
-let systemInputVaris=ref<SystemVariInput[]>([]);
-let systemOutputVaris=ref<SystemVariOutput[]>([]);
-const project="project1";
-let currentBlockId="";
-// let module=route.params.id;
- let module=4;//todo 后续改成route.params.id
-const cacheKey="graph_fbbs";
-let graphCacheKey=cacheKey+"-"+project+"-"+module;
-const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
-const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
-const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
-const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
-const eventOrVariSize=[60,25];//第一个是宽度，第二个是调度
-const startGraphSize=[60,25];//第一个是宽度，第二个是调度
-const centerGraphSize=[100,25];//第一个是宽度，第二个是调度
-const comboWidth=200;
-const eventOrVariPadding=40;
-const container = ref<any>(null);
-let graphWidth;
-let graphHeight;
-let data=ref<FunctionBlockTree[]>([]);
-let sourceAnchorIdx, targetAnchorIdx;
-let oldInputEvents=new Array<BlockInputEventForm>();
-let oldOutputEvents=new Array<BlockOutputEventForm>();
-let oldInputVaris=new Array<BlockInputVariForm>();
-let oldOutputVaris=new Array<BlockOutputVariForm>();
-const dialogAlgAndEvent = reactive<DialogOption>({
-  visible: false,
-  title: ''
+const container = ref();
+let dialogVisible_title = ref(false);
+let addNodeBefore = ref({
+  title: '',
+  x: 0,
+  y: 0,
+  data: {}
 });
-const treeRef = ref<InstanceType<typeof ElTree>>()
-const defaultProps = {
-  children: 'children',
-  label: 'centerText',
-}
-const contextMenu = new G6.Menu({
-  getContent(evt) {
-    return "<ul><li>删除</li>";
+let sourceAnchor,targetAnchor;
+// node刷新前input输入框的位置
+let preInputCursorPos = 0
+// 为了利用内置的undo和redo
+const toolbar = new G6.ToolBar({ className: "g6-toolbar-display" });
+G6.registerEdge('polyline-more',{
+  afterDraw(cfg,group) {
+    const shape = group.get('children')[0];
+    console.log(group)
   },
-  handleMenuClick: (target, item) => {
-    if(item){
-      //如果右键的是节点或其他
-      deleteNode(item);
+},
+'polyline')
+// G6.registerEdge('polyline-more',{
+//   getPath(points) {
+//       const startPoint = points[0];
+//       const endPoint = points[1];
+//       return [
+//         ['M', startPoint.x, startPoint.y],
+//         ['L', endPoint.x / 3 + (2 / 3) * startPoint.x, startPoint.y],
+//         ['L', endPoint.x / 3 + (2 / 3) * startPoint.x, endPoint.y],
+//         ['L', endPoint.x, endPoint.y],
+//       ];
+//     },
+//   getShapeStyle(cfg) {
+//     const startPoint = cfg.startPoint;
+//     const endPoint = cfg.endPoint;
+//     const controlPoints = this.getControlPoints(cfg);
+//     let points = [startPoint]; // the start point
+//     points.push({x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y})
+//     // the control points
+//     if (controlPoints) {
+//       points = points.concat(controlPoints);
+//     }
+//     points.push({x:endPoint.x-edgeOffX,y:endPoint.y})
+//     // the end point
+//     points.push(endPoint);
+//     const path = this.getPath(points);
+//     const style = Object.assign(
+//       {},
+//       G6.Global.defaultEdge.style,
+//       {
+//         stroke: '#BBB',
+//         lineWidth: 1,
+//         path,
+//       },
+//       cfg.style,
+//     );
+//     return style;
+//   }
+// },
+// 'polyline'
+// )
+G6.registerNode("functionBlock", {
+  draw(cfg, group) {
+    // 为了根据title长度获取bbox
+    const textTitle = group.addShape('text', {
+      attrs: {
+        y:htmlHeight,
+        textAlign:'left',
+        fontSize: 14,
+        fontFamily: 'Arial',
+        text: cfg.title,
+        // textBaseline: 'middle',
+        fill: '#000'
+      },
+      name: 'text-title'
+    })
+    const textRes = group.addShape("text", {
+      attrs: {
+        y:htmlHeight,
+        textAlign:'left',
+        fontSize: 14,
+        fontFamily: 'Arial',
+        text: cfg.selectedResource?.label?cfg.selectedResource.label:'',
+        // textBaseline: 'middle',
+        fill: '#000'
+      },
+      name: "text-res",
+    });
+    let bboxTitle = textTitle.getBBox();
+    let bboxRes = textRes.getBBox();
+    let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
+    // console.log(realWidth)
+    group.addShape("dom", {
+      attrs: {
+        width: realWidth,
+        height: htmlHeight,
+        html: '<div><input id="input-'+cfg.id+'" type="text" style="text-align: center;border:0;width:'+realWidth+'px" value="'+cfg.title+'"/></div>'
+      },
+      name: "dom-input-title",
+    });
+    let realEvtHeight = getHeight(cfg.inputEvt,cfg.outputEvt)
+    let realVarHeight = getHeight(cfg.inputVar,cfg.outputVar)
+    const realAnchorsHeight = htmlHeight*2+realEvtHeight + realVarHeight+initCenterLack[1]+initLabelHeight
+    const keyShape = group.addShape("rect", {
+      attrs: {
+        width: realWidth,
+        height: realAnchorsHeight,
+        // stroke: '#1E90FF',
+        // lineWidth:lineWidthOut
+      },
+      // draggable: true,
+      name: "rect-forAnchors",
+    });
+    // console.log(realEvtHeight)
+    group.addShape('polygon', {
+      attrs: {
+        points: [
+          [0, htmlHeight],
+          [realWidth, htmlHeight],
+          [realWidth, realEvtHeight+htmlHeight],
+          [realWidth-initCenterLack[0], realEvtHeight+htmlHeight],
+          [realWidth-initCenterLack[0], initCenterLack[1]+realEvtHeight+htmlHeight],
+          [realWidth, initCenterLack[1]+realEvtHeight+htmlHeight],
+          [realWidth, initCenterLack[1]+realEvtHeight+htmlHeight+realVarHeight+initLabelHeight],
+          [0, initCenterLack[1]+realEvtHeight+htmlHeight+realVarHeight+initLabelHeight],
+          [0, initCenterLack[1]+realEvtHeight+htmlHeight],
+          [initCenterLack[0], initCenterLack[1]+realEvtHeight+htmlHeight],
+          [initCenterLack[0], realEvtHeight+htmlHeight],
+          [0, realEvtHeight+htmlHeight]
+        ],
+        fill: '#009688',
+        stroke: '#000',
+        lineWidth:lineWidthIn
+      },
+      draggable: true,
+      name: 'polygon-block',
+    });
+    group.addShape("rect", {
+      attrs: {
+        x: lineWidthIn/2,
+        y: htmlHeight+realEvtHeight + lineWidthIn/2 +initCenterLack[1],
+        width: realWidth - lineWidthIn,
+        height: initLabelHeight+lineWidthIn*4,
+        fill: '#01579b',
+      },
+      draggable: true,
+      name: "rect-label",
+    });
+    // console.log(cfg.label)
+    group.addShape("text", {
+      attrs: {
+        x: (realWidth - lineWidthIn)/2,
+        y: htmlHeight+realEvtHeight+35+initCenterLack[1],
+        width: realWidth - lineWidthIn,
+        height: initLabelHeight+lineWidthIn*4,
+        textAlign:'center',
+        fontSize: 20,
+        // fontFamily: 'Arial',
+        text: cfg.label,
+        fill: '#000',
+      },
+      draggable: true,
+      name: "rect-label",
+    });
+    group.addShape("dom", {
+      attrs: {
+        y:htmlHeight+realEvtHeight+initCenterLack[1]+realVarHeight+initLabelHeight,
+        width: realWidth,
+        height: htmlHeight,
+        html: '<div><select id="select-'+cfg.id+'" style="text-align: center;width:'+realWidth+'px;appearance:none;border:0;">'+getSelectOption(cfg.resOption)+'</select></div>'
+      },
+      name: "dom-select-res",
+    });
+    group.addShape('rect', {
+      attrs: {
+        x:-lineWidthOut*2,
+        y:-lineWidthOut*2,
+        width: realWidth+lineWidthOut*4,
+        height: realAnchorsHeight + lineWidthOut*4,
+        // fill: '#FFF',
+        stroke: '#1E90FF',
+        lineWidth:lineWidthOut
+      },
+      name: 'rect-out',
+      draggable: true
+    });
+    cfg.anchorParam = {
+      allHeight:realAnchorsHeight,
+      varStartHeight: realAnchorsHeight - realVarHeight-htmlHeight,
+      realWidth:realWidth
     }
-    saveDataToServer()
-  },
-  // 在哪些类型的元素上响应
-  itemTypes: ['node', 'edge', 'canvas'],
-});
-const deleteNode=async (item)=> {
-  const nodes = graph.findAllByState('node', 'selected');
-  const edges = graph.findAllByState('edge', 'selected');
-  const nodeIds = nodes.map((node) => node.get('id'));
-  const edgeIds = edges.map((edge) => edge.get('id'));
-  if (nodeIds.length != 0||edgeIds.length != 0) {
-    await  proxy?.$modal.confirm(`确认删除选中节点吗？`);
-    nodeIds.forEach((nodeId)=>{
-      graph.removeItem(nodeId);
-    })
-    edgeIds.forEach((edgeId)=>{
-      graph.removeItem(edgeId);
-    })
-  }else{
-    proxy?.$modal.msgWarning("您没有选中任何节点");
-  }
-}
-let segData;
-let resourceData;
-
-const cancelAlgAndEventDialog = () => {
-  dialogAlgAndEvent.visible = false;
-}
-
-const initGraphEvent=(()=>{
-  graph.on('combo:dblclick', nodeDbClick);
-  graph.on('afterupdateitem', (e) => {
-    saveDataToServer();
-  });
-  graph.on("aftercreateedge", (evt) => {
-    let data={id:evt.edge.get("id"),from:evt.edge.getSource()._cfg?.id,to:evt.edge.getTarget()._cfg?.id}
-    // saveOrUpdateLink(project,data);
-  });
-  graph.on('aftercreateedge', (e) => {
-    // update the sourceAnchor and targetAnchor for the newly added edge
-    graph.updateItem(e.edge, {
-      sourceAnchor: sourceAnchorIdx,
-      targetAnchor: targetAnchorIdx
-    })
-
-    // update the curveOffset for parallel edges
-    const edges = graph.save().edges;
-    processParallelEdgesOnAnchorPoint(edges);
-    graph.getEdges().forEach((edge, i) => {
-      graph.updateItem(edge, {
-        curveOffset: edges[i].curveOffset,
-        curvePosition: edges[i].curvePosition,
+    const anchorPoints = this.getAnchorPoints(cfg);
+      anchorPoints.forEach((anchorPos, i) => {
+      let y = realAnchorsHeight*anchorPos[1] - anchorAttr.size[1]/2
+      group.addShape("rect", {
+        attrs: {
+          x: realWidth*anchorPos[0],
+          y: y,
+          width: anchorAttr.size[0],
+          height: anchorAttr.size[1],
+          fill: y < (htmlHeight + realEvtHeight) ? "#4caf50" : "#ff9800" //ff9800
+        },
+        // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
+        name: `anchor-point`, // the name, for searching by group.find(ele => ele.get('name') === 'anchor-point')
+        anchorPointIdx: i, // flag the idx of the anchor-point circle
+        links: 0, // cache the number of edges connected to this shape
+        visible: true, // invisible by default, shows up when links > 1 or the node is in showAnchors state
+        draggable: true, // allow to catch the drag events on this shape
       });
     });
-  });
-  graph.on('node:mouseenter', e => {
-    const item=e.item;
-    setLinkState(item,true);
-  })
-  graph.on('node:mouseleave', e => {
-    const item=e.item;
-    setLinkState(item,false);
-  })
-  //边的事件
-  graph.on('edge:click', (evt) => {
-    const { item } = evt;
-    graph.setItemState(item, 'selected', true);
-  });
-});
-const nodeDbClick=((evt)=>{
-  currentBlockId=evt.item.get("id");
-  let block=getOneFunctionBlock(project,module,currentBlockId);
-  if (block){
-    inputEventList.value=block.input_events;
-    outputEventList.value = block.output_events;
-    inputVariList.value = block.inputs
-    outputVariList.value = block.outputs;
-    oldInputEvents=block.input_events;
-    oldOutputEvents = block.output_events;
-    oldInputVaris = block.inputs
-    oldOutputVaris = block.outputs;
-  }else{
-    inputEventList.value=new Array();
-    outputEventList.value = new Array();
-    inputVariList.value = new Array();
-    outputVariList.value = new Array();
-  }
-  //需要把原先的给保存进去，因为在确定更新后要对比进行更新，删除和新增
-  dialogAlgAndEvent.visible = true;
-});
-const addFunctionBlockNode=((functionBlock:FunctionBlock)=>{
-  // createGraphNode(functionBlock,graph)
-  //双向绑定更新
-  //大JSON更新
-});
-const addCombo=(comboX,comboY,functionBlock)=>{
-  let topStartX=comboX;
-  let topStartY=comboY;
-  let bottomStartX;
-  let bottomStartY;
-  const comboId=uuidv4();
-  let inputEvents=functionBlock.input_events;
-  let outputEvents=functionBlock.output_events;
-  let inputVaris=functionBlock.inputs;
-  let outputVaris=functionBlock.outputs;
-  const comboConfig={
-    id:comboId,
-    type:'rect',
-    size:[comboWidth,200]
-  }
-  graph.addItem('combo',comboConfig)
-  inputEvents.forEach((inputEvent,index)=>{
-    let inputEventNode = {
-      id:uuidv4(),
-      label: inputEvent.text,
-      x: topStartX,
-      y: topStartY+index*eventOrVariPadding,
-      size:eventOrVariSize,
-      comboId:comboId,
-      type:'rect-node',
-    };
-    graph.addItem('node', inputEventNode);
-  })
-  outputEvents.forEach((outputEvent,index)=>{
-    let outputEventNode = {
-      id:uuidv4(),
-      label: outputEvent.text,
-      x: topStartX+comboWidth,
-      y: topStartY+index*eventOrVariPadding,
-      size:eventOrVariSize,
-      comboId:comboId,
-      type:'rect-node',
-    };
-    graph.addItem('node', outputEventNode);
-  })
-  if (inputEvents.length>outputEvents.length){
-    bottomStartY=topStartY+inputEvents.length*eventOrVariPadding+50;
-  }else{
-    bottomStartY=topStartY+outputEvents.length*eventOrVariPadding+50;
-  }
-  let centerNode = {
-    id:uuidv4(),
-    label: "center",
-    x: comboX+100,
-    y: bottomStartY-eventOrVariPadding,
-    size:centerGraphSize,
-    comboId:comboId,
-    type:'rect',
-  };
-  graph.addItem('node', centerNode);
-  inputVaris.forEach((inputVari,index)=>{
-    let inputEventNode = {
-      id:uuidv4(),
-      label: inputVari.text,
-      x: comboX,
-      y: bottomStartY+index*eventOrVariPadding,
-      size:eventOrVariSize,
-      comboId:comboId,
-      type:'rect-node',
-    };
-    graph.addItem('node', inputEventNode);
-  })
-  outputVaris.forEach((outputVari,index)=>{
-    let outputEventNode = {
-      id:uuidv4(),
-      label: outputVari.text,
-      x: comboX+200,
-      y: bottomStartY+index*eventOrVariPadding,
-      size:eventOrVariSize,
-      comboId:comboId,
-      type:'rect-node',
-    };
-    graph.addItem('node', outputEventNode);
-  })
-
-  saveDataToServer()
-}
-/**
- * 拖动结束后加上combo
- * @param draggingNode
- * @param dropNode
- * @param dropType
- * @param ev
- */
-const handleDragEnd = (
-    draggingNode: Node,
-    dropNode: Node,
-    dropType,
-    ev: DragEvents
-) => {
-  //先加功能块
-  let functionBlock:FunctionBlock={
-    input_events:[{key:1,text:'inputevent1'},{key:2,text:'inputevent2'},],
-    output_events:[{key:3,text:'output_events'},{key:4,text:'output_events2'}],
-    inputs:[{key:5,text:'inputs'},{key:6,text:'inputs2'}],
-    outputs:[{key:7,text:'outputs'},{key:8,text:'outputs2'}],
-    // x:ev.x,
-    // y:ev.y,
-    // centerText:dropNode.data.label,
-    // title:dropNode.data.title,
-    // device:dropNode.data.device
-  }
-  addCombo(ev.x,ev.y,functionBlock);
-  // addFunctionBlockNode(functionBlock)
-  // saveDataToServer();
-}
-
-const saveDataToServer=()=>{
-  const data = graph.save(); // 获取图实例的数据
-  cache.local.setJSON(graphCacheKey,data);
-}
-/**
- * 重新加载图数据
- */
-const changeGraphData=(()=>{
-  const graphData=cache.local.getJSON(graphCacheKey)
-  if (graphData){
-    graph.data(graphData);
-    graph.render();
-  }
-})
-onMounted(() => {
-  initData();//初始化基础数据
-  // changeGraphData();//加载图像
-  initGraphEvent();//初始化画布事件
-});
-
-const initTreeData=(()=>{
-  segData=listSegDataList();
-  // resourceData=listResourceDataList();
-  data.value= [
-    {
-      id: 1,
-      centerText: '通讯功能快',
-      // children: [
-      //   {
-      //     id: 4,
-      //     title: 'title two 1-1',
-      //     centerText: 'Level two 1-1',
-      //   },
-      // ],
-      children:segData
-    },
-    {
-      id: 2,
-      centerText: '资源功能块',
-      children: resourceData
+    return keyShape;
+  },
+  getAnchorPoints(cfg) {
+    let anchorPointsArr = [];
+    let realWidth = cfg.anchorParam.realWidth;
+    let varStartHeight = cfg.anchorParam.varStartHeight;
+    let allHeight = cfg.anchorParam.allHeight;
+    cfg.anchorsInfo = [];
+    for (let i = 0; i < cfg.inputEvt.length; i++) {
+      anchorPointsArr.push([lineWidthIn / 2 / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+      cfg.anchorsInfo.push({name:cfg.inputEvt[i],inOut:"in",evtVar:"evt",order:i})
     }
-  ]
-})
-const initData=(()=>{
-  //初始化下拉框数据
-  systemInputEvents.value=getSystemInputEvents(project,module);
-  systemOutputEvents.value=getSystemOutputEvents(project,module);
-  systemInputVaris.value=getSystemInputVaris(project,module)
-  systemOutputVaris.value=getSystemOutputVaris(project,module);
-  initTreeData();
-  graphWidth=container.value.offsetWidth;
-  graphHeight=container.value.offsetHeight;
-  initGraph(initGraphData(),graphWidth,graphHeight);
-})
-const initGraphData=()=>{
-  let graphJson=cache.local.getJSON(graphCacheKey);
-  if(!graphJson){
-    //如果不存在数据，就用初始数据
-    graphJson=  {
-      nodes: [
-        { id: 'start', x: graphWidth/2, y: 25 ,label:'开始',size:startGraphSize,type:'rect'},
-      ]
-    };
-  }
-  //返回图形数据
-  return graphJson;
-}
-//-------输入事件开始
-const formatSystemInputEvent = (value: string) => {
-  return systemInputEvents.value.find(x=>x.key==value)?.text;
-}
-//新增输入事件
-const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
-  const $table = inputEventTableRef.value
-  if ($table) {
-    const record = {
-      key: uuidv4(),
-      blockId:currentBlockId,
+    for (let i = 0; i < cfg.outputEvt.length; i++) {
+      anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+      cfg.anchorsInfo.push({name:cfg.outputEvt[i],inOut:"out",evtVar:"evt",order:i})
     }
-    const { row: newRow } = await $table.insertAt(record, row)
-    await $table.setEditCell(newRow, 'text')
-  }
-})
-//删除输入事件
-const removeInputEvents = () => {
-  const $table = inputEventTableRef.value
-  if ($table) {
-    $table.removeCheckboxRow()
-  }
-}
-//-------输入事件结束
-//-------输出事件开始
-const formatSystemOutputEvent = (value: string) => {
-  return systemOutputEvents.value.find(x=>x.key==value)?.text;
-}
-//新增输出事件
-const insertOutputEvent=(async (row?: BlockOutputEventForm | number)=>{
-  const $table = outputEventTableRef.value
-  if ($table) {
-    const record = {
-      key: uuidv4(),
-      blockId:currentBlockId,
+    for (let i = 0; i < cfg.inputVar.length; i++) {
+      anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+      cfg.anchorsInfo.push({name:cfg.inputVar[i],inOut:"in",evtVar:"var",order:i})
     }
-    const { row: newRow } = await $table.insertAt(record, row)
-    await $table.setEditCell(newRow, 'text')
-  }
-})
-//删除输出事件
-const removeOutputEvents = () => {
-  const $table = outputEventTableRef.value
-  if ($table) {
-    $table.removeCheckboxRow()
-  }
-}
-//-------输出事件结束
-//-------输入变量开始
-//格式化变量类型
-const formatVariType = (value: string) => {
-  return variType.value.find(x=>x.value==value)?.label;
-}
-//格式化系统输入变量
-const formatSystemInputVari = (value: string) => {
-  return systemInputVaris.value.find(x=>x.key==value)?.text;
-}
-//格式化输入变量映射事件
-const formatInputVariRelatedEvents = (value: string[]) => {
-  let str="";
-  if(value){
-    let rlts= inputEventList.value.filter(x=>value.includes(x.key))?.map(x=>x.text);
-    rlts.forEach(rlt=>{str+=rlt+","});
-    str=str.substring(0,str.length-1);
-    return str;
-  }
-
-}
-
-//新增输入变量
-const insertInputVari=(async (row?: BlockInputVariForm | number)=>{
-  const $table = inputVariTableRef.value
-  if ($table) {
-    const record = {
-      key: uuidv4(),
-      blockId:currentBlockId,
+    for (let i = 0; i < cfg.outputVar.length; i++) {
+      anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+      cfg.anchorsInfo.push({name:cfg.outputVar[i],inOut:"out",evtVar:"var",order:i})
     }
-    const { row: newRow } = await $table.insertAt(record, row)
-    await $table.setEditCell(newRow, 'text')
-  }
-})
-//删除输入变量
-const removeInputVaris = () => {
-  const $table = inputVariTableRef.value
-  if ($table) {
-    $table.removeCheckboxRow()
-  }
-}
-//-------输入变量结束
-//-------输出变量开始
-//格式化系统输入变量
-const formatSystemOutputVari = (value: string) => {
-  return systemOutputVaris.value.find(x=>x.key==value)?.text;
-}
-//格式化输入变量映射事件
-const formatOutputVariRelatedEvents = (value: string[]) => {
-  let str="";
-  if(value){
-    let rlts= outputEventList.value.filter(x=>value.includes(x.key))?.map(x=>x.text);
-    rlts.forEach(rlt=>{str+=rlt+","});
-    str=str.substring(0,str.length-1);
-    return str;
-  }
-
-}
-
-//新增输出变量
-  const insertOutputVari=(async (row?: BlockInputVariForm | number)=>{
-  const $table = outputVariTableRef.value
-  if ($table) {
-    const record = {
-      key: uuidv4(),
-      blockId:currentBlockId,
-    }
-    const { row: newRow } = await $table.insertAt(record, row)
-    await $table.setEditCell(newRow, 'text')
-  }
-})
-//删除输入变量
-const removeOutputVaris = () => {
-  const $table = outputVariTableRef.value
-  if ($table) {
-    $table.removeCheckboxRow()
-  }
-}
-//-------输入变量结束
-const submitAlgAndEventForm=(()=>{
-  const $inputEventTable = inputEventTableRef.value
-  const $outputEventTable = outputEventTableRef.value
-  const $inputVariTable = inputVariTableRef.value
-  const $outputVariTable = outputVariTableRef.value
-  //由于是用户操作，VXE的API处理双向绑定变量
-  Object.assign(inputEventList.value,$inputEventTable.getTableData().fullData)
-  Object.assign(outputEventList.value,$outputEventTable.getTableData().fullData)
-  Object.assign(inputVariList.value,$inputVariTable.getTableData().fullData)
-  Object.assign(outputVariList.value,$outputVariTable.getTableData().fullData)
-  // Object.assign(outputVariList.value,$outputVariTable.getTableData().fullData)
-  let inputEventNameList =inputEventList.value.map(x=>x.text);
-  let outputEventNameList =outputEventList.value.map(x=>x.text);
-  let inputVariNameList =inputVariList.value.map(x=>x.text);
-  let outputVariNameList =outputVariList.value.map(x=>x.text);
-  //更新graph
-  let functionBlockGraphData:FunctionBlock={
-    raw_id:currentBlockId,
-    input_events:inputEventNameList,
-    output_events:outputEventNameList,
-    inputs:inputVariNameList,
-    outputs:outputVariNameList,
-  }
-  updateGraphNode(functionBlockGraphData,graph);
-  saveDataToServer();
-  // 更新大JSON
-  let functionBlockJsonData:FunctionBlock={
-    raw_id:currentBlockId,
-    input_events:inputEventList.value,
-    output_events:outputEventList.value,
-    inputs:inputVariList.value,
-    outputs:outputVariList.value,
-  }
-  saveOrUpdateFunctionBlock(project,module,functionBlockJsonData);
-  dialogAlgAndEvent.visible = false;
-  proxy?.$modal.msgSuccess("操作成功");
+    // console.log('anchorPointsArr',anchorPointsArr)
+    return anchorPointsArr;
+  },
+  afterDraw(cfg, group) {
+    
+  },
+  setState(name, value, item) {
+    
+  },
 });
-const initGraph=(data,graphWidth,graphHeight)=>{
-  if(graph){
-    graph.destroy();
-  }
+const getHeight = (input,output) => {
+  let initHeight = 0;
+  let realHeight = minSize[1];
+  let inputLen = input ? input.length : 0; //输入数量
+  let outputLen = output ? output.length : 0; //输出数量
+  let len = inputLen > outputLen ? inputLen : outputLen; //数量取最大值，用于计算需要把整个框撑起多大
+  if (len > 0) initHeight = anchorAttr.toTopAndBottom * 2+len*(anchorAttr.size[1]+anchorAttr.spacing) - anchorAttr.size[1] / 2
+  if (initHeight > minSize[1]) realHeight = initHeight
+  return realHeight;
+}
+const getSelectOption = (arr) => {
+  let html = ''
+  arr.forEach(el => {
+    html = html + '<option label="'+el.label+'" '
+    if (el.selected) html = html + 'selected '
+    html = html + 'value="'+el.id+'"/>'
+  })
+  return html
+}
+const initGraph = () => {
+  let graphWidth = container.value.offsetWidth;
+  let graphHeight = window.innerHeight;
   graph = new G6.Graph({
-    container: 'container',
-    graphWidth,
-    graphHeight,
-    plugins: [contextMenu],
+    // linkCenter: true,
+    renderer: 'svg',//渲染html
+    container: "container",
+    width: graphWidth,
+    height: graphHeight,
+    plugins: [toolbar],
+    enabledStack: true,
     modes: {
       default: [
-        'click-select',
+        "zoom-canvas",
+        "drag-canvas",
+        "drag-node",
+        // {
+        //   type: "brush-select",
+        //   trigger: "shift",
+        //   onSelect: (nodes) => {
+        //     isLeaveCanvas = false;
+        //     isCardShow.value = false;
+        //   },
+        // },
         {
-          type: 'create-edge',
-          shouldBegin: e => {
-            // avoid beginning at other shapes on the node
-            if (e.target && e.target.get('name') !== 'anchor-point') return false;
-            sourceAnchorIdx = e.target.get('anchorPointIdx');
-            e.target.set('links', e.target.get('links') + 1); // cache the number of edge connected to this anchor-point circle
-            return true;
-          },
-          shouldEnd: e => {
-            // avoid ending at other shapes on the node
-            if (e.target && e.target.get('name') !== 'anchor-point') return false;
-            if (e.target) {
-              targetAnchorIdx = e.target.get('anchorPointIdx');
-              e.target.set('links', e.target.get('links') + 1);  // cache the number of edge connected to this anchor-point circle
-              return true;
-            }
-            targetAnchorIdx = undefined;
-            return true;
-          },
-          // update the sourceAnchor
-          // getEdgeConfig: () => {
-          //   return {
-          //     sourceAnchor: sourceAnchorIdx
-          //   }
-          // }
+          type: "click-select",
+          trigger: "shift",
         },
         {
-          type: 'drag-combo',
-          trigger: 'drag',
+          type: "create-edge",
+          key: "shift",
+          trigger: "drag", // 'click' by default. options: 'drag', 'click'
+          shouldBegin: (e) => {
+            if (e.target && e.target.get("name") === "anchor-point") {
+              sourceAnchor = e.target.get("anchorPointIdx");
+              e.target.set("links", e.target.get("links") + 1);
+              return true
+            }
+            return false;
+          },
+          shouldEnd: (e) => {
+            if (e.target && e.target.get("name") === "anchor-point") {
+              targetAnchor = e.target.get("anchorPointIdx");
+              e.target.set("links", e.target.get("links") + 1);
+              return true
+            }
+            return false;
+          },
         },
       ],
     },
-    defaultNode: {
-      type: 'rect',
-      style: {
-        fill: '#eee',
-        stroke: '#ccc',
-      }
-    },
     defaultEdge: {
-      type: 'polyline',
+      type: "polyline-more",//polyline，quadratic
       style: {
-        stroke: '#F6BD16',
+        stroke: "#4CAF50",
         lineWidth: 2,
+        // endArrow: true,
+      },
+    },
+    edgeStateStyles: {
+      selected: {
+        stroke: "#1E90FF",
+        shadowBlur: 0,
+      },
+      highlight: {
+        stroke: "#1E90FF",
+        shadowBlur: 0,
+      },
+      dark: {
+        opacity: 0.2,
       },
     },
   });
-  graph.data(data);
-  graph.render();
+  graph.on("canvas:click", (evt) => {
+    // console.log(graph.getNodes())
+  });
+  graph.on("aftercreateedge", (e) => {
+      // update the sourceAnchor and targetAnchor for the newly added edge
+      let edge = e.edge;
+      // let sNode = edge.get('sourceNode');
+      // let tNode = edge.get('targetNode');
+      // let sModel = sNode.get('model');
+      // let tModel = tNode.get('model');
+      let newModel = {
+        sourceAnchor: sourceAnchor,
+        targetAnchor: targetAnchor
+      }
+      // if (sModel.anchorsInfo[sourceAnchor].inOut === 'out') {
+      //   let sp = sNode.get('anchorPointsCache')[sourceAnchor];
+      //   // console.log(eMode)
+      //   newModel.controlPoints = [{x:(sp.x+anchorAttr.size[0]+lineWidthIn+edgeOffX),y:sp.y}]
+      // }
+      // console.log(edge)
+      graph.updateItem(edge, newModel);
+      // console.log(edge)
+      // console.log(graph.getNodes())
+      // cache.local.setJSON('twgtest', graph.save());
+    });
+  graph.on('node:drag',(e) => {
+    e.originalEvent.preventDefault()
+    // if (!e.originalEvent.shiftKey) {
+    //   let node = e.item;
+    //   let edges = node.getEdges();
+    //   let sp,ap;
+    //   edges.forEach(edge => {
+    //     let sNode = edge.get('sourceNode');
+    //     let eModel = edge.get('model');
+    //     if (sNode.get('id') !== node.get('id')) {
+    //       ap = sNode.get('anchorPointsCache');
+    //       if (ap) sp = ap[eModel.sourceAnchor];
+    //     } else {
+    //       ap = node.get('anchorPointsCache')
+    //       if (ap) sp = ap[eModel.sourceAnchor];
+    //     }
+    //     if (sp) graph.updateItem(edge, {controlPoints:[{x:(sp.x+anchorAttr.size[0]+lineWidthIn+edgeOffX),y:sp.y}]});
+    //   })
+    // }
+  })
+  graph.on('afteritemrefresh',(e) => {
+    let model = e.item.get('model')
+    listener(model.id,model.isFocus)
+  })
+  graph.on('wheelzoom',() => {
+    // console.log('wheelzoom',e)
+    graph.getNodes().forEach(el => {
+      listener(el.get('id'))
+    });
+  })
+  graph.on('canvas:dragend',() => {
+    // console.log('canvas:dragend')
+    graph.getNodes().forEach(el => {
+      listener(el.get('id'))
+    });
+  })
+  graph.on("node:mousedown", (evt) => {
+    if (evt.originalEvent.shiftKey) {
+      evt.originalEvent.preventDefault()
+      // console.log('node:mousedown')
+      evt.item?.lock();
+    }
+    // isLeaveCanvas = false;
+  });
+  graph.on("node:mouseup", (evt) => {
+    if (evt.originalEvent.shiftKey) {
+      evt.originalEvent.preventDefault()
+      evt.item?.unlock();
+    }
+    // isLeaveCanvas = false;
+  });
 }
-</script>
-<style scoped lang="scss">
-  .main{
-    height:1500px;
-    display: flex;
-    .left{
-      flex:0.8;
-      width: 1800px;
-    }
-    .right{
-      flex:0.2
-    }
+const listener = (nodeId,isFocus = false) => {
+  let input = document.getElementById('input-'+nodeId);
+  input.addEventListener('keydown',inputKeyDown);
+  input.addEventListener('input',inputAdaptLength);
+  if (isFocus) {
+    input.addEventListener('focus',(e) => {
+      let input = e.target;
+      let val = input.value
+      input.value = val
+    });
+    input.focus()
+    input.setSelectionRange(preInputCursorPos,preInputCursorPos)
   }
-</style>
+  let select = document.getElementById('select-'+nodeId);
+  select.addEventListener('change',selectChange);
+}
+const inputAdaptLength = (e) => {
+    let input = e.target;
+    let node = graph.findById(input.id.slice(6));
+    let model = node.get('model');
+    model.title = input.value;
+    model.isFocus = true
+    preInputCursorPos = input.selectionStart
+    graph.refreshItem(node)
+}
+const inputKeyDown = (e) => {
+  if (e.key === 'Enter') {
+    let input = e.target;
+    let node = graph.findById(input.id.slice(6));
+    let model = node.get('model');
+    model.isFocus = true
+    graph.refreshItem(node)
+  }
+}
+const selectChange = (e) => {
+  let select = e.target;
+  let node = graph.findById(select.id.slice(7));
+  let model = node.get('model');
+  let selectedObj = select.options[select.selectedIndex];
+  model.selectedResource = {label:selectedObj.label,id:selectedObj.value};
+  model.resOption.forEach(el => {
+    el.selected = false
+  })
+  model.resOption[select.selectedIndex].selected = true;
+  model.isFocus = false
+  graph.refreshItem(node)
+  // graph.data(graph.save())
+  // graph.render()
+  // console.log(node)
+  // select.blur();
+}
+const addNode = () => {
+  let data = addNodeBefore.value.data
+  // console.log(data)
+  let node = {
+    id: uuidv4(),
+    title: addNodeBefore.value.title,
+    x: addNodeBefore.value.x,
+    y: addNodeBefore.value.y,
+    type: 'functionBlock',
+    // backgroud:'#009688',
+    isFocus: false,
+    selectedResource: {id:2,label:'res2',selected:false},
+    resOption: [{id:1,label:'res111111111111111111111111111111111111111111111111112',selected:false},{id:2,label:'res2',selected:true}],
+    info: data.info,
+    label: data.name
+  };
+  switch (data.type) {
+    case 'project':
+      node.inputEvt = getAnchorsName(data.info['input_events'],'text')
+      node.outputEvt = getAnchorsName(data.info['output_events'],'text')
+      node.inputVar = getAnchorsName(data.info.inputs,'text')
+      node.outputVar = getAnchorsName(data.info.outputs,'text')
+      break;
+    case 'generic':
+      node.inputEvt = getAnchorsName(data.info.InterfaceList.EventInputs.Event,'Name')
+      node.outputEvt = getAnchorsName(data.info.InterfaceList.EventOutputs.Event,'Name')
+      node.inputVar = getAnchorsName(data.info.InterfaceList.InputVars.VarDeclaration,'Name')
+      node.outputVar = getAnchorsName(data.info.InterfaceList.OutputVars.VarDeclaration,'Name')
+      break;
+    default:
+      break;
+  }
+  // console.log(node)
+  graph.addItem("node", node);
+  listener(node.id)
+  dialogVisible_title.value = false;
+}
+const getAnchorsName = (arr,attr) => {
+  let ret = []
+  if (arr != '') {
+    arr.forEach(el => {
+      ret.push(el[attr])
+    })
+  }
+  return ret
+}
+  const saveAll = () => {
+    functionBlockJson = graph.save();
+    cache.local.setJSON(cacheKey, functionBlockJson);
+  };
+  const saveAllClick = () => {
+    saveAll();
+    ElMessage({
+      message: "保存成功",
+      type: "success",
+    });
+  };
+  // let isKeyDown = true;
+  const handleKeyDown = (e) => {
+    // if (e.key === 'Shift' && isKeyDown) {
+    //   graph.setMode('createEdge')
+    //   console.log('handleKeyDown')
+    //   isKeyDown = false
+    // }
+    if (e.ctrlKey && e.key === "z" && !isLeaveCanvas) toolbar.undo();
+    if (e.ctrlKey && e.key === "y" && !isLeaveCanvas) toolbar.redo();
+  };
+  const handleKeyUp = (e) => {
+    if (e.key === "Delete") {
+      
+    }
+  };
+  onMounted(() => {
+    // console.log(useRoute().params)
+    initGraph();
+    // initData();
+    // window.addEventListener("keydown", handleKeyDown);
+    // window.addEventListener("keyup", handleKeyUp);
+    sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
+      devices.value = res;
+      // console.log('设备库：',res);
+      
+      // console.log(segMapDev);
+    });
+  });
+  onUnmounted(() => {
+    // window.removeEventListener("keydown", handleKeyDown);
+    // window.removeEventListener("keyup", handleKeyUp);
+    // saveAll();
+  });
+  
+  </script>
+  
+  <style lang="scss" scoped>
+  .icon-tree {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+  }
+  .my-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .wrapper {
+    height: calc(100vh - 110px);
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+  }
+  .func {
+    border-radius: 0;
+    position: absolute;
+    // margin-left: 0;
+    // margin-top: -66px;
+    right: 10px;
+    top: 73px;
+  }
+  .rightShow {
+    flex-basis: 280px;
+    height: 99%;
+    overflow-y: auto;
+    margin-right: 10px;
+  }
+  .rightHidden {
+    flex-basis: 0;
+    height: 99%;
+    overflow-y: auto;
+  }
+  .el-dropdown-link {
+    cursor: pointer;
+    // color: var(--el-color-primary);
+    color: #606266;
+    display: flex;
+    align-items: center;
+  }
+  </style>
