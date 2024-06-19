@@ -16,6 +16,7 @@ const getSegNode=(segParentNode)=>{
     let rltNodes=new Array();
     nodes.forEach((node)=>{
         let info=node.info;
+        info.nodeId=node.id;
         info.parentId=segParentNode.parentId;
         info.id=info.ID;
         info.name=info.Name;
@@ -41,6 +42,7 @@ const getResourceNodes=(resParentNode)=>{
     nodes.forEach((node)=>{
         //设备device
         let info=node.info;
+        info.nodeId=node.id;
         info.parentId=resParentNode.parentId;
         info.name=info.Name;
         info.id=info.ID;
@@ -51,6 +53,8 @@ const getResourceNodes=(resParentNode)=>{
         if(resources&&resources.length>0){
             resources.forEach((resource)=>{
                 resource.parentId=info.id;
+                resource.nodeId=node.id;
+                info.type='Res';
                 children.push(resource);
             })
         }
