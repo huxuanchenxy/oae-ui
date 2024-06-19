@@ -29,6 +29,7 @@ const getSegNode=(segParentNode)=>{
     }
     return segParentNode;
 }
+//得到资源功能块树节点和子节点
 const getResourceNodes=(resParentNode)=>{
     let json=cache.local.getJSON(deploymentCacheKey);
     if (!json||!json.nodes){
@@ -38,11 +39,25 @@ const getResourceNodes=(resParentNode)=>{
     nodes=nodes.filter(x=>x.nodeType=="Dev");
     let rltNodes=new Array();
     nodes.forEach((node)=>{
+        //设备device
         let info=node.info;
         info.parentId=resParentNode.parentId;
         info.name=info.Name;
         info.id=info.ID;
         info.type='Dev';
+        let resources=node.resources;
+        //资源列表
+        let children=new Array();
+        if(resources&&resources.length>0){
+            resources.forEach((resource)=>{
+                resource.parentId=info.id;
+                children.push(resource);
+            })
+        }
+        //如果有资源列表，把他放到该资源列表下
+        if(children.length>0){
+            info.children=children;
+        }
         rltNodes.push(info);
     })
     if (rltNodes.length==0){
