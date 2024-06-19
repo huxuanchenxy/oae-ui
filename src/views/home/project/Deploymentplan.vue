@@ -1961,11 +1961,12 @@ const removeReadRow = async (row: CardInfo_dynamic) => {
   }
 }
 const removeReadRows = async () => {
+  await proxy?.$modal.confirm('是否确认删除所选？');
   const $table = tableReadRef.value
   if ($table) {
     const selectRecords = $table.getCheckboxRecords()
     selectRecords.forEach((row)=>{
-      removeReadRow(row)
+      $table.remove(row)
     })
   }
 }
