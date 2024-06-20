@@ -556,7 +556,7 @@ const deploymentNodeDragStore = useDeploymentNodeDragStore();
 const menuID = useRoute().params.id;
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const activeName = ref('read')
-let configList=new Array<CardInfo_dynamic>()
+let configList;
 let selectedNodeId:string;
 const loading = ref(false)
 const tableReadData = ref<CardInfo_dynamic[]>([])
@@ -845,6 +845,9 @@ const initData = () => {
   if (curGraphData) graph.data(curGraphData);
   graph.render();
   configList = cache.local.getJSON(cacheKey_configList);
+  if (configList==null){
+    configList=new Array<CardInfo_dynamic>()
+  }
 };
 const getTypeShow = (type) => {
   switch (type) {
@@ -1548,8 +1551,8 @@ const showDialog = (largeType) => {
     if (node !== "") getEmbResOptions(node.get("model"));
     dialogVisible_seg.value = true;
   } else if (largeType === "target_device") {
-    tableReadData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="read");
-    tableWriteData.value=configList.filter(x=>x.nodeId==selectedNodeId&&x.type=="write");
+    tableReadData.value=configList?.filter(x=>x.nodeId==selectedNodeId&&x.type=="read");
+    tableWriteData.value=configList?.filter(x=>x.nodeId==selectedNodeId&&x.type=="write");
     dialog_config.visible = true;
   }
 };
