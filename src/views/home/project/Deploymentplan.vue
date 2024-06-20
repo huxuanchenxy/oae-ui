@@ -1933,29 +1933,35 @@ const pointTableHandle = (res) => {
   }
 };
 //---------------读变量开始-------------------
-const insertReadRow = (currRow: CardInfo_dynamic, locat: string) => {
+const insertReadRow =async (currRow: CardInfo_dynamic, locat: string) => {
   const $table = tableReadRef.value
   if ($table) {
-    let allData=tableReadRef.value.getTableData().tableData;
-    let children=allData.filter(x=>x.parentId==currRow.id);
-    let address;
-    if (!children||children.length==0){
-      address=currRow.address;
+    const errMap =  await $table.fullValidate(true)
+    console.log("errMap",errMap)
+    if (errMap) {
+      proxy?.$modal.msgError( '校验不通过！')
     }else{
-      address=parseInt(children[children.length-1].address)+parseInt(children[children.length-1].len)+1
+      let allData=tableReadRef.value.getTableData().tableData;
+      let children=allData.filter(x=>x.parentId==currRow.id);
+      let address;
+      if (!children||children.length==0){
+        address=currRow.address;
+      }else{
+        address=parseInt(children[children.length-1].address)+parseInt(children[children.length-1].len?children[children.length-1].len:0)
+      }
+      const record:CardInfo_dynamic = {
+        id: uuidv4(),
+        type:0,
+        isGroup:0,
+        isIndeVari:0,
+        address:address,
+        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+        ioType:currRow.ioType
+      }
+      const { row: newRow } = $table.insertAt(record,-1)
+      $table.setTreeExpand(currRow, true) // 将父节点展开
+      $table.setEditRow(newRow) // 插入子节点
     }
-    const record:CardInfo_dynamic = {
-      id: uuidv4(),
-      type:0,
-      isGroup:0,
-      isIndeVari:0,
-      address:address,
-      parentId: currRow.id, // 需要指定父节点，自动插入该节点中
-      ioType:currRow.ioType
-    }
-    const { row: newRow } = $table.insertAt(record,-1)
-    $table.setTreeExpand(currRow, true) // 将父节点展开
-    $table.setEditRow(newRow) // 插入子节点
   }
 }
 const removeReadRow = async (row: CardInfo_dynamic) => {
@@ -2092,7 +2098,7 @@ const validReadRules = ref<VxeTablePropTypes.EditRules>({
     {
       validator ({ row }) {
         if (row.isGroup!=1){
-          if(row.len==""){
+          if(!row.len||row.len==""){
             return new Error('变量必须填写长度')
           }
         }
@@ -2123,29 +2129,34 @@ const validateAddress=(ioType,value)=>{
 }
 //---------------读变量结束-------------------
 //---------------写变量开始-------------------
-const insertWriteRow = (currRow: CardInfo_dynamic, locat: string) => {
+const insertWriteRow =async (currRow: CardInfo_dynamic, locat: string) => {
   const $table = tableWriteRef.value
   if ($table) {
-    let allData=tableWriteRef.value.getTableData().tableData;
-    let children=allData.filter(x=>x.parentId==currRow.id);
-    let address;
-    if (!children||children.length==0){
-      address=currRow.address;
+    const errMap =  await $table.fullValidate(true)
+    if (errMap) {
+      proxy?.$modal.msgError( '校验不通过！')
     }else{
-      address=parseInt(children[children.length-1].address)+parseInt(children[children.length-1].len)+1
+      let allData=tableWriteRef.value.getTableData().tableData;
+      let children=allData.filter(x=>x.parentId==currRow.id);
+      let address;
+      if (!children||children.length==0){
+        address=currRow.address;
+      }else{
+        address=parseInt(children[children.length-1].address)+parseInt(children[children.length-1].len?children[children.length-1].len:0)
+      }
+      const record:CardInfo_dynamic = {
+        id: uuidv4(),
+        type:0,
+        isGroup:0,
+        isIndeVari:0,
+        address:address,
+        parentId: currRow.id, // 需要指定父节点，自动插入该节点中
+        ioType:currRow.ioType
+      }
+      const { row: newRow } = $table.insertAt(record,-1)
+      $table.setTreeExpand(currRow, true) // 将父节点展开
+      $table.setEditRow(newRow) // 插入子节点
     }
-    const record:CardInfo_dynamic = {
-      id: uuidv4(),
-      type:0,
-      isGroup:0,
-      isIndeVari:0,
-      address:address,
-      parentId: currRow.id, // 需要指定父节点，自动插入该节点中
-      ioType:currRow.ioType
-    }
-    const { row: newRow } = $table.insertAt(record,-1)
-    $table.setTreeExpand(currRow, true) // 将父节点展开
-    $table.setEditRow(newRow) // 插入子节点
   }
 }
 const removeWriteRow = async (row: CardInfo_dynamic) => {
@@ -2224,7 +2235,7 @@ const validWriteRules = ref<VxeTablePropTypes.EditRules>({
     {
       validator ({ row }) {
         if (row.isGroup!=1){
-          if(row.len==""){
+          if(!row.len||row.len==""){
             return new Error('变量必须填写长度')
           }
         }
