@@ -39,7 +39,16 @@
       <el-table-column prop="date" label="序号" type="index" width="80" />
       <el-table-column prop="date" label="节点号" width="180" />
       <el-table-column prop="name" label="节点名称" width="180" />
-      <el-table-column prop="address" label="节点类型" width="180" />
+      <el-table-column prop="address" label="节点类型" width="180">
+        <template #default="{ row }">
+          <el-select placeholder="请选择节点类型" size="small">
+            <el-option label="只读" value="只读" key="只读" />
+            <el-option label="关闭" value="关闭" key="关闭" />
+            <el-option label="可读可写" value="可读可写" key="可读可写" />
+          </el-select>
+        </template>
+      </el-table-column>
+
       <el-table-column prop="address" label="控制器资源" width="180" />
       <el-table-column prop="address" label="应用程序" width="180" />
       <el-table-column prop="address" label="功能块名称" width="180" />

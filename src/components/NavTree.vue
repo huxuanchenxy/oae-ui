@@ -756,7 +756,7 @@ const addDiagTree = (
   operation = "right,del,rename,open",
   funcUrl = ""
 ) => {
-  console.log("currentData:::", currentData);
+  //console.log("currentData:::", currentData);
   if (currentData.child) {
     let existIndex = currentData.child.findIndex(
       (x) => x.funcName == newModule.value.name

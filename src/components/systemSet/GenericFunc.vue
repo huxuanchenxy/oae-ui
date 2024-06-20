@@ -62,7 +62,13 @@
               </el-table-column>
               <el-table-column prop="version" label="版本号"> </el-table-column>
               <el-table-column prop="name" label="文件名"> </el-table-column>
-              <el-table-column prop="option" label="操作"> </el-table-column>
+              <el-table-column label="操作">
+                <template #default="{ row }">
+                  <el-link type="primary" @click.prevent="deleteRow(row)"
+                    >删除</el-link
+                  >
+                </template>
+              </el-table-column>
             </el-table>
           </el-tab-pane>
         </el-tabs>
@@ -452,13 +458,40 @@ const processMenuData = (list) => {
   });
 };
 
-onBeforeMount(() => {
+const initData = () => {
   sysApi.getInternalFbsList().then((res) => {
     let list = res.list;
     tableData.value = res.lsIfbs;
     loadData(list);
   });
+};
+
+onBeforeMount(() => {
+  initData();
 });
+
+const deleteRow = (row) => {
+  //console.log("scope:", row);
+  let msg = `确定要删除：${row.name}吗?`;
+  ElMessageBox.confirm(msg, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      let params = {
+        id: row.id,
+      };
+      sysApi.delInternalFbs(params).then((res1) => {
+        initData();
+        ElMessage({
+          type: "success",
+          message: "删除成功",
+        });
+      });
+    })
+    .catch(() => {});
+};
 </script> 
   
 <style >
