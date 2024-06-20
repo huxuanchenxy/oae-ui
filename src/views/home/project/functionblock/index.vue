@@ -221,6 +221,7 @@ const anchorAttr = {
     size: [10,10],
     spacing: 5, //间距
 }
+const moveEdgeIconSize = [10,10]
 // minSize为最小显示大小
 // 根据名字以及输入事件+输出事件或输入变量+输出变量的长度改变宽度
 // 根据输入事件+输入变量或输出事件+输出变量的数量改变高度
@@ -580,6 +581,14 @@ const initGraph = () => {
   });
   graph.on('node:drag',(e) => {
     e.originalEvent.preventDefault()
+    console.log(e)
+  })
+  graph.on('node:dragstart',(e) => {
+    e.originalEvent.preventDefault()
+    let id = e.item.get('id');
+    console.log(e.item)
+    // if (id === 'line1' || id === 'line3') 
+    // if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
   })
   graph.on("node:mouseup", (evt) => {
     if (evt.originalEvent.shiftKey) {
@@ -589,22 +598,10 @@ const initGraph = () => {
     // isLeaveCanvas = false;
   });
   graph.on('edge:click',(e) => {
-    const keyShape = e.item.get('keyShape');
-    const lineWidth = keyShape.attrs.lineWidth;
-    const path = keyShape.attrs.path;
-    let node = {
-      id:'line1',
-      x:path[1][1],
-      y:path[1][2],
-      width: path[2][1]-path[1][1],
-      height: 1,
-      type: 'rect',
-      style: {
-        fill:'#1E90FF'
-      }
-    }
-    graph.addItem('node',node);
-    console.log(node)
+    const path = e.item.get('keyShape').attrs.path;
+    addEdgeNode(path,1)
+    addEdgeNode(path,2)
+    addEdgeNode(path,3)
   })
   graph.on('canvas:dragend',() => {
     // console.log('canvas:dragend')
@@ -613,8 +610,43 @@ const initGraph = () => {
     });
   })
   graph.on("canvas:click", (evt) => {
+    removeEdgeNode()
     // console.log(graph.getNodes())
   });
+}
+const removeEdgeNode = () => {
+  graph.removeItem('line1')
+  graph.removeItem('line2')
+  graph.removeItem('line3')
+}
+const addEdgeNode = (path,i) => {
+  let x,y
+  switch (i) {
+    case 1:
+    case 3:
+      x = path[i][1]+ (path[i+1][1]-path[i][1]) / 2
+      y = path[i][2]
+      break;
+    case 2:
+      x = path[i][1]
+      y = path[i][2]+ (path[i+1][2]-path[i][2]) / 2
+      break;
+    default:
+      break;
+  }
+  let node = {
+    id:'line'+i,
+    x:x,
+    y:y,
+    size: moveEdgeIconSize,
+    type: 'rect',
+    style: {
+      fill:'#1E90FF',
+      lineWidth:0
+    }
+  }
+  graph.addItem('node',node);
+  // console.log(node)
 }
 const listener = (nodeId,isFocus = false) => {
   let input = document.getElementById('input-'+nodeId);
