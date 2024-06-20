@@ -249,52 +249,18 @@ let preInputCursorPos = 0
 // 为了利用内置的undo和redo
 const toolbar = new G6.ToolBar({ className: "g6-toolbar-display" });
 G6.registerEdge('polyline-more',{
-  afterDraw(cfg,group) {
-    const shape = group.get('children')[0];
-    console.log(group)
-  },
+  getControlPoints(cfg) {
+    const startPoint = cfg.startPoint;
+    const endPoint = cfg.endPoint;
+    return [
+      {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+      {x:endPoint.x / 3 + (2 / 3) * startPoint.x, y:startPoint.y},
+      {x:endPoint.x / 3 + (2 / 3) * startPoint.x,y:endPoint.y},
+      {x:endPoint.x-edgeOffX,y:endPoint.y}
+    ]
+  }
 },
 'polyline')
-// G6.registerEdge('polyline-more',{
-//   getPath(points) {
-//       const startPoint = points[0];
-//       const endPoint = points[1];
-//       return [
-//         ['M', startPoint.x, startPoint.y],
-//         ['L', endPoint.x / 3 + (2 / 3) * startPoint.x, startPoint.y],
-//         ['L', endPoint.x / 3 + (2 / 3) * startPoint.x, endPoint.y],
-//         ['L', endPoint.x, endPoint.y],
-//       ];
-//     },
-//   getShapeStyle(cfg) {
-//     const startPoint = cfg.startPoint;
-//     const endPoint = cfg.endPoint;
-//     const controlPoints = this.getControlPoints(cfg);
-//     let points = [startPoint]; // the start point
-//     points.push({x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y})
-//     // the control points
-//     if (controlPoints) {
-//       points = points.concat(controlPoints);
-//     }
-//     points.push({x:endPoint.x-edgeOffX,y:endPoint.y})
-//     // the end point
-//     points.push(endPoint);
-//     const path = this.getPath(points);
-//     const style = Object.assign(
-//       {},
-//       G6.Global.defaultEdge.style,
-//       {
-//         stroke: '#BBB',
-//         lineWidth: 1,
-//         path,
-//       },
-//       cfg.style,
-//     );
-//     return style;
-//   }
-// },
-// 'polyline'
-// )
 G6.registerNode("functionBlock", {
   draw(cfg, group) {
     // 为了根据title长度获取bbox
@@ -334,7 +300,7 @@ G6.registerNode("functionBlock", {
       },
       name: "dom-input-title",
     });
-    let realEvtHeight = getHeight(cfg.inputEvt,cfg.outputEvt)
+    let realEvtHeight = getHeight(cfg.inputEvt,cfg.outputEvt) - anchorAttr.spacing
     let realVarHeight = getHeight(cfg.inputVar,cfg.outputVar)
     const realAnchorsHeight = htmlHeight*2+realEvtHeight + realVarHeight+initCenterLack[1]+initLabelHeight
     const keyShape = group.addShape("rect", {
@@ -461,11 +427,11 @@ G6.registerNode("functionBlock", {
       cfg.anchorsInfo.push({name:cfg.outputEvt[i],inOut:"out",evtVar:"evt",order:i})
     }
     for (let i = 0; i < cfg.inputVar.length; i++) {
-      anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+      anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
       cfg.anchorsInfo.push({name:cfg.inputVar[i],inOut:"in",evtVar:"var",order:i})
     }
     for (let i = 0; i < cfg.outputVar.length; i++) {
-      anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+      anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
       cfg.anchorsInfo.push({name:cfg.outputVar[i],inOut:"out",evtVar:"var",order:i})
     }
     // console.log('anchorPointsArr',anchorPointsArr)
@@ -484,7 +450,7 @@ const getHeight = (input,output) => {
   let inputLen = input ? input.length : 0; //输入数量
   let outputLen = output ? output.length : 0; //输出数量
   let len = inputLen > outputLen ? inputLen : outputLen; //数量取最大值，用于计算需要把整个框撑起多大
-  if (len > 0) initHeight = anchorAttr.toTopAndBottom * 2+len*(anchorAttr.size[1]+anchorAttr.spacing) - anchorAttr.size[1] / 2
+  if (len > 0) initHeight = anchorAttr.toTopAndBottom * 2+len*(anchorAttr.size[1]+anchorAttr.spacing)
   if (initHeight > minSize[1]) realHeight = initHeight
   return realHeight;
 }
@@ -554,7 +520,7 @@ const initGraph = () => {
         stroke: "#4CAF50",
         lineWidth: 2,
         // endArrow: true,
-      },
+      }
     },
     edgeStateStyles: {
       selected: {
@@ -570,63 +536,36 @@ const initGraph = () => {
       },
     },
   });
-  graph.on("canvas:click", (evt) => {
-    // console.log(graph.getNodes())
-  });
+  
   graph.on("aftercreateedge", (e) => {
-      // update the sourceAnchor and targetAnchor for the newly added edge
-      let edge = e.edge;
-      // let sNode = edge.get('sourceNode');
-      // let tNode = edge.get('targetNode');
-      // let sModel = sNode.get('model');
-      // let tModel = tNode.get('model');
-      let newModel = {
-        sourceAnchor: sourceAnchor,
-        targetAnchor: targetAnchor
+    // update the sourceAnchor and targetAnchor for the newly added edge
+    let edge = e.edge;
+    let sNode = edge.get('sourceNode');
+    let sModel = sNode.get('model');
+    let newModel = {
+      sourceAnchor: sourceAnchor,
+      targetAnchor: targetAnchor
+    }
+    // 方向必须是输出到输入，否则纠正
+    if (sModel.anchorsInfo[sourceAnchor].inOut === 'in') {
+      let model = edge.get('model');
+      newModel = {
+        sourceAnchor: targetAnchor,
+        targetAnchor: sourceAnchor,
+        source: model.target,
+        target: model.source
       }
-      // if (sModel.anchorsInfo[sourceAnchor].inOut === 'out') {
-      //   let sp = sNode.get('anchorPointsCache')[sourceAnchor];
-      //   // console.log(eMode)
-      //   newModel.controlPoints = [{x:(sp.x+anchorAttr.size[0]+lineWidthIn+edgeOffX),y:sp.y}]
-      // }
-      // console.log(edge)
-      graph.updateItem(edge, newModel);
-      // console.log(edge)
-      // console.log(graph.getNodes())
-      // cache.local.setJSON('twgtest', graph.save());
-    });
-  graph.on('node:drag',(e) => {
-    e.originalEvent.preventDefault()
-    // if (!e.originalEvent.shiftKey) {
-    //   let node = e.item;
-    //   let edges = node.getEdges();
-    //   let sp,ap;
-    //   edges.forEach(edge => {
-    //     let sNode = edge.get('sourceNode');
-    //     let eModel = edge.get('model');
-    //     if (sNode.get('id') !== node.get('id')) {
-    //       ap = sNode.get('anchorPointsCache');
-    //       if (ap) sp = ap[eModel.sourceAnchor];
-    //     } else {
-    //       ap = node.get('anchorPointsCache')
-    //       if (ap) sp = ap[eModel.sourceAnchor];
-    //     }
-    //     if (sp) graph.updateItem(edge, {controlPoints:[{x:(sp.x+anchorAttr.size[0]+lineWidthIn+edgeOffX),y:sp.y}]});
-    //   })
-    // }
-  })
+    }
+    // console.log(edge)
+    graph.updateItem(edge, newModel);
+    // console.log(edge);
+  });
   graph.on('afteritemrefresh',(e) => {
     let model = e.item.get('model')
     listener(model.id,model.isFocus)
   })
   graph.on('wheelzoom',() => {
     // console.log('wheelzoom',e)
-    graph.getNodes().forEach(el => {
-      listener(el.get('id'))
-    });
-  })
-  graph.on('canvas:dragend',() => {
-    // console.log('canvas:dragend')
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
     });
@@ -639,12 +578,42 @@ const initGraph = () => {
     }
     // isLeaveCanvas = false;
   });
+  graph.on('node:drag',(e) => {
+    e.originalEvent.preventDefault()
+  })
   graph.on("node:mouseup", (evt) => {
     if (evt.originalEvent.shiftKey) {
       evt.originalEvent.preventDefault()
       evt.item?.unlock();
     }
     // isLeaveCanvas = false;
+  });
+  graph.on('edge:click',(e) => {
+    const keyShape = e.item.get('keyShape');
+    const lineWidth = keyShape.attrs.lineWidth;
+    const path = keyShape.attrs.path;
+    let node = {
+      id:'line1',
+      x:path[1][1],
+      y:path[1][2],
+      width: path[2][1]-path[1][1],
+      height: 1,
+      type: 'rect',
+      style: {
+        fill:'#1E90FF'
+      }
+    }
+    graph.addItem('node',node);
+    console.log(node)
+  })
+  graph.on('canvas:dragend',() => {
+    // console.log('canvas:dragend')
+    graph.getNodes().forEach(el => {
+      listener(el.get('id'))
+    });
+  })
+  graph.on("canvas:click", (evt) => {
+    // console.log(graph.getNodes())
   });
 }
 const listener = (nodeId,isFocus = false) => {
@@ -702,7 +671,7 @@ const addNode = () => {
   let data = addNodeBefore.value.data
   // console.log(data)
   let node = {
-    id: uuidv4(),
+    id: uuidv4(),//uuidv4()
     title: addNodeBefore.value.title,
     x: addNodeBefore.value.x,
     y: addNodeBefore.value.y,
