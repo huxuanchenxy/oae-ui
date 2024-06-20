@@ -1,8 +1,76 @@
 import axios from './index'
+import  cache  from "@/plugins/cache.ts";
+import { v4 as uuidv4 } from "uuid";
 import {
     baseUrl
 } from './baseUrl'
-
+const deploymentCacheKey="deployment";
+//得到通讯功能块树节点和子节点
+const getSegNode=(segParentNode)=>{
+    let json=cache.local.getJSON(deploymentCacheKey);
+    if (!json||!json.nodes){
+        return null;
+    }
+    let nodes=json.nodes;
+    nodes=nodes.filter(x=>x.nodeType=="Seg");
+    let rltNodes=new Array();
+    nodes.forEach((node)=>{
+        let info=node.info;
+        info.nodeId=node.id;
+        info.parentId=segParentNode.parentId;
+        info.id=info.ID;
+        info.name=info.Name;
+        info.type='Seg';
+        rltNodes.push(info);
+    })
+    if (rltNodes.length==0){
+        return segParentNode;
+    }else{
+        segParentNode.children=rltNodes;
+    }
+    return segParentNode;
+}
+//得到资源功能块树节点和子节点
+const getResourceNodes=(resParentNode)=>{
+    let json=cache.local.getJSON(deploymentCacheKey);
+    if (!json||!json.nodes){
+        return resParentNode;
+    }
+    let nodes=json.nodes;
+    nodes=nodes.filter(x=>x.nodeType=="Dev");
+    let rltNodes=new Array();
+    nodes.forEach((node)=>{
+        //设备device
+        let info=node.info;
+        info.nodeId=node.id;
+        info.parentId=resParentNode.parentId;
+        info.name=info.Name;
+        info.id=info.ID;
+        info.type='Dev';
+        let resources=node.resources;
+        //资源列表
+        let children=new Array();
+        if(resources&&resources.length>0){
+            resources.forEach((resource)=>{
+                resource.parentId=info.id;
+                resource.nodeId=node.id;
+                info.type='Res';
+                children.push(resource);
+            })
+        }
+        //如果有资源列表，把他放到该资源列表下
+        if(children.length>0){
+            info.children=children;
+        }
+        rltNodes.push(info);
+    })
+    if (rltNodes.length==0){
+        return resParentNode;
+    }else{
+        resParentNode.children=rltNodes;
+    }
+    return resParentNode;
+}
 export default {
     // saveSysUser: params => { 
     //     return axios.post(`${baseUrl}/SysUserAdd/SaveSysUser`,
@@ -18,8 +86,23 @@ export default {
     getTreeForAppList: (params) => {
         return axios.get(`${baseUrl}/Sys/GetTreeForApplication`, {
             params
-        }).then(res => res.data)
+        }).then(res => {
+            let rlt=res.data;
+            //加通讯功能块
+            let segNodeId=uuidv4();
+            let segParentNode={id:segNodeId,parentId:0,name:"通讯功能块（T）"};
+            let segNode=getSegNode(segParentNode);
+            rlt.push(segNode);
+            //加资源功能块
+            let resNodeId=uuidv4()
+            let resParentNode={id:resNodeId,parentId:0,name:"资源功能块（Z）"};
+            let resNode=getResourceNodes(resParentNode);
+            rlt.push(resNode);
+            console.log(rlt)
+            return rlt;
+        })
     },
+
     getResourceFuncByTypeGroup: () => {
         return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
     },
