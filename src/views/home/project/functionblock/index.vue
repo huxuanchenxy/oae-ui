@@ -586,9 +586,7 @@ const initGraph = () => {
   graph.on('node:dragstart',(e) => {
     e.originalEvent.preventDefault()
     let id = e.item.get('id');
-    console.log(e.item)
-    // if (id === 'line1' || id === 'line3') 
-    // if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
+    if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
   })
   graph.on("node:mouseup", (evt) => {
     if (evt.originalEvent.shiftKey) {
@@ -597,6 +595,9 @@ const initGraph = () => {
     }
     // isLeaveCanvas = false;
   });
+  graph.on('node:mouseenter',e => {
+    console.log(e.item)
+  })
   graph.on('edge:click',(e) => {
     const path = e.item.get('keyShape').attrs.path;
     addEdgeNode(path,1)
