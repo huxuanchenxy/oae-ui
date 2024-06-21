@@ -16,14 +16,18 @@ export const getSystemOutputVaris=(id)=>{
 const getSystemVaris=(type,id)=>{
     //得到配置列表
     let configList = cache.local.getJSON(cacheKey_configList);
+    let deployment = cache.local.getJSON(deploymentCacheKey);
     configList=configList.filter(x=>x.type==type);
     let rltList=new Array();
     //把配置列表里的变量加上
     if (configList||configList.length>0){
         configList.forEach((config)=>{
+            //得到设备
+            let currentDeployment=deployment.find(x=>x.id==config.nodeId);
             rltList.push({
                 key:config.id,
-                text:config.name,
+                //为防止变量冲突，加上设备前缀
+                text:currentDeployment?.label+"_"+config.name,
                 type:getType(config.ioType)
             })
         })
