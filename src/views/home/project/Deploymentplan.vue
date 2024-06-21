@@ -287,7 +287,7 @@
                 <vxe-column field="len" title="长度" :edit-render="{}">
                   <template #edit="slotParams">
                     <template v-if="slotParams.row.isGroup!=1">
-                      <vxe-input v-model="slotParams.row.len" type="text" ></vxe-input>
+                      <vxe-input v-model="slotParams.row.len" type="text" :on-change="calcReadAddress()" ></vxe-input>
                     </template>
                   </template>
                 </vxe-column>
@@ -359,7 +359,7 @@
                 <vxe-column field="len" title="长度" :edit-render="{}">
                   <template #edit="slotParams">
                     <template v-if="slotParams.row.isGroup!=1">
-                      <vxe-input v-model="slotParams.row.len" type="text" ></vxe-input>
+                      <vxe-input v-model="slotParams.row.len" type="text"  :on-change="calcReadAddress()"></vxe-input>
                     </template>
                   </template>
                 </vxe-column>
@@ -2127,6 +2127,31 @@ const validateAddress=(ioType,value)=>{
     return (value>=40000&&value<=49999)||(value>=400000&&value<=465535)
   }
 }
+//计算地址
+const calcReadAddress=()=>{
+  let tableReadDatas=tableReadRef.value.getTableData().tableData;
+  if(tableReadDatas){
+    //独立变量不需要计算，可以去年
+    tableReadDatas=tableReadDatas.filter(x=>x.isIndeVari!=1);
+    let parents=tableReadDatas.filter(x=>x.isGroup==1);
+    parents.forEach((parent)=>{
+      let children=parent.children;
+      if (children){
+        let prevAddress;
+        let prevLen;
+        children.forEach((child,index)=>{
+          if(index==0){
+            child.address=parent.address;
+          }else{
+            child.address=parseInt(prevAddress)+parseInt(prevLen?prevLen:0);
+          }
+          prevAddress=child.address;
+          prevLen=child.len;
+        })
+      }
+    })
+  }
+}
 //---------------读变量结束-------------------
 //---------------写变量开始-------------------
 const insertWriteRow =async (currRow: CardInfo_dynamic, locat: string) => {
@@ -2253,6 +2278,31 @@ const validWriteRules = ref<VxeTablePropTypes.EditRules>({
     }
   ],
 })
+//计算地址
+const calcWriteAddress=()=>{
+  let tableWriteDatas=tableWriteRef.value.getTableData().tableData;
+  if(tableWriteDatas){
+    //独立变量不需要计算，可以去年
+    tableWriteDatas=tableWriteDatas.filter(x=>x.isIndeVari!=1);
+    let parents=tableWriteDatas.filter(x=>x.isGroup==1);
+    parents.forEach((parent)=>{
+      let children=parent.children;
+      if (children){
+        let prevAddress;
+        let prevLen;
+        children.forEach((child,index)=>{
+          if(index==0){
+            child.address=parent.address;
+          }else{
+            child.address=parseInt(prevAddress)+parseInt(prevLen?prevLen:0);
+          }
+          prevAddress=child.address;
+          prevLen=child.len;
+        })
+      }
+    })
+  }
+}
 //---------------写变量结束-------------------
 </script>
 
