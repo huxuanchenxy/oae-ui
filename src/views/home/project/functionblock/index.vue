@@ -145,9 +145,195 @@
         </template>
       </el-dialog>
     </div>
+    <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" :modal-append-to-body="false">
+      <el-tabs v-model="activeName" class="demo-tabs" >
+        <el-tab-pane label="输入事件" name="inputEventTab">
+          <div class="table_in">
+            <vxe-toolbar>
+              <template #buttons>
+                <vxe-button @click="insertInputEvent()">新增</vxe-button>
+                <vxe-button @click="removeInputEvents()">删除选中</vxe-button>
+              </template>
+            </vxe-toolbar>
+            <vxe-table
+                border
+                ref="inputEventTableRef"
+                show-overflow
+                :data="inputEventList"
+                :column-config="{resizable: true}"
+                :edit-config="{trigger: 'click', mode: 'cell'}">
+              <vxe-column type="checkbox" field="key" width="60"></vxe-column>
+              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
+                <template #edit="{ row }">
+                  <vxe-input v-model="row.text" type="text"></vxe-input>
+                </template>
+              </vxe-column>
+              <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatSystemInputEvent(row.relatedEvent) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.relatedEvent" transfer>
+                    <vxe-option v-for="item in systemInputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+            </vxe-table>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="输出事件" name="outputEventTab">
+          <div class="table_in">
+            <vxe-toolbar>
+              <template #buttons>
+                <vxe-button @click="insertOutputEvent()">新增</vxe-button>
+                <vxe-button @click="removeOutputEvents()">删除选中</vxe-button>
+              </template>
+            </vxe-toolbar>
+            <vxe-table
+                border
+                ref="outputEventTableRef"
+                show-overflow
+                :data="outputEventList"
+                :column-config="{resizable: true}"
+                :edit-config="{trigger: 'click', mode: 'cell'}">
+              <vxe-column type="checkbox" field="key" width="60"></vxe-column>
+              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
+                <template #edit="{ row }">
+                  <vxe-input v-model="row.text" type="text"></vxe-input>
+                </template>
+              </vxe-column>
+              <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatSystemOutputEvent(row.relatedEvent) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.relatedEvent" transfer>
+                    <vxe-option v-for="item in systemOutputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+            </vxe-table>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="输入变量" name="inputVariTab">
+          <div class="table_in">
+            <vxe-toolbar>
+              <template #buttons>
+                <vxe-button @click="insertInputVari()">新增</vxe-button>
+                <vxe-button @click="removeInputVaris()">删除选中</vxe-button>
+              </template>
+            </vxe-toolbar>
+            <vxe-table
+                border
+                ref="inputVariTableRef"
+                show-overflow
+                :data="inputVariList"
+                :column-config="{resizable: true}"
+                :edit-config="{trigger: 'click', mode: 'cell'}">
+              <vxe-column type="checkbox" field="key" width="60"></vxe-column>
+              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
+                <template #edit="{ row }">
+                  <vxe-input v-model="row.text" type="text"></vxe-input>
+                </template>
+              </vxe-column>
+              <vxe-column field="relatedEvents" title="关联事件" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatInputVariRelatedEvents(row.relatedEvents) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.relatedEvents" transfer multiple>
+                    <vxe-option v-for="item in inputEventList" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+              <vxe-column field="type" title="类型" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatVariType(row.type) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.type" transfer>
+                    <vxe-option v-for="item in variType" :key="item.value" :value="item.value" :label="item.label"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+              <vxe-column field="related" title="映射变量" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatSystemInputVari(row.relatedVari) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.relatedVari" transfer>
+                    <vxe-option v-for="item in systemInputVaris" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+            </vxe-table>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="输出变量" name="outputVariTab">
+          <div class="table_in">
+            <vxe-toolbar>
+              <template #buttons>
+                <vxe-button @click="insertOutputVari()">新增</vxe-button>
+                <vxe-button @click="removeOutputVaris()">删除选中</vxe-button>
+              </template>
+            </vxe-toolbar>
+            <vxe-table
+                border
+                ref="outputVariTableRef"
+                show-overflow
+                :data="outputVariList"
+                :column-config="{resizable: true}"
+                :edit-config="{trigger: 'click', mode: 'cell'}">
+              <vxe-column type="checkbox" field="key" width="60"></vxe-column>
+              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
+                <template #edit="{ row }">
+                  <vxe-input v-model="row.text" type="text"></vxe-input>
+                </template>
+              </vxe-column>
+              <vxe-column field="relatedEvents" title="关联事件" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatOutputVariRelatedEvents(row.relatedEvents) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.relatedEvents" transfer multiple>
+                    <vxe-option v-for="item in outputEventList" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+              <vxe-column field="type" title="类型" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatVariType(row.type) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.type" transfer>
+                    <vxe-option v-for="item in variType" :key="item.value" :value="item.value" :label="item.label"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+              <vxe-column field="related" title="映射变量" :edit-render="{}"  >
+                <template #default="{ row }">
+                  <span>{{ formatSystemOutputVari(row.relatedVari) }}</span>
+                </template>
+                <template #edit="{ row }">
+                  <vxe-select v-model="row.relatedVari" transfer>
+                    <vxe-option v-for="item in systemOutputVaris" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
+                  </vxe-select>
+                </template>
+              </vxe-column>
+            </vxe-table>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitAlgAndEventForm">确 定</el-button>
+          <el-button @click="cancelAlgAndEventDialog">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </template>
   
-  <script setup>
+  <script setup lang="ts">
   import cache from "@/plugins/cache.ts";
   import sysApi from "@/api/sysApi";
   import G6 from "@antv/g6";
@@ -156,6 +342,14 @@
   import { ref } from "vue";
   import { toRaw } from "@vue/reactivity";
   import { ElMessage } from "element-plus";
+  import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
+  import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
+  import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
+  import { VXETable, VxeTableInstance } from 'vxe-table'
+  import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
+    BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
+  import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
+  import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
 
   let cacheKey = 'functionBlock';
   let functionBlockJson = {};
@@ -170,6 +364,27 @@
   let funcTitle = ref("隐藏设备库");
   const filterText = ref("");
   const treeRef = ref();
+  const dialogAlgAndEvent = reactive<DialogOption>({
+    visible: false,
+    title: ''
+  });
+  let currentBlockId="";
+  let inputEventList = ref<BlockInputEventForm[]>([]);
+  let outputEventList = ref<BlockOutputEventForm[]>([]);
+  let inputVariList = ref<BlockInputVariForm[]>([]);
+  let outputVariList = ref<BlockOutputVariForm[]>([]);
+  let systemInputEvents=ref<SystemEventInput[]>([]);
+  let systemOutputEvents=ref<SystemEventOutput[]>([]);
+  let systemInputVaris=ref<SystemVariInput[]>([]);
+  let systemOutputVaris=ref<SystemVariOutput[]>([]);
+  const activeName = ref('inputEventTab')
+  const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+  const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
+  const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
+  const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
+  const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
+
+
   const defaultProps = {
     children: "children",
     label: (data, node) => {
@@ -968,9 +1183,6 @@ const initGraph = () => {
       });
     }
   })
-  graph.on('node:dblclick',e => {
-    // console.log('node:doubleclick',e)
-  })
   graph.on('edge:click',(e) => {
     // console.log(e.item)
     let model = e.item.get('model')
@@ -993,6 +1205,7 @@ const initGraph = () => {
     removeEdgeNode()
     // console.log(graph.getNodes())
   });
+  graph.on('node:dblclick', nodeDbClick);
 }
 const pathToControlPoints = (path) => {
   let ret = []
@@ -1194,7 +1407,188 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
     // window.removeEventListener("keyup", handleKeyUp);
     // saveAll();
   });
-  
+  const cancelAlgAndEventDialog = () => {
+    dialogAlgAndEvent.visible = false;
+  }
+  const nodeDbClick=((evt)=>{
+    currentBlockId=evt.item.get("id");
+    let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
+    if (block){
+      inputEventList.value=block.input_events;
+      outputEventList.value = block.output_events;
+      inputVariList.value = block.inputs
+      outputVariList.value = block.outputs;
+    }else{
+      inputEventList.value=new Array();
+      outputEventList.value = new Array();
+      inputVariList.value = new Array();
+      outputVariList.value = new Array();
+    }
+    console.log(inputEventList.value)
+    dialogAlgAndEvent.visible = true;
+  });
+  //-------输入事件开始
+  const formatSystemInputEvent = (value: string) => {
+    return systemInputEvents.value.find(x=>x.key==value)?.text;
+  }
+  //新增输入事件
+  const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
+    const $table = inputEventTableRef.value
+    if ($table) {
+      const record = {
+        key: uuidv4(),
+        blockId:currentBlockId,
+      }
+      const { row: newRow } = await $table.insertAt(record, row)
+      await $table.setEditCell(newRow, 'text')
+    }
+  })
+  //删除输入事件
+  const removeInputEvents = () => {
+    const $table = inputEventTableRef.value
+    if ($table) {
+      $table.removeCheckboxRow()
+    }
+  }
+  //-------输入事件结束
+  //-------输出事件开始
+  const formatSystemOutputEvent = (value: string) => {
+    return systemOutputEvents.value.find(x=>x.key==value)?.text;
+  }
+  //新增输出事件
+  const insertOutputEvent=(async (row?: BlockOutputEventForm | number)=>{
+    const $table = outputEventTableRef.value
+    if ($table) {
+      const record = {
+        key: uuidv4(),
+        blockId:currentBlockId,
+      }
+      const { row: newRow } = await $table.insertAt(record, row)
+      await $table.setEditCell(newRow, 'text')
+    }
+  })
+  //删除输出事件
+  const removeOutputEvents = () => {
+    const $table = outputEventTableRef.value
+    if ($table) {
+      $table.removeCheckboxRow()
+    }
+  }
+  //-------输出事件结束
+  //-------输入变量开始
+  //格式化变量类型
+  const formatVariType = (value: string) => {
+    // return variType.value.find(x=>x.value==value)?.label;
+    return null;//todo
+  }
+  //格式化系统输入变量
+  const formatSystemInputVari = (value: string) => {
+    return systemInputVaris.value.find(x=>x.key==value)?.text;
+  }
+  //格式化输入变量映射事件
+  const formatInputVariRelatedEvents = (value: string[]) => {
+    let str="";
+    if(value){
+      let rlts= inputEventList.value.filter(x=>value.includes(x.key))?.map(x=>x.text);
+      rlts.forEach(rlt=>{str+=rlt+","});
+      str=str.substring(0,str.length-1);
+      return str;
+    }
+
+  }
+
+  //新增输入变量
+  const insertInputVari=(async (row?: BlockInputVariForm | number)=>{
+    const $table = inputVariTableRef.value
+    if ($table) {
+      const record = {
+        key: uuidv4(),
+        blockId:currentBlockId,
+      }
+      const { row: newRow } = await $table.insertAt(record, row)
+      await $table.setEditCell(newRow, 'text')
+    }
+  })
+  //删除输入变量
+  const removeInputVaris = () => {
+    const $table = inputVariTableRef.value
+    if ($table) {
+      $table.removeCheckboxRow()
+    }
+  }
+  //-------输入变量结束
+  //-------输出变量开始
+  //格式化系统输入变量
+  const formatSystemOutputVari = (value: string) => {
+    return systemOutputVaris.value.find(x=>x.key==value)?.text;
+  }
+  //格式化输入变量映射事件
+  const formatOutputVariRelatedEvents = (value: string[]) => {
+    let str="";
+    if(value){
+      let rlts= outputEventList.value.filter(x=>value.includes(x.key))?.map(x=>x.text);
+      rlts.forEach(rlt=>{str+=rlt+","});
+      str=str.substring(0,str.length-1);
+      return str;
+    }
+
+  }
+
+  //新增输出变量
+  const insertOutputVari=(async (row?: BlockInputVariForm | number)=>{
+    const $table = outputVariTableRef.value
+    if ($table) {
+      const record = {
+        key: uuidv4(),
+        blockId:currentBlockId,
+      }
+      const { row: newRow } = await $table.insertAt(record, row)
+      await $table.setEditCell(newRow, 'text')
+    }
+  })
+  //删除输入变量
+  const removeOutputVaris = () => {
+    const $table = outputVariTableRef.value
+    if ($table) {
+      $table.removeCheckboxRow()
+    }
+  }
+  //-------输入变量结束
+  const submitAlgAndEventForm=(()=>{
+    const $inputEventTable = inputEventTableRef.value
+    const $outputEventTable = outputEventTableRef.value
+    const $inputVariTable = inputVariTableRef.value
+    const $outputVariTable = outputVariTableRef.value
+    //由于是用户操作，VXE的API处理双向绑定变量
+    Object.assign(inputEventList.value,$inputEventTable.getTableData().fullData)
+    Object.assign(outputEventList.value,$outputEventTable.getTableData().fullData)
+    Object.assign(inputVariList.value,$inputVariTable.getTableData().fullData)
+    Object.assign(outputVariList.value,$outputVariTable.getTableData().fullData)
+    // Object.assign(outputVariList.value,$outputVariTable.getTableData().fullData)
+    let inputEventNameList =inputEventList.value.map(x=>x.text);
+    let outputEventNameList =outputEventList.value.map(x=>x.text);
+    let inputVariNameList =inputVariList.value.map(x=>x.text);
+    let outputVariNameList =outputVariList.value.map(x=>x.text);
+    //更新graph
+    let functionBlockGraphData:FunctionBlock={
+      raw_id:currentBlockId,
+      input_events:inputEventNameList,
+      output_events:outputEventNameList,
+      inputs:inputVariNameList,
+      outputs:outputVariNameList,
+    }
+    // 更新大JSON
+    let functionBlockJsonData:FunctionBlock={
+      raw_id:currentBlockId,
+      input_events:inputEventList.value,
+      output_events:outputEventList.value,
+      inputs:inputVariList.value,
+      outputs:outputVariList.value,
+    }
+    saveOrUpdateFunctionBlock(projectID,procedureID,functionBlockJsonData);
+    dialogAlgAndEvent.visible = false;
+    proxy?.$modal.msgSuccess("操作成功");
+  });
   </script>
   
   <style lang="scss" scoped>
