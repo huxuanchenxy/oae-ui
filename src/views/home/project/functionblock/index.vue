@@ -1411,7 +1411,13 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
     dialogAlgAndEvent.visible = false;
   }
   const nodeDbClick=((evt)=>{
+    //得到对应系统变量
     currentBlockId=evt.item.get("id");
+    let originNode=graph.findById(currentBlockId);
+    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
+    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
+    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().selectedResource.id)
+    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().selectedResource.id);
     let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
     if (block){
       inputEventList.value=block.input_events;
