@@ -1179,7 +1179,7 @@ const initGraph = () => {
       });
     }
   })
-  
+
   graph.on('node:mousemove',e => {
     // console.log('node:mouseenter',e)
     const target = e.target;
@@ -1328,7 +1328,7 @@ const selectChange = (e) => {
 }
 const addNode = () => {
   let data = addNodeBefore.value.data
-  // console.log(data)
+  console.log(data)
   let node = {
     id: uuidv4(),//uuidv4()
     title: addNodeBefore.value.title,
@@ -1357,10 +1357,17 @@ const addNode = () => {
       node.inputVar = getAnchorsName(data.info.InterfaceList.InputVars?.VarDeclaration,'Name','Type','ArraySize')
       node.outputVar = getAnchorsName(data.info.InterfaceList.OutputVars?.VarDeclaration,'Name','Type','ArraySize')
       break;
+    case 'Seg':
+      let {retIn,retOut} = getAnchorsNameForSeg(data.Event)
+      node.inputEvt = retIn
+      node.outputEvt = retOut
+      node.inputVar = []
+      node.outputVar = []
+      break;
     default:
       break;
   }
-  // console.log(node)
+  console.log(node)
   graph.addItem("node", node);
   listener(node.id)
   dialogVisible_title.value = false;
@@ -1378,6 +1385,17 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
     })
   }
   return ret
+}
+const getAnchorsNameForSeg = (arr) => {
+  let retIn = []
+  let retOut = []
+  if (arr != '' && arr != undefined) {
+    arr.forEach(el => {
+      if (el.Type === 'Input') retIn.push({name:el.Name})
+      else if (el.Type === 'Output') retOut.push({name:el.Name})
+    })
+  }
+  return {retIn,retOut}
 }
   const saveAll = () => {
     functionBlockJson = graph.save();
@@ -1416,7 +1434,7 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
     // window.addEventListener("keyup", handleKeyUp);
     sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
       devices.value = res;
-      // console.log('设备库：',res);
+      console.log('设备库：',res);
       
       // console.log(segMapDev);
     });

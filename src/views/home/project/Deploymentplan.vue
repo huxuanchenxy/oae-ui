@@ -1370,6 +1370,7 @@ const getIsSelected = (elg6) => {
   return false;
 };
 const setEMBRES = (deviceNodeModel) => {
+  if (!deviceNodeModel.resources) return ''
   for (let res of deviceNodeModel.resources) {
     if (res.typeVal.name === "EMB_RES") {
       return res.id;
