@@ -16,7 +16,7 @@ export const getSystemOutputVaris=(id)=>{
 const getSystemVaris=(type,id)=>{
     //得到配置列表
     let configList = cache.local.getJSON(cacheKey_configList);
-    let deployment = cache.local.getJSON(deploymentCacheKey);
+    let deployment = cache.local.getJSON(deploymentCacheKey)?.nodes;
     configList=configList.filter(x=>x.type==type);
     let rltList=new Array();
     //把配置列表里的变量加上
@@ -61,6 +61,9 @@ const getInsideVari=(type,id)=>{
         return rltList;
     }
     let node=json.nodes.find(x=>x.id==id);
+    if(!node||!node.jsonContent){
+        return;
+    }
     let varis=node.jsonContent?.VarDeclaration;
     if (!varis||varis.length<=0){
         return rltList;
