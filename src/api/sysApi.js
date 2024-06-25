@@ -21,6 +21,7 @@ const getSegNode=(segParentNode)=>{
         info.id=info.ID;
         info.name=info.Name;
         info.type='Seg';
+        info.cardInfo=node.cardInfo;
         rltNodes.push(info);
     })
     if (rltNodes.length==0){
@@ -28,6 +29,7 @@ const getSegNode=(segParentNode)=>{
     }else{
         segParentNode.children=rltNodes;
     }
+    console.log("segParentNode",segParentNode)
     return segParentNode;
 }
 //得到资源功能块树节点和子节点
@@ -47,6 +49,7 @@ const getResourceNodes=(resParentNode)=>{
         info.name=info.Name;
         info.id=info.ID;
         info.type='Dev';
+        info.cardInfo=node.cardInfo;
         let resources=node.resources;
         //资源列表
         let children=new Array();
@@ -69,6 +72,7 @@ const getResourceNodes=(resParentNode)=>{
     }else{
         resParentNode.children=rltNodes;
     }
+    console.log("resParentNode",resParentNode)
     return resParentNode;
 }
 export default {
