@@ -2053,7 +2053,6 @@ const saveConfig=async ()=>{
         insert.type="write";
         configList.push(insert);
       })
-      console.log(insertsWrite)
       //操作删除
       let removesWrite=getWriteRemoveEvent();
       let removeIdsWrite=removesWrite.map(x=>x.id);
@@ -2064,6 +2063,7 @@ const saveConfig=async ()=>{
         let oldConfig:CardInfo_dynamic=configList.filter(config=>config.id==updateData.id);
         oldConfig=updateData;
       })
+      cache.local.setJSON(cacheKey_configList, configList);
       proxy?.$modal.msgSuccess("操作成功");
       dialog_config.visible = false;
     }
