@@ -79,7 +79,7 @@
       <div
         style="position: relative; height: 100%; flex-grow: 2; overflow: hidden"
       >
-      <div><select style="text-align: center;width:100px;appearance:none;border:0;" selectedIndex=-1 placeholder="Select"><option label="text1" value="1"/><option label="text2" value="2"/></select></div>
+      <div class="g6-tooltip"/>
       <div id="container" ref="container"></div>
       </div>
       <div :class="{ rightShow: drawer, rightHidden: !drawer }">
@@ -156,7 +156,7 @@
   import { ref } from "vue";
   import { toRaw } from "@vue/reactivity";
   import { ElMessage } from "element-plus";
-  
+
   let cacheKey = 'functionBlock';
   let functionBlockJson = {};
   
@@ -174,7 +174,7 @@
     children: "children",
     label: (data, node) => {
       // console.log(data)
-      if (data.jsonContent&&data.jsonContent !== "") {
+      if (data.jsonContent && data.jsonContent !== "") {
         data.info = JSON.parse(data.jsonContent);
         // console.log(data.info)
         // return data.info.DisplayName;
@@ -219,7 +219,8 @@
 const anchorAttr = {
     toTopAndBottom: 5,
     size: [10,10],
-    spacing: 5, //间距
+    spacing: 5, //间距，包括锚点之间和锚点与文字之间
+    textSpacing: 5  //并排时文字之间的最小间距
 }
 const moveEdgeIconSize = [10,10]
 // minSize为最小显示大小
@@ -244,28 +245,98 @@ let addNodeBefore = ref({
   y: 0,
   data: {}
 });
-let sourceAnchor,targetAnchor;
+let sourceAnchor,targetAnchor,lastPos,curGraphItemBegin,anchorDes;
 // node刷新前input输入框的位置
 let preInputCursorPos = 0
 // 为了利用内置的undo和redo
 const toolbar = new G6.ToolBar({ className: "g6-toolbar-display" });
 G6.registerEdge('polyline-more',{
   getControlPoints(cfg) {
-    const startPoint = cfg.startPoint;
-    const endPoint = cfg.endPoint;
-    return [
-      {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
-      {x:endPoint.x / 3 + (2 / 3) * startPoint.x, y:startPoint.y},
-      {x:endPoint.x / 3 + (2 / 3) * startPoint.x,y:endPoint.y},
-      {x:endPoint.x-edgeOffX,y:endPoint.y}
-    ]
+    // console.log(cfg)
+    if (cfg.controlPoints && cfg.controlPoints.length>0) return cfg.controlPoints
+    if (cfg.targetNode && cfg.targetAnchor !== undefined) {
+      let sNode = cfg.sourceNode;
+      let tNode = cfg.targetNode;
+      let sModel = sNode.get('model');
+      let tModel = tNode.get('model');
+      // console.log(sModel,cfg)
+      const startPoint = cfg.startPoint;
+      const endPoint = cfg.endPoint;
+      if (cfg.target !== cfg.source) {
+        // 左node右输出连接右node左输出
+        if ((sModel.x+sNode.get('group').getBBox().width)<=(tModel.x)) {
+          // 只有一条线段（两个控制点）可以拖拽移动
+          cfg.canMove = 1
+          return [
+            {x:endPoint.x / 2 + startPoint.x/2, y:startPoint.y},
+            {x:endPoint.x / 2 + startPoint.x/2,y:endPoint.y}
+          ]
+        } else {
+          // 三条线段（四个控制点）可以拖拽移动
+          cfg.canMove = 3
+          let sy = sModel.y+sNode.get('group').getBBox().height
+          let ty = tModel.y+tNode.get('group').getBBox().height
+          // 两个node接近（垂直方向），从上下绕
+          if ((sy+edgeOffX*2)>=tModel.y && (ty+edgeOffX*2)>=sModel.y) {
+            // 事件连事件，从上绕
+            if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'evt') {
+              let y = sModel.y < tModel.y ? sModel.y: tModel.y
+              return [
+                {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+                {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y - edgeOffX},
+                {x:endPoint.x-edgeOffX,y:y-edgeOffX},
+                {x:endPoint.x-edgeOffX,y:endPoint.y}
+              ]
+            } else if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'var') {
+              let y = sy > ty ? sy: ty
+              return [
+                {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+                {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
+                {x:endPoint.x-edgeOffX,y:y},
+                {x:endPoint.x-edgeOffX,y:endPoint.y}
+              ]
+            }
+          } else {// 两个node距离远（垂直方向），从中间穿过去
+            let y =sy + (tModel.y-sy-edgeOffX)/2
+            if (ty<sModel.y) y = ty+(sModel.y-ty)/2
+            return [
+              {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+              {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
+              {x:endPoint.x-edgeOffX,y:y},
+              {x:endPoint.x-edgeOffX,y:endPoint.y}
+            ]
+          }
+        }
+      } else if (cfg.canMove === 2) {
+        // console.log('getControlPoints2',cfg)
+        if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'evt') {
+          return [
+            {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+            {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:sModel.y - edgeOffX},
+            {x:endPoint.x-edgeOffX,y:sModel.y-edgeOffX},
+            {x:endPoint.x-edgeOffX,y:endPoint.y}
+          ]
+        } else if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'var') {
+          let y = sModel.y+sNode.get('group').getBBox().height
+          return [
+            {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+            {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
+            {x:endPoint.x-edgeOffX,y:y},
+            {x:endPoint.x-edgeOffX,y:endPoint.y}
+          ]
+        }
+      }
+    }
   }
 },
 'polyline')
 G6.registerNode("functionBlock", {
   draw(cfg, group) {
     // 为了根据title长度获取bbox
-    const textTitle = group.addShape('text', {
+    let tmpShape1 = cfg.outputEvt.length > cfg.inputEvt.length ? addTmpShape(cfg.outputEvt,cfg.inputEvt,group):addTmpShape(cfg.inputEvt,cfg.outputEvt,group)
+    let tmpShape2 = cfg.outputVar.length > cfg.inputVar.length ? addTmpShape(cfg.outputVar,cfg.inputVar,group):addTmpShape(cfg.inputVar,cfg.outputVar,group)
+    let tmpShape = tmpShape1.concat(tmpShape2)
+    tmpShape1 = group.addShape('text', {
       attrs: {
         y:htmlHeight,
         textAlign:'left',
@@ -277,7 +348,8 @@ G6.registerNode("functionBlock", {
       },
       name: 'text-title'
     })
-    const textRes = group.addShape("text", {
+    tmpShape.push(tmpShape1)
+    tmpShape1 = group.addShape("text", {
       attrs: {
         y:htmlHeight,
         textAlign:'left',
@@ -289,10 +361,16 @@ G6.registerNode("functionBlock", {
       },
       name: "text-res",
     });
-    let bboxTitle = textTitle.getBBox();
-    let bboxRes = textRes.getBBox();
-    let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
-    // console.log(realWidth)
+    tmpShape.push(tmpShape1)
+    // console.log(tmpShape[0].getBBox().width)
+    // let bboxTitle = textTitle.getBBox();
+    // let bboxRes = textRes.getBBox();
+    // let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
+    let w = group.getBBox().width
+    // console.log(w)
+    tmpShape.forEach(el=>{group.removeChild(el)})
+    let realWidth = w > minSize[0] ? w : minSize[0]
+    // console.log(realWidth,group.getBBox())
     group.addShape("dom", {
       attrs: {
         width: realWidth,
@@ -353,11 +431,12 @@ G6.registerNode("functionBlock", {
     group.addShape("text", {
       attrs: {
         x: (realWidth - lineWidthIn)/2,
-        y: htmlHeight+realEvtHeight+35+initCenterLack[1],
+        y: htmlHeight+realEvtHeight+initCenterLack[1]*1.5,
         width: realWidth - lineWidthIn,
         height: initLabelHeight+lineWidthIn*4,
         textAlign:'center',
-        fontSize: 20,
+        textBaseline:'top',
+        fontSize: 14,
         // fontFamily: 'Arial',
         text: cfg.label,
         fill: '#000',
@@ -395,6 +474,8 @@ G6.registerNode("functionBlock", {
     const anchorPoints = this.getAnchorPoints(cfg);
       anchorPoints.forEach((anchorPos, i) => {
       let y = realAnchorsHeight*anchorPos[1] - anchorAttr.size[1]/2
+      let isLeft = cfg.anchorsInfo[i].inOut === 'in'
+      let leftSpacing = lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing
       group.addShape("rect", {
         attrs: {
           x: realWidth*anchorPos[0],
@@ -410,6 +491,20 @@ G6.registerNode("functionBlock", {
         visible: true, // invisible by default, shows up when links > 1 or the node is in showAnchors state
         draggable: true, // allow to catch the drag events on this shape
       });
+      group.addShape("text", {
+        attrs: {
+          x: isLeft ? leftSpacing : realWidth - leftSpacing,
+          y: y - anchorAttr.size[1]/3,
+          textAlign: isLeft ? 'left' : 'right',
+          textBaseline: 'top',
+          // fontSize: 20,
+          // fontFamily: 'Arial',
+          text: cfg.anchorsInfo[i].name,
+          fill: '#000',
+        },
+        draggable: true,
+        name: "rect-label-anchor-"+i,
+      });
     });
     return keyShape;
   },
@@ -421,19 +516,21 @@ G6.registerNode("functionBlock", {
     cfg.anchorsInfo = [];
     for (let i = 0; i < cfg.inputEvt.length; i++) {
       anchorPointsArr.push([lineWidthIn / 2 / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.inputEvt[i],inOut:"in",evtVar:"evt",order:i})
+      cfg.anchorsInfo.push({name:cfg.inputEvt[i].name,inOut:"in",evtVar:"evt",order:i})
     }
     for (let i = 0; i < cfg.outputEvt.length; i++) {
       anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.outputEvt[i],inOut:"out",evtVar:"evt",order:i})
+      cfg.anchorsInfo.push({name:cfg.outputEvt[i].name,inOut:"out",evtVar:"evt",order:i})
     }
     for (let i = 0; i < cfg.inputVar.length; i++) {
       anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.inputVar[i],inOut:"in",evtVar:"var",order:i})
+      let obj = cfg.inputVar[i]
+      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",order:i})
     }
     for (let i = 0; i < cfg.outputVar.length; i++) {
       anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.outputVar[i],inOut:"out",evtVar:"var",order:i})
+      let obj = cfg.inputVar[i]
+      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"out",evtVar:"var",order:i})
     }
     // console.log('anchorPointsArr',anchorPointsArr)
     return anchorPointsArr;
@@ -442,9 +539,68 @@ G6.registerNode("functionBlock", {
     
   },
   setState(name, value, item) {
-    
+    // console.log(name, value, item)
+    item.get('model').anchorDes = value
+    // const group = item.getContainer();
+    // const shapes = group.get("children");
+    // const shape = shapes[0];
+    // if (name === "selected" || name === "highlight") {
+    //   if (value) {
+    //     // 选中样式
+    //     shape.attr({ stroke: "#1E90FF", lineWidth: clickWidth });
+    //   } else {
+    //     shape.attr({ stroke: "#808080", lineWidth: 1 });
+    //   }
+    // } else if (name === "dark") {
+    //   // 为了挡住中心线，外围框不透明
+    //   if (value) {
+    //     // 选中样式
+    //     shapes[1].attr({ opacity: 0.2 });
+    //     shapes[2].attr({ opacity: 0.2 });
+    //     // shapes.forEach((el) => {el.attr({'opacity': 0.2})})
+    //   } else {
+    //     // shapes.forEach((el) => {el.attr({'opacity': 1})})
+    //     shapes[1].attr({ opacity: 1 });
+    //     shapes[2].attr({ opacity: 1 });
+    //   }
+    // }
   },
 });
+const addTmpShape = (arr1,arr2,group) => {
+  let ret = []
+  arr1.forEach((el,i)=>{
+    let shape = group.addShape('text',{
+      attrs: {
+        y:htmlHeight,
+        textAlign:'left',
+        // fontSize: 14,
+        // fontFamily: 'Arial',
+        text: el,
+        // textBaseline: 'middle',
+        fill: '#000'
+      },
+      name: 'text-tmp'
+    })
+    ret.push(shape)
+    if (i<arr2.length) {
+      shape = group.addShape('text',{
+        attrs: {
+          x:(lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing)*2+anchorAttr.textSpacing + shape.getBBox().width,
+          y:htmlHeight,
+          textAlign:'left',
+          // fontSize: 14,
+          // fontFamily: 'Arial',
+          text: arr2[i],
+          // textBaseline: 'middle',
+          fill: '#000'
+        },
+        name: 'text-tmp'
+      })
+      ret.push(shape)
+    }
+  })
+  return ret
+}
 const getHeight = (input,output) => {
   let initHeight = 0;
   let realHeight = minSize[1];
@@ -479,14 +635,129 @@ const initGraph = () => {
       default: [
         "zoom-canvas",
         "drag-canvas",
-        "drag-node",
+        // "drag-node",
+        {
+          type: "drag-node",
+          // enableDelegate: true,
+          // enableDragOnItem: false, // 禁止在节点/边上拖拽
+          // enableDebounce: true, // 启用拖拽缓冲
+          // debounceStep: 10, // 拖拽缓冲步长
+          // direction: 'horizontal', // 设置拖拽方向为水平方向
+          shouldUpdate: (e) => {
+            let y1,y2
+            let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
+            let newX = point.x
+            let newY = point.y
+            let model = e.item.get('model')
+            if (model.id === 'line1' || model.id === 'line2' || model.id === 'line3') {
+              // console.log('before',model.id)
+              let edge = graph.findById(model.mapEdge)
+              let eModel = edge.get('model')
+              // let edgeShape = edge.get('keyShape')
+              let path = edge.get('keyShape').attrs.path;
+              let i = parseInt(model.id.slice(4))
+              // x1 = path[i][1]
+              y1 = path[i][2]
+              // x2 = path[i+1][1]
+              y2 = path[i+1][2]
+              let edgeStartX = eModel.startPoint.x + (anchorAttr.size[0]+edgeOffX)
+              let edgeEndX = eModel.endPoint.x - edgeOffX
+              if (eModel.canMove === 1) {
+                if (edgeStartX > newX) newX = edgeStartX
+                else if (edgeEndX < newX) newX = edgeEndX
+                path[i][1] = newX
+                path[i+1][1] = newX
+                lastPos = {x:newX,y:y1+(y2-y1)/2}
+                // 能更新边位置，但是无法撤销,graph.save()拿不到keyShape数据，必须舍弃
+                // edgeShape.attr('path',path)
+                // 原本为了撤销，转为controlPoints,再更新，但是结果无效
+                // 不过解决了graph.save()的问题
+                // 其实好像graph.save()的问题很好解决，把需要的数据存入model，重新渲染时，拿出来再赋值即可
+                graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                // console.log(graph.save())
+                // graph.data(graph.save())
+                // graph.render()
+                // e.updatePosition({x:newX,y:(y1+(y2-y1)/2)})
+                // console.log('pos',model.x,model.y,(y1+(y2-y1)/2))
+                // graph.pushStack('update',graph.save())
+              } else if (eModel.canMove === 3 || eModel.canMove === 2) {
+                switch (i) {
+                  case 1:
+                    if (edgeStartX > newX) newX = edgeStartX
+                    path[i][1] = newX
+                    path[i+1][1] = newX
+                    graph.findById('line2').updatePosition({x:path[3][1]+(newX-path[3][1])/2})
+                    lastPos = {x:newX,y:y1+(y2-y1)/2}
+                    graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                    break
+                  case 3:
+                    if (edgeEndX < newX) newX = edgeEndX
+                    path[i][1] = newX
+                    path[i+1][1] = newX
+                    graph.findById('line2').updatePosition({x:newX+(path[2][1]-newX)/2})
+                    lastPos = {x:newX,y:y1+(y2-y1)/2}
+                    graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                    break;
+                  case 2:
+                    // if (edgeEndX < newX) newX = edgeEndX
+                    path[i][2] = newY
+                    path[i+1][2] = newY
+                    graph.findById('line1').updatePosition({y:path[1][2]+(newY-path[1][2])/2})
+                    graph.findById('line3').updatePosition({y:path[4][2]+(newY-path[4][2])/2})
+                    lastPos = {x:path[3][1]+(path[2][1]-path[3][1])/2,y:newY}
+                    graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                    break;
+                  default:
+                    break;
+                }
+              }
+              // console.log(newX,path)
+              // graph.update(e.item,{x:newX,y:y1+(y2-y1)/2})
+              // const { x, y } = model;
+              // // console.log(e.dx)
+              // // 只能水平拖拽
+              // if (x && !y) return e.x !== 0;
+              // // 只能垂直拖拽
+              // // if (y && !x) return e.dy !== 0;
+              // e.canvasY = graph.getCanvasByPoint(lastPos.x, lastPos.y).y
+              // e.canvasX = graph.getCanvasByPoint(lastPos.x, lastPos.y).x
+              // console.log('after',newX,model.x,e)
+              // return false
+            }
+            return true
+          }
+        },
+        // formatText无法动态获取数据
         // {
-        //   type: "brush-select",
-        //   trigger: "shift",
-        //   onSelect: (nodes) => {
-        //     isLeaveCanvas = false;
-        //     isCardShow.value = false;
+        //   type: 'tooltip',
+        //   formatText(model) {
+        //       // console.log('formatText',model.anchorDes)
+        //       // return '<div>'+anchorDes+'</div>';
+        //     return model.anchorDes
         //   },
+        //   offset: 10,
+        //   shouldBegin: (e) => {
+        //     let tooltip = document.getElementsByClassName('g6-tooltip')
+        //     const target = e.target;
+        //     if (target.get('name') === 'anchor-point') {
+        //       let index = e.target.get("anchorPointIdx");
+        //       let model = e.item.get('model')
+        //       let anchor = model.anchorsInfo[index]
+        //       if (anchor.evtVar === 'var') {
+        //         anchorDes = anchor.type+'_'+anchor.arrSize
+        //         graph.setItemState(e.item,'anchorDes',true)
+        //         graph.setItemState(e.item,'anchorDes',anchorDes)
+        //         // e.item.set('anchorDes',anchorDes)
+        //         // graph.setItemState(e.item, 'anchorDes', anchorDes)
+        //         // tooltip[0].hidden=false
+        //         // tooltip.style={display:'block'}
+        //         console.log('shouldBegin',e.item)
+        //         return true;
+        //       }
+        //     }
+        //     tooltip[0].hidden=true
+        //     return false;
+        //   }
         // },
         {
           type: "click-select",
@@ -498,8 +769,18 @@ const initGraph = () => {
           trigger: "drag", // 'click' by default. options: 'drag', 'click'
           shouldBegin: (e) => {
             if (e.target && e.target.get("name") === "anchor-point") {
+              let model=e.item.get('model')
+              curGraphItemBegin = {
+                model:model,
+                target:e.target
+              }
               sourceAnchor = e.target.get("anchorPointIdx");
-              e.target.set("links", e.target.get("links") + 1);
+              // 改变边颜色
+              if (model.anchorsInfo[sourceAnchor].evtVar === 'var') {
+                graph.edge(()=>{return {style:{stroke:'#ff9800'}}})
+              } else {
+                graph.edge(()=>{return {style:{stroke:'#4CAF50'}}})
+              }
               return true
             }
             return false;
@@ -507,7 +788,17 @@ const initGraph = () => {
           shouldEnd: (e) => {
             if (e.target && e.target.get("name") === "anchor-point") {
               targetAnchor = e.target.get("anchorPointIdx");
+              let sModel = curGraphItemBegin.model
+              let tModel=e.item.get('model')
+              // 自己不能连自己
+              if (sModel.id === tModel.id && sourceAnchor === targetAnchor) return false
+              // 输入不能连输入，输出不能连输出
+              if (sModel.anchorsInfo[sourceAnchor].inOut === tModel.anchorsInfo[targetAnchor].inOut) return false
+              // 变量和事件不能互连
+              if (sModel.anchorsInfo[sourceAnchor].evtVar !== tModel.anchorsInfo[targetAnchor].evtVar) return false
+              curGraphItemBegin.target.set("links", e.target.get("links") + 1)
               e.target.set("links", e.target.get("links") + 1);
+              // console.log(e)
               return true
             }
             return false;
@@ -520,6 +811,7 @@ const initGraph = () => {
       style: {
         stroke: "#4CAF50",
         lineWidth: 2,
+        lineAppendWidth: 10
         // endArrow: true,
       }
     },
@@ -541,15 +833,15 @@ const initGraph = () => {
   graph.on("aftercreateedge", (e) => {
     // update the sourceAnchor and targetAnchor for the newly added edge
     let edge = e.edge;
-    let sNode = edge.get('sourceNode');
-    let sModel = sNode.get('model');
+    // edge.toFront()
+    let sModel = edge.get('sourceNode').get('model');
+    let model = edge.get('model');
     let newModel = {
       sourceAnchor: sourceAnchor,
       targetAnchor: targetAnchor
     }
     // 方向必须是输出到输入，否则纠正
     if (sModel.anchorsInfo[sourceAnchor].inOut === 'in') {
-      let model = edge.get('model');
       newModel = {
         sourceAnchor: targetAnchor,
         targetAnchor: sourceAnchor,
@@ -557,21 +849,44 @@ const initGraph = () => {
         target: model.source
       }
     }
-    // console.log(edge)
+    // 自循环
+    if (model.type === 'loop') {
+      newModel.type = 'polyline-more'
+      newModel.canMove = 2
+    }
     graph.updateItem(edge, newModel);
     // console.log(edge);
   });
   graph.on('afteritemrefresh',(e) => {
+    // console.log('afteritemrefresh',e)
     let model = e.item.get('model')
     listener(model.id,model.isFocus)
   })
+  graph.on('afteritemstatechange',(item) => {
+    let state = item.state.split(':')[0]
+    if (state === 'anchorDes') {
+      console.log(item)
+      let tooltip = document.getElementsByClassName('g6-tooltip')
+      tooltip[0].hidden=false
+    }
+  })
   graph.on('wheelzoom',() => {
     // console.log('wheelzoom',e)
+    // e.stopPropagation();
+    // // 这里的 className 根据实际情况而定，默认是 g6-component-tooltip
+    // const tooltips = Array.from(document.getElementsByClassName('g6-component-tooltip'));
+    // tooltips.forEach((tooltip) => {
+    //   if (tooltip && tooltip.style) {
+    //     tooltip.style.transform = `scale(${graph.getZoom()})`;
+    //   }
+    // });
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
     });
   })
   graph.on("node:mousedown", (evt) => {
+    let id = evt.item.get('id');
+    if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
     if (evt.originalEvent.shiftKey) {
       evt.originalEvent.preventDefault()
       // console.log('node:mousedown')
@@ -579,30 +894,94 @@ const initGraph = () => {
     }
     // isLeaveCanvas = false;
   });
+  graph.on("node:dragstart", (evt) => {
+    let id = evt.item.get('id');
+    // console.log('dragStart',evt)
+    if (id !== 'line1' && id !== 'line2' && id !== 'line3') {
+      evt.item.get('edges').forEach(el=>{
+        el.update({controlPoints:[]})
+        // console.log('dragStart')
+      })
+    }
+  });
   graph.on('node:drag',(e) => {
+    e.stopPropagation();
     e.originalEvent.preventDefault()
-    console.log(e)
   })
-  graph.on('node:dragstart',(e) => {
+  graph.on('node:dragend',(e) => {
     e.originalEvent.preventDefault()
-    let id = e.item.get('id');
-    if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
+    // console.log(e)
+    let model = e.item.get('model')
+    if (lastPos && (model.id === 'line1' || model.id === 'line2' || model.id === 'line3')) {
+      e.item.updatePosition(lastPos)
+    }
   })
   graph.on("node:mouseup", (evt) => {
     if (evt.originalEvent.shiftKey) {
       evt.originalEvent.preventDefault()
       evt.item?.unlock();
     }
+
     // isLeaveCanvas = false;
   });
   graph.on('node:mouseenter',e => {
-    console.log(e.item)
+    // console.log('node:mouseenter',e)
+    const target = e.target;
+    if (target.get('name') === 'anchor-point') {
+      let index = target.get("anchorPointIdx");
+      let model = e.item.get('model')
+      let anchor = model.anchorsInfo[index]
+      if (anchor.evtVar === 'var') {
+        // tooltip
+        let tooltipBox = document.getElementsByClassName('g6-tooltip');
+        tooltipBox.innerHTML = anchor.type+'_'+anchor.arrSize
+        let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
+        tooltipBox.style.left = point.x + 'px';
+        tooltipBox.style.top = (point.y+20) + 'px';
+        tooltipBox.style.display = "block";
+      }
+    } else {
+      let tooltipBox = document.getElementsByClassName('g6-tooltip')
+      tooltipBox.style.display = 'none'
+    }
+    let id = e.item.get('id')
+    if (id === 'line1' || id === 'line2' || id === 'line3') {
+      graph.update(id, {
+        // 节点的样式
+        style: {
+          cursor: id === 'line2' ? 'n-resize' : 'w-resize'
+        },
+      });
+    }
+  })
+  graph.on('node:mouseout',e => {
+    // console.log('node:mouseout',e.item)
+    let tooltipBox = document.getElementsByClassName('g6-tooltip')
+    tooltipBox.style.display = 'none'
+    let id = e.item.get('id')
+    if (id === 'line1' || id === 'line2' || id === 'line3') {
+      graph.update(id, {
+        // 节点的样式
+        style: {
+          cursor: 'default'
+        },
+      });
+    }
+  })
+  graph.on('node:dblclick',e => {
+    // console.log('node:doubleclick',e)
   })
   graph.on('edge:click',(e) => {
-    const path = e.item.get('keyShape').attrs.path;
-    addEdgeNode(path,1)
-    addEdgeNode(path,2)
-    addEdgeNode(path,3)
+    // console.log(e.item)
+    let model = e.item.get('model')
+    removeEdgeNode()
+    if (model.canMove === 1) {
+      addEdgeNode(e.item,1)
+    } else if (model.canMove === 3 || model.canMove === 2) {
+      addEdgeNode(e.item,1)
+      addEdgeNode(e.item,2)
+      addEdgeNode(e.item,3)
+    }
   })
   graph.on('canvas:dragend',() => {
     // console.log('canvas:dragend')
@@ -615,22 +994,35 @@ const initGraph = () => {
     // console.log(graph.getNodes())
   });
 }
-const removeEdgeNode = () => {
-  graph.removeItem('line1')
-  graph.removeItem('line2')
-  graph.removeItem('line3')
+const pathToControlPoints = (path) => {
+  let ret = []
+  path.pop()
+  path.shift()
+  path.forEach(el => {
+    ret.push({x:el[1],y:el[2]})
+  })
+  // console.log(ret)
+  return ret
 }
-const addEdgeNode = (path,i) => {
-  let x,y
+const removeEdgeNode = () => {
+  if (graph.findById('line1')) graph.removeItem('line1')
+  if (graph.findById('line2')) graph.removeItem('line2')
+  if (graph.findById('line3')) graph.removeItem('line3')
+}
+const addEdgeNode = (edge,i) => {
+  let path = edge.get('keyShape').attrs.path;
+  let x,y,cursor
   switch (i) {
     case 1:
     case 3:
-      x = path[i][1]+ (path[i+1][1]-path[i][1]) / 2
-      y = path[i][2]
-      break;
-    case 2:
       x = path[i][1]
       y = path[i][2]+ (path[i+1][2]-path[i][2]) / 2
+      cursor = 'w-resize'
+      break;
+    case 2:
+      x = path[i][1]+ (path[i+1][1]-path[i][1]) / 2
+      y = path[i][2]
+      cursor = 'n-resize'
       break;
     default:
       break;
@@ -643,8 +1035,10 @@ const addEdgeNode = (path,i) => {
     type: 'rect',
     style: {
       fill:'#1E90FF',
-      lineWidth:0
-    }
+      lineWidth:0,
+      cursor: cursor
+    },
+    mapEdge: edge.get('id')
   }
   graph.addItem('node',node);
   // console.log(node)
@@ -714,20 +1108,22 @@ const addNode = () => {
     selectedResource: {id:2,label:'res2',selected:false},
     resOption: [{id:1,label:'res111111111111111111111111111111111111111111111111112',selected:false},{id:2,label:'res2',selected:true}],
     info: data.info,
-    label: data.name
+    label: data.name,
+    controlPoints: [],
+    anchorDes:''
   };
   switch (data.type) {
     case 'project':
       node.inputEvt = getAnchorsName(data.info['input_events'],'text')
       node.outputEvt = getAnchorsName(data.info['output_events'],'text')
-      node.inputVar = getAnchorsName(data.info.inputs,'text')
-      node.outputVar = getAnchorsName(data.info.outputs,'text')
+      node.inputVar = getAnchorsName(data.info.inputs,'text','type','arrayLength')
+      node.outputVar = getAnchorsName(data.info.outputs,'text','type','arrayLength')
       break;
     case 'generic':
-      node.inputEvt = getAnchorsName(data.info.InterfaceList.EventInputs.Event,'Name')
-      node.outputEvt = getAnchorsName(data.info.InterfaceList.EventOutputs.Event,'Name')
-      node.inputVar = getAnchorsName(data.info.InterfaceList.InputVars.VarDeclaration,'Name')
-      node.outputVar = getAnchorsName(data.info.InterfaceList.OutputVars.VarDeclaration,'Name')
+      node.inputEvt = getAnchorsName(data.info.InterfaceList.EventInputs?.Event,'Name')
+      node.outputEvt = getAnchorsName(data.info.InterfaceList.EventOutputs?.Event,'Name')
+      node.inputVar = getAnchorsName(data.info.InterfaceList.InputVars?.VarDeclaration,'Name','Type','ArraySize')
+      node.outputVar = getAnchorsName(data.info.InterfaceList.OutputVars?.VarDeclaration,'Name','Type','ArraySize')
       break;
     default:
       break;
@@ -737,11 +1133,16 @@ const addNode = () => {
   listener(node.id)
   dialogVisible_title.value = false;
 }
-const getAnchorsName = (arr,attr) => {
+const getAnchorsName = (arr,attr1,attr2,attr3) => {
   let ret = []
-  if (arr != '') {
+  if (arr != '' && arr != undefined) {
     arr.forEach(el => {
-      ret.push(el[attr])
+      let obj = {name:el[attr1]}
+      if (attr2) {
+        obj.type = el[attr2]
+        obj.arrSize = el[attr3]
+      }
+      ret.push(obj)
     })
   }
   return ret
@@ -775,6 +1176,9 @@ const getAnchorsName = (arr,attr) => {
   onMounted(() => {
     // console.log(useRoute().params)
     initGraph();
+    // graph.getContainer().style.cursor='n-resize'
+    // graph.getContainer().style.setProperty('cursor','n-resize')
+    // graph.getContainer().setAttribute("style", "cursor: n-resize;")
     // initData();
     // window.addEventListener("keydown", handleKeyDown);
     // window.addEventListener("keyup", handleKeyUp);
@@ -837,5 +1241,16 @@ const getAnchorsName = (arr,attr) => {
     color: #606266;
     display: flex;
     align-items: center;
+  }
+  .g6-tooltip {
+    border: 1px solid #e2e2e2;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #545454;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 8px;
+    box-shadow: rgb(174, 174, 174) 0px 0px 10px;
+    position: absolute;
+    display: none
   }
   </style>
