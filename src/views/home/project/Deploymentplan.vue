@@ -1162,10 +1162,13 @@ const initGraph = () => {
           let index = deploymentMenu[1].child.findIndex((el) => {
             return el.id === model.id;
           });
-          let tars = deploymentMenu[1].child[index].child[0].child;
-          tars.forEach((el) => {
-            deploymentMenu[2].child.push(el);
-          });
+          // 网络段里有终端则移动到未分配中
+          if (deploymentMenu[1].child[index].child) {
+            let tars = deploymentMenu[1].child[index].child[0].child;
+            tars.forEach((el) => {
+              deploymentMenu[2].child.push(el);
+            });
+          }
           deploymentMenu[1].child.splice(index, 1);
           break;
         case "target_device":
@@ -1459,6 +1462,7 @@ const addNode = (x, y, data) => {
   if (nodeType === "Dev" || nodeType === "Tar") {
     type = "device";
     node.img = iconPath + icon;
+    if (nodeType === 'Dev') node.resources = []
   } else if (nodeType === "Seg") {
     type = "segment";
     node.color = icon; //'#4CAF50'icon
@@ -1559,14 +1563,16 @@ const showDialog = (largeType) => {
 };
 const getEmbResOptions = (model) => {
   // console.log(model)
-  model.resources.forEach((el) => {
-    if (el.typeVal.name === "EMB_RES") {
-      embResOptions.value.push({
-        label: el.id,
-        text: model.label + "." + el.nameVal,
-      });
-    }
-  });
+  if (model.resources) {
+    model.resources.forEach((el) => {
+      if (el.typeVal.name === "EMB_RES") {
+        embResOptions.value.push({
+          label: el.id,
+          text: model.label + "." + el.nameVal,
+        });
+      }
+    })
+  }
 };
 const validateResName = (rule, value, callback) => {
   if (
@@ -1776,6 +1782,7 @@ const cardDataInit = (node) => {
     largeType: info.Type === "" ? "segment" : info.Type,
     items: [],
   };
+  if (info.Type === '') card.resource = ''
   card.items = getFormatObj(info.VarDeclaration);
 
   if (info.Type === "target_device") {
@@ -1798,8 +1805,8 @@ const cardDataInit = (node) => {
     card.buttonText = "编辑";
   }
   node.cardInfo = card;
+  // console.log('cardDataInit',card,info.type)
   return node;
-  // console.log('cardDataInit',cardData.value)
 };
 const getFormatObj = (arr) => {
   let ret = [];
@@ -1873,16 +1880,16 @@ const handleKeyUp = (e) => {
     let nodes = graph.findAllByState("node", "selected");
     // console.log(nodes)
     if (nodes.length > 0 && !isLeaveCanvas) {
-      nodes.forEach((el) => {
-        graph.removeItem(el);
-      });
+      for (let i = 0; i < nodes.length; i++) {
+        graph.removeItem(nodes[i])
+      }
       isCardShow.value = false;
       clearAllStats();
     }
     if (edges.length > 0 && !isLeaveCanvas) {
-      edges.forEach((el) => {
-        graph.removeItem(el);
-      });
+      for (let i = 0; i < edges.length; i++) {
+        graph.removeItem(edges[i])
+      }
       clearAllStats();
     }
     // curGraphData = graph.save();

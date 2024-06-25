@@ -350,8 +350,10 @@
     BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
   import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
   import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
+import { debug } from "console";
 
   let cacheKey = 'functionBlock';
+  let cacheKey_deployment = 'deployment'
   let functionBlockJson = {};
   
   // 设备库变量
@@ -583,7 +585,7 @@ G6.registerNode("functionBlock", {
     // let bboxRes = textRes.getBBox();
     // let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
     let w = group.getBBox().width
-    // console.log(w)
+    console.log('width',w)
     tmpShape.forEach(el=>{group.removeChild(el)})
     let realWidth = w > minSize[0] ? w : minSize[0]
     // console.log(realWidth,group.getBBox())
@@ -791,7 +793,7 @@ const addTmpShape = (arr1,arr2,group) => {
         textAlign:'left',
         // fontSize: 14,
         // fontFamily: 'Arial',
-        text: el,
+        text: el.name,
         // textBaseline: 'middle',
         fill: '#000'
       },
@@ -806,7 +808,7 @@ const addTmpShape = (arr1,arr2,group) => {
           textAlign:'left',
           // fontSize: 14,
           // fontFamily: 'Arial',
-          text: arr2[i],
+          text: arr2[i].name,
           // textBaseline: 'middle',
           fill: '#000'
         },
@@ -839,13 +841,16 @@ const getSelectOption = (arr) => {
 const initGraph = () => {
   let graphWidth = container.value.offsetWidth;
   let graphHeight = window.innerHeight;
+  let minimap = new G6.Minimap({
+    size: [graphWidth / 8, graphHeight / 8],
+  });
   graph = new G6.Graph({
     // linkCenter: true,
     renderer: 'svg',//渲染html
     container: "container",
     width: graphWidth,
     height: graphHeight,
-    plugins: [toolbar],
+    plugins: [minimap,toolbar],
     enabledStack: true,
     modes: {
       default: [
@@ -1018,8 +1023,11 @@ const initGraph = () => {
               if (sAnchor.evtVar !== tAnchor.evtVar) return false
               // 类型、长度一致的输入输出变量才能互连，且输出和输入是一对多关系
               // 事件多对多，无限制
-              // if (sAnchor)
-              sTarget.set("links", tTarget.get("links") + 1)
+              if (sAnchor.evtVar === 'var') {
+                if (sAnchor.type !== tAnchor.type || sAnchor.arrSize !== tAnchor.arrSize) return false
+                if (sAnchor.inOut === 'in' && sTarget.get("links") === 1 || tAnchor.inOut === 'in' && tTarget.get("links") === 1) return false
+              }
+              sTarget.set("links", sTarget.get("links") + 1)
               tTarget.set("links", tTarget.get("links") + 1);
               // console.log(e)
               return true
@@ -1329,6 +1337,7 @@ const selectChange = (e) => {
 const addNode = () => {
   let data = addNodeBefore.value.data
   console.log(data)
+  let {selectedRes,embResOptions} = getEmbResAll()
   let node = {
     id: uuidv4(),//uuidv4()
     title: addNodeBefore.value.title,
@@ -1337,12 +1346,12 @@ const addNode = () => {
     type: 'functionBlock',
     // backgroud:'#009688',
     isFocus: false,
-    selectedResource: {id:2,label:'res2',selected:false},
-    resOption: [{id:1,label:'res111111111111111111111111111111111111111111111111112',selected:false},{id:2,label:'res2',selected:true}],
+    selectedResource: selectedRes,
+    resOption: embResOptions,
     info: data.info,
     label: data.name,
     controlPoints: [],
-    anchorDes:''
+    fbType:data.type
   };
   switch (data.type) {
     case 'project':
@@ -1371,6 +1380,35 @@ const addNode = () => {
   graph.addItem("node", node);
   listener(node.id)
   dialogVisible_title.value = false;
+}
+const getEmbResAll = () => {
+  let selectedRes = {id:0,label:'无资源',selected:true}
+  let embResOptions = [{id:0,label:'无资源',selected:true}]
+  let obj = cache.local.getJSON(cacheKey_deployment);
+  if (obj) {
+    obj.nodes.forEach(el=>{
+      if (el.info.Type === 'device' && el.resources.length>0) {
+        el.resources.forEach(res=>{
+          if (res.typeVal.name === 'EMB_RES') {
+            embResOptions.push({id:res.id,label:el.label + "." + res.nameVal,selected:false})
+          }
+        })
+      } else if (el.type === 'segment' && el.resource !== '') {
+        selectedRes = {id:el.resource,label:'',selected:true}
+      }
+    })
+  }
+  if (selectedRes.id!==0) {
+    for (let i = 0; i < embResOptions.length; i++) {
+      const el = embResOptions[i];
+      if (selectedRes.id === el.id) {
+        selectedRes.label = el.label
+        el.selected = true
+        break
+      }
+    }
+  }
+  return {selectedRes,embResOptions}
 }
 const getAnchorsName = (arr,attr1,attr2,attr3) => {
   let ret = []
