@@ -90,12 +90,12 @@ export default {
             let rlt=res.data;
             //加通讯功能块
             let segNodeId=uuidv4();
-            let segParentNode={id:segNodeId,parentId:0,name:"通讯功能块（T）"};
+            let segParentNode={id:segNodeId,parentId:0,name:"通讯功能块（T）",type:"communicate"};
             let segNode=getSegNode(segParentNode);
             rlt.push(segNode);
             //加资源功能块
             let resNodeId=uuidv4()
-            let resParentNode={id:resNodeId,parentId:0,name:"资源功能块（Z）"};
+            let resParentNode={id:resNodeId,parentId:0,name:"资源功能块（Z）",type:"res"};
             let resNode=getResourceNodes(resParentNode);
             rlt.push(resNode);
             console.log(rlt)
