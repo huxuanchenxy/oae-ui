@@ -79,7 +79,7 @@
       <div
         style="position: relative; height: 100%; flex-grow: 2; overflow: hidden"
       >
-      <div class="g6-tooltip"/>
+      <div class="g6-tooltip" ref ="tooltip"></div>
       <div id="container" ref="container"></div>
       </div>
       <div :class="{ rightShow: drawer, rightHidden: !drawer }">
@@ -431,6 +431,7 @@
     addNode()
   };
 //   G6图形
+const tooltip = ref()
 const anchorAttr = {
     toTopAndBottom: 5,
     size: [10,10],
@@ -755,7 +756,7 @@ G6.registerNode("functionBlock", {
   },
   setState(name, value, item) {
     // console.log(name, value, item)
-    item.get('model').anchorDes = value
+    // item.get('model').anchorDes = value
     // const group = item.getContainer();
     // const shapes = group.get("children");
     // const shape = shapes[0];
@@ -1005,14 +1006,21 @@ const initGraph = () => {
               targetAnchor = e.target.get("anchorPointIdx");
               let sModel = curGraphItemBegin.model
               let tModel=e.item.get('model')
+              let sTarget = curGraphItemBegin.target
+              let tTarget = e.target
+              let sAnchor = sModel.anchorsInfo[sourceAnchor]
+              let tAnchor = sModel.anchorsInfo[targetAnchor]
               // 自己不能连自己
               if (sModel.id === tModel.id && sourceAnchor === targetAnchor) return false
               // 输入不能连输入，输出不能连输出
-              if (sModel.anchorsInfo[sourceAnchor].inOut === tModel.anchorsInfo[targetAnchor].inOut) return false
+              if (sAnchor.inOut === tAnchor.inOut) return false
               // 变量和事件不能互连
-              if (sModel.anchorsInfo[sourceAnchor].evtVar !== tModel.anchorsInfo[targetAnchor].evtVar) return false
-              curGraphItemBegin.target.set("links", e.target.get("links") + 1)
-              e.target.set("links", e.target.get("links") + 1);
+              if (sAnchor.evtVar !== tAnchor.evtVar) return false
+              // 类型、长度一致的输入输出变量才能互连，且输出和输入是一对多关系
+              // 事件多对多，无限制
+              // if (sAnchor)
+              sTarget.set("links", tTarget.get("links") + 1)
+              tTarget.set("links", tTarget.get("links") + 1);
               // console.log(e)
               return true
             }
@@ -1077,24 +1085,10 @@ const initGraph = () => {
     let model = e.item.get('model')
     listener(model.id,model.isFocus)
   })
-  graph.on('afteritemstatechange',(item) => {
-    let state = item.state.split(':')[0]
-    if (state === 'anchorDes') {
-      console.log(item)
-      let tooltip = document.getElementsByClassName('g6-tooltip')
-      tooltip[0].hidden=false
-    }
-  })
-  graph.on('wheelzoom',() => {
+  graph.on('wheelzoom',(e) => {
     // console.log('wheelzoom',e)
     // e.stopPropagation();
-    // // 这里的 className 根据实际情况而定，默认是 g6-component-tooltip
-    // const tooltips = Array.from(document.getElementsByClassName('g6-component-tooltip'));
-    // tooltips.forEach((tooltip) => {
-    //   if (tooltip && tooltip.style) {
-    //     tooltip.style.transform = `scale(${graph.getZoom()})`;
-    //   }
-    // });
+    if (tooltip.value.style.display === 'block') tooltip.value.style.transform = `scale(${graph.getZoom()})`;
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
     });
@@ -1148,16 +1142,18 @@ const initGraph = () => {
       let anchor = model.anchorsInfo[index]
       if (anchor.evtVar === 'var') {
         // tooltip
-        let tooltipBox = document.getElementsByClassName('g6-tooltip');
-        tooltipBox.innerHTML = anchor.type+'_'+anchor.arrSize
+        // let tooltipBox = document.getElementsByClassName('g6-tooltip');
+        tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
         let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-        tooltipBox.style.left = point.x + 'px';
-        tooltipBox.style.top = (point.y+20) + 'px';
-        tooltipBox.style.display = "block";
+        console.log(tooltip)
+        tooltip.value.style.left = point.x + 'px';
+        tooltip.value.style.top = (point.y+20) + 'px';
+        tooltip.value.style.display = "block";
       }
     } else {
-      let tooltipBox = document.getElementsByClassName('g6-tooltip')
-      tooltipBox.style.display = 'none'
+      console.log('mouseenter:none')
+      // let tooltipBox = document.getElementsByClassName('g6-tooltip')
+      tooltip.value.style.display = 'none'
     }
     let id = e.item.get('id')
     if (id === 'line1' || id === 'line2' || id === 'line3') {
@@ -1170,9 +1166,9 @@ const initGraph = () => {
     }
   })
   graph.on('node:mouseout',e => {
-    // console.log('node:mouseout',e.item)
-    let tooltipBox = document.getElementsByClassName('g6-tooltip')
-    tooltipBox.style.display = 'none'
+    // console.log('node:mouseout')
+    // let tooltipBox = document.getElementsByClassName('g6-tooltip')
+    // tooltip.value.style.display = 'none'
     let id = e.item.get('id')
     if (id === 'line1' || id === 'line2' || id === 'line3') {
       graph.update(id, {
@@ -1183,6 +1179,29 @@ const initGraph = () => {
       });
     }
   })
+  
+  graph.on('node:mousemove',e => {
+    // console.log('node:mouseenter',e)
+    const target = e.target;
+    if (target.get('name') === 'anchor-point') {
+      let index = target.get("anchorPointIdx");
+      let model = e.item.get('model')
+      let anchor = model.anchorsInfo[index]
+      if (anchor.evtVar === 'var') {
+        // tooltip
+        tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
+        let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
+        // console.log(tooltip)
+        tooltip.value.style.left = point.x + 'px';
+        tooltip.value.style.top = (point.y+20) + 'px';
+        tooltip.value.style.display = "block";
+      }
+    } else {
+      // console.log('mouseenter:none')
+      tooltip.value.style.display = 'none'
+    }
+  })
+  
   graph.on('edge:click',(e) => {
     // console.log(e.item)
     let model = e.item.get('model')
