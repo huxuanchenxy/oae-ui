@@ -585,7 +585,7 @@ G6.registerNode("functionBlock", {
     // let bboxRes = textRes.getBBox();
     // let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
     let w = group.getBBox().width
-    console.log('width',w)
+    // console.log('width',w)
     tmpShape.forEach(el=>{group.removeChild(el)})
     let realWidth = w > minSize[0] ? w : minSize[0]
     // console.log(realWidth,group.getBBox())
@@ -1153,13 +1153,13 @@ const initGraph = () => {
         // let tooltipBox = document.getElementsByClassName('g6-tooltip');
         tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
         let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-        console.log(tooltip)
+        // console.log(tooltip)
         tooltip.value.style.left = point.x + 'px';
         tooltip.value.style.top = (point.y+20) + 'px';
         tooltip.value.style.display = "block";
       }
     } else {
-      console.log('mouseenter:none')
+      // console.log('mouseenter:none')
       // let tooltipBox = document.getElementsByClassName('g6-tooltip')
       tooltip.value.style.display = 'none'
     }
@@ -1187,7 +1187,6 @@ const initGraph = () => {
       });
     }
   })
-
   graph.on('node:mousemove',e => {
     // console.log('node:mouseenter',e)
     const target = e.target;
@@ -1209,7 +1208,40 @@ const initGraph = () => {
       tooltip.value.style.display = 'none'
     }
   })
-  
+  graph.on('anchor-point:dblclick',e=>{
+    let model = e.item.get('model')
+    let tar = e.target
+    let index = tar.get('anchorPointIdx')
+    const newInput = {
+      lineSize:[24,1],
+      inputSize:[24,12]
+    }
+    // console.log(tar)
+    let anchor = model.anchorsInfo[index]
+    if (anchor.inOut === 'in' && anchor.evtVar === 'var') {
+      // console.log('anchor-point:dblclick')
+      let group = e.item.get('group')
+      group.addShape('rect',{
+        attrs: {
+          x: tar.attrs.x - newInput.lineSize[0],
+          y: tar.attrs.y + anchorAttr.size[1]/2,
+          width: newInput.lineSize[0],
+          height: newInput.lineSize[1],
+          fill: "#000"
+        },
+        name: model.id+'_'+index,
+        draggable: false
+      })
+      group.addShape("dom", {
+        attrs: {
+          size: newInput.inputSize,
+          html: '<div><input id="input-'+model.id+'_'+index+'" type="text" style="text-align: center;border:0;width:'+newInput.inputSize+'px" value="'+model.title+'"/></div>'
+        },
+        name: model.id+'_'+index,
+        draggable: false
+      });
+    }
+  })
   graph.on('edge:click',(e) => {
     // console.log(e.item)
     let model = e.item.get('model')
@@ -1337,7 +1369,7 @@ const selectChange = (e) => {
 const addNode = () => {
   let data = addNodeBefore.value.data
   console.log(data)
-  let {selectedRes,embResOptions} = getEmbResAll()
+  let {selectedRes,embResOptions} = getEmbResAll(data)
   let node = {
     id: uuidv4(),//uuidv4()
     title: addNodeBefore.value.title,
@@ -1348,7 +1380,7 @@ const addNode = () => {
     isFocus: false,
     selectedResource: selectedRes,
     resOption: embResOptions,
-    info: data.info,
+    info: toRaw(data.info),
     label: data.name,
     controlPoints: [],
     fbType:data.type
@@ -1372,16 +1404,17 @@ const addNode = () => {
       node.outputEvt = retOut
       node.inputVar = []
       node.outputVar = []
+      node.nodeId = data.nodeId
       break;
     default:
       break;
   }
-  console.log(node)
+  // console.log(node)
   graph.addItem("node", node);
   listener(node.id)
   dialogVisible_title.value = false;
 }
-const getEmbResAll = () => {
+const getEmbResAll = (data) => {
   let selectedRes = {id:0,label:'无资源',selected:true}
   let embResOptions = [{id:0,label:'无资源',selected:true}]
   let obj = cache.local.getJSON(cacheKey_deployment);
@@ -1393,8 +1426,9 @@ const getEmbResAll = () => {
             embResOptions.push({id:res.id,label:el.label + "." + res.nameVal,selected:false})
           }
         })
-      } else if (el.type === 'segment' && el.resource !== '') {
-        selectedRes = {id:el.resource,label:'',selected:true}
+      } else if (data.type === 'Seg') {
+        let res = data.cardInfo.resource
+        if (res!=='') selectedRes = {id:res,label:'',selected:true}
       }
     })
   }
@@ -1472,7 +1506,7 @@ const getAnchorsNameForSeg = (arr) => {
     // window.addEventListener("keyup", handleKeyUp);
     sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
       devices.value = res;
-      console.log('设备库：',res);
+      // console.log('设备库：',res);
       
       // console.log(segMapDev);
     });
@@ -1486,6 +1520,8 @@ const getAnchorsNameForSeg = (arr) => {
     dialogAlgAndEvent.visible = false;
   }
   const nodeDbClick=((evt)=>{
+    // 双击锚点时不执行
+    if (evt.target.get('name') === 'anchor-point') return
     //得到对应系统变量
     currentBlockId=evt.item.get("id");
     let originNode=graph.findById(currentBlockId);

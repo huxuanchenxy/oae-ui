@@ -1423,7 +1423,7 @@ const addNode = (x, y, data) => {
   let num = 1;
   let nodeType = "Seg";
   // data.info = JSON.parse(data.jsonContent);
-  // console.log(data.info)
+  // console.log(data)
   if (data.info.Type === "target_device") {
     nodeType = "Tar";
   } else if (data.info.Type === "device") {
