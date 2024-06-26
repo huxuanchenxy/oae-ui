@@ -2,41 +2,56 @@ import {getCurrentObj,getJsonAll,removeCurrentModule}  from "@/utils/cache/commo
 const cacheKey_configList= "deployment_configs";
 import cache from "@/plugins/cache.ts";
 const deploymentCacheKey="deployment";
-export const getSystemInputVaris=(id)=>{
-    return getSystemVaris("write",id);
+export const getSystemInputVaris=(project,modeule,id)=>{
+    return getSystemVaris(project,modeule,"write",id);
 }
-export const getSystemOutputVaris=(id)=>{
-    return getSystemVaris("read",id);
+export const getSystemOutputVaris=(project,modeule,id)=>{
+    return getSystemVaris(project,modeule,"read",id);
 }
 /**
  * 得到系统变量
  * @param type write/read
  * @param id NODEID，用来取内置变量
  */
-const getSystemVaris=(type,id)=>{
-    //得到配置列表
-    let configList = cache.local.getJSON(cacheKey_configList);
-    let deployment = cache.local.getJSON(deploymentCacheKey)?.nodes;
-    configList=configList.filter(x=>x.type==type);
-    let rltList=new Array();
-    //把配置列表里的变量加上
-    if (configList||configList.length>0){
-        configList.forEach((config)=>{
-            //得到设备
-            let currentDeployment=deployment.find(x=>x.id==config.nodeId);
-            rltList.push({
-                key:config.id,
-                //为防止变量冲突，加上设备前缀
-                text:currentDeployment?.label+"_"+config.name,
-                type:getType(config.ioType)
-            })
-        })
-    }
-    //这里需要把 write/read转化成XML里的对应字符串作为参数，再去得到内置变量
-    rltList.concat(getInsideVari(convertTypeToXmlType(type),id));
-    //把内置变量给加上
-    return rltList;
+const getSystemVaris=(project,modeule,type,id)=>{
+    getSegChildrenIds(project,modeule,id);
+    // //得到配置列表
+    // let configList = cache.local.getJSON(cacheKey_configList);
+    // let deployment = cache.local.getJSON(deploymentCacheKey)?.nodes;
+    // configList=configList.filter(x=>x.type==type);
+    // let rltList=new Array();
+    //
+    // //把配置列表里的变量加上
+    // if (configList||configList.length>0){
+    //     configList.forEach((config)=>{
+    //         //得到设备
+    //         let currentDeployment=deployment.find(x=>x.id==config.nodeId);
+    //         rltList.push({
+    //             key:config.id,
+    //             //为防止变量冲突，加上设备前缀
+    //             text:currentDeployment?.label+"_"+config.name,
+    //             type:getType(config.ioType)
+    //         })
+    //     })
+    // }
+    // //这里需要把 write/read转化成XML里的对应字符串作为参数，再去得到内置变量
+    // rltList.concat(getInsideVari(project ,module,convertTypeToXmlType(type),id));
+    // //把内置变量给加上
+    // return rltList;
 }
+//通过网络段ID查找他下面设备的所有ID
+const getSegChildrenIds=(project,modeule,segId)=>{
+    let deploymentEdges = cache.local.getJSON(deploymentCacheKey)?.edges;
+    if (!deploymentEdges){
+        return;
+    }
+    let relatgedIds=new Array();
+    console.log(deploymentEdges,segId)
+    relatgedIds.push(deploymentEdges.filter(x=>x.source==segId).map(x=>x.target));
+    relatgedIds.push(deploymentEdges.filter(x=>x.target==segId).map(x=>x.source));
+    console.log(relatgedIds)
+}
+
 /**
  * 根据IOTYPE得到类型
  * @param ioType
@@ -53,7 +68,7 @@ const getType=(ioType)=>{
  * @param type 输入还是输出 INPUT/OUTPUT
  * @param id NODEID
  */
-const getInsideVari=(type,id)=>{
+const getInsideVari=(project,modeule,type,id)=>{
     let rltList=new Array();
     //根据ID得到设备/网络段/资源实例ID，取内置变量
     let json=cache.local.getJSON(deploymentCacheKey);

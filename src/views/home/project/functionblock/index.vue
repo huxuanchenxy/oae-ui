@@ -1489,10 +1489,11 @@ const getAnchorsNameForSeg = (arr) => {
     //得到对应系统变量
     currentBlockId=evt.item.get("id");
     let originNode=graph.findById(currentBlockId);
-    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
-    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
-    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().selectedResource.id)
-    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().selectedResource.id);
+    console.log("nodeId",originNode.getModel().nodeId)
+    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
+    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().nodeId);
+    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().nodeId)
+    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().nodeId);
     let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
     if (block){
       inputEventList.value=block.input_events;
