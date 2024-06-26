@@ -298,10 +298,10 @@ const validateName = (rule, value, callback) => {
     callback(new Error("使用字母数字和下划线,首个字符必须是字母"));
   } else {
     let moduleJson = getCurrentObj(project, currentModule.value);
-    let tmp = moduleJson.algorithms.filter((item) => {
+    let tmp = moduleJson?.algorithms?.filter((item) => {
       return item.text === value;
     });
-    if (tmp.length === 0) callback();
+    if (!tmp || tmp.length === 0) callback();
     else callback(new Error("同一个模块中算法名称不可重复"));
   }
 };
