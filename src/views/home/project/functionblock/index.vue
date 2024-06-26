@@ -1529,7 +1529,7 @@ const getAnchorsNameForSeg = (arr) => {
     let originNode=graph.findById(currentBlockId);
     if (originNode.getModel().fbType=="project"){
       $router.push({path:'/module/'+originNode.getModel().parentId+"/"+originNode.getModel().id});
-      return;
+      // console.log(111,'/module/'+originNode.getModel().projectParentId+"/"+originNode.getModel().projectId)
     }
     systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
     systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().nodeId);
