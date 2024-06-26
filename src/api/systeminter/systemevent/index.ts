@@ -1,7 +1,7 @@
 import cache from "@/plugins/cache.ts";
 const deploymentCacheKey="deployment";
 export const getSystemInputEvents = (project, module,id) => {
-    return getSystemEvents(project,module,"Iutput",id)
+    return getSystemEvents(project,module,"Input",id)
 }
 export const getSystemOutputEvents = (project, module,id) => {
     return getSystemEvents(project,module,"Output",id)
@@ -17,7 +17,7 @@ const getSystemEvents=(project, module,type,id)=>{
     if(!node||!node.jsonContent){
         return;
     }
-    let event=node.jsonContent?.Event;
+    let event=JSON.parse(node.jsonContent).Event;
     if (!event||event.length<=0){
         return rltList;
     }

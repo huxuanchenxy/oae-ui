@@ -91,7 +91,7 @@ const getInsideVari=(project,modeule,type,id)=>{
     if(!node||!node.jsonContent){
         return;
     }
-    let varis=node.jsonContent?.VarDeclaration;
+    let varis=JSON.parse(node.jsonContent).VarDeclaration;
     if (!varis||varis.length<=0){
         return rltList;
     }
