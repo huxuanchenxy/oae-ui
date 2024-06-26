@@ -29,7 +29,6 @@ const getSegNode=(segParentNode)=>{
     }else{
         segParentNode.children=rltNodes;
     }
-    console.log("segParentNode",segParentNode)
     return segParentNode;
 }
 //得到资源功能块树节点和子节点
@@ -72,9 +71,25 @@ const getResourceNodes=(resParentNode)=>{
     }else{
         resParentNode.children=rltNodes;
     }
-    console.log("resParentNode",resParentNode)
+    //取资源=》RES=》功能列表
+    getResourceFuncByTypeGroup().then((funcs)=>{
+        let resources=resParentNode.children;
+        if (funcs.length<=0){
+            return resParentNode;
+        }
+        let funcList=funcs.filter(x=>x.type=="BATCH_RES")?.list;
+        if (funcs.length<=0){
+            return resParentNode;
+        }
+        resources.forEach((res)=>{
+            res.children=funcList.filter(func=>func.parentId==res.id);
+        })
+    });
     return resParentNode;
 }
+const getResourceFuncByTypeGroup= () => {
+    return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
+};
 export default {
     // saveSysUser: params => { 
     //     return axios.post(`${baseUrl}/SysUserAdd/SaveSysUser`,
@@ -107,9 +122,7 @@ export default {
         })
     },
 
-    getResourceFuncByTypeGroup: () => {
-        return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
-    },
+
     addSysFuncList: (params) => {
         return axios.post(`${baseUrl}/Sys/AddSysFuncList`, params).then(res => res.data)
     },
