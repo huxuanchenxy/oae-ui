@@ -385,7 +385,7 @@ import { debug } from "console";
   const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
   const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
   const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
-
+  let $router=useRouter();
 
   const defaultProps = {
     children: "children",
@@ -1383,7 +1383,9 @@ const addNode = () => {
     info: toRaw(data.info),
     label: data.name,
     controlPoints: [],
-    fbType:data.type
+    fbType:data.type,
+    projectParentId:data.parentId,
+    projectId:data.id
   };
   switch (data.type) {
     case 'project':
@@ -1525,7 +1527,10 @@ const getAnchorsNameForSeg = (arr) => {
     //得到对应系统变量
     currentBlockId=evt.item.get("id");
     let originNode=graph.findById(currentBlockId);
-    console.log("nodeId",originNode.getModel().nodeId)
+    if (originNode.getModel().fbType=="project"){
+      $router.push({path:'/module/'+originNode.getModel().parentId+"/"+originNode.getModel().id});
+      return;
+    }
     systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
     systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().nodeId);
     systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().nodeId)
@@ -1542,7 +1547,6 @@ const getAnchorsNameForSeg = (arr) => {
       inputVariList.value = new Array();
       outputVariList.value = new Array();
     }
-    console.log(inputEventList.value)
     dialogAlgAndEvent.visible = true;
   });
   //-------输入事件开始
