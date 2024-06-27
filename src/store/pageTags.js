@@ -1,7 +1,8 @@
  export const pagetagsStore = defineStore("pagetagsStore", {
      state: () => ({
          TagArrs: [],
-         TagModuleArrs: []
+         TagModuleArrs: [],
+         CurTag:{}
      }),
      getters: {
 
@@ -10,16 +11,25 @@
          //添加选项卡
          AddTag(tag) {
              if (this.TagArrs.length > 0) {
-                 this.TagArrs.forEach(e => e.effect = "plain");
+                 this.TagArrs.forEach(e => {e.effect = "plain";e.selected =0;});
              }
-             //if (this.TagArrs.filter(item => item.path.indexOf(tag.path) > -1).length == 0) {
+
              if (this.TagArrs.filter(item => item.path == (tag.path)).length == 0) {
+                 tag.index = this.TagArrs.length+1;
+                 tag.selected =1;
                  this.TagArrs.push(tag);
+                 this.CurTag = tag;
+                 console.log(this.TagArrs);
              } else {
+                console.log("enter click");
                  let obj = this.TagArrs.find(item => item.path == tag.path);
-                 if (obj) {
+                 
+                 if (obj !== undefined) {    
                      obj.effect = "dark";
+                     obj.selected = 1;
+                     this.CurTag = obj;
                  }
+                 console.log(obj);
              }
          },
          //  GetTagModule(param) {
