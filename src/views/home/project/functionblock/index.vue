@@ -385,7 +385,7 @@ import { debug } from "console";
   const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
   const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
   const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
-
+  let $router=useRouter();
 
   const defaultProps = {
     children: "children",
@@ -1426,6 +1426,8 @@ const addNode = () => {
     fbType:data.type,
     anchorsInfo:[],
     isShowForInputVar:false,//资源模块时，默认输出变量都显示常量,即使是空值也要显示
+    projectParentId:data.parentId,
+    projectId:data.id
   };
   switch (data.type) {
     case 'project':
@@ -1567,10 +1569,14 @@ const getAnchorsNameForSeg = (arr) => {
     //得到对应系统变量
     currentBlockId=evt.item.get("id");
     let originNode=graph.findById(currentBlockId);
-    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
-    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
-    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().selectedResource.id)
-    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().selectedResource.id);
+    if (originNode.getModel().fbType=="project"){
+      $router.push({path:'/module/'+originNode.getModel().parentId+"/"+originNode.getModel().id});
+      // console.log(111,'/module/'+originNode.getModel().projectParentId+"/"+originNode.getModel().projectId)
+    }
+    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
+    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().nodeId);
+    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().nodeId)
+    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().nodeId);
     let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
     if (block){
       inputEventList.value=block.input_events;
@@ -1583,7 +1589,6 @@ const getAnchorsNameForSeg = (arr) => {
       inputVariList.value = new Array();
       outputVariList.value = new Array();
     }
-    console.log(inputEventList.value)
     dialogAlgAndEvent.visible = true;
   });
   //-------输入事件开始

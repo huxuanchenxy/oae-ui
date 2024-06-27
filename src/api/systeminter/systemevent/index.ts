@@ -1,17 +1,36 @@
-import { getCurrentObj, getJsonAll, removeCurrentModule } from "@/utils/cache/common";
-export const getSystemInputEvents = (project:string, module:number) => {
-    return [
-        {key:1,text:'inputeve1'},
-        {key:2,text:'inputeve2'},
-        {key:3,text:'inputeve3'},
-        {key:4,text:'inputeve4'},
-    ]
+import cache from "@/plugins/cache.ts";
+const deploymentCacheKey="deployment";
+export const getSystemInputEvents = (project, module,id) => {
+    return getSystemEvents(project,module,"Input",id)
 }
-export const getSystemOutputEvents = (project:string, module:number) => {
-    return [
-        {key:1,text:'outputeve1'},
-        {key:2,text:'outputeve2'},
-        {key:3,text:'outputeve3'},
-        {key:4,text:'outputeve4'},
-    ]
+export const getSystemOutputEvents = (project, module,id) => {
+    return getSystemEvents(project,module,"Output",id)
+}
+const getSystemEvents=(project, module,type,id)=>{
+    let rltList=new Array();
+    //根据ID得到设备/网络段/资源实例ID，取内置变量
+    let json=cache.local.getJSON(deploymentCacheKey);
+    if (!json||!json.nodes){
+        return rltList;
+    }
+    let node=json.nodes.find(x=>x.id==id);
+    if(!node||!node.jsonContent){
+        return;
+    }
+    let event=JSON.parse(node.jsonContent).Event;
+    if (!event||event.length<=0){
+        return rltList;
+    }
+    event=event.filter(x=>x.Type==type);
+    if(!event){
+        return rltList;
+    }
+    event.forEach(vari=>{
+        rltList.push({
+            key:vari.Name,
+            text:vari.Name,
+            type:vari.Type
+        })
+    })
+    return rltList;
 }
