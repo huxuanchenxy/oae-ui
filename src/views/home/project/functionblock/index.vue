@@ -434,11 +434,16 @@ import { debug } from "console";
   };
 //   G6图形
 const tooltip = ref()
+// 输入变量拉出来的常量（一横一方框）
+const newInput = {
+  lineSize:[24,1],
+  inputSize:[40,16]
+}
 const anchorAttr = {
-    toTopAndBottom: 5,
-    size: [10,10],
-    spacing: 5, //间距，包括锚点之间和锚点与文字之间
-    textSpacing: 5  //并排时文字之间的最小间距
+  toTopAndBottom: 5,
+  size: [10,10],
+  spacing: 5, //间距，包括锚点之间和锚点与文字之间
+  textSpacing: 5  //并排时文字之间的最小间距
 }
 const moveEdgeIconSize = [10,10]
 // minSize为最小显示大小
@@ -554,7 +559,7 @@ G6.registerNode("functionBlock", {
     let tmpShape1 = cfg.outputEvt.length > cfg.inputEvt.length ? addTmpShape(cfg.outputEvt,cfg.inputEvt,group):addTmpShape(cfg.inputEvt,cfg.outputEvt,group)
     let tmpShape2 = cfg.outputVar.length > cfg.inputVar.length ? addTmpShape(cfg.outputVar,cfg.inputVar,group):addTmpShape(cfg.inputVar,cfg.outputVar,group)
     let tmpShape = tmpShape1.concat(tmpShape2)
-    tmpShape1 = group.addShape('text', {
+    group.addShape('text', {
       attrs: {
         y:htmlHeight,
         textAlign:'left',
@@ -566,8 +571,7 @@ G6.registerNode("functionBlock", {
       },
       name: 'text-title'
     })
-    tmpShape.push(tmpShape1)
-    tmpShape1 = group.addShape("text", {
+    group.addShape("text", {
       attrs: {
         y:htmlHeight,
         textAlign:'left',
@@ -579,7 +583,6 @@ G6.registerNode("functionBlock", {
       },
       name: "text-res",
     });
-    tmpShape.push(tmpShape1)
     // console.log(tmpShape[0].getBBox().width)
     // let bboxTitle = textTitle.getBBox();
     // let bboxRes = textRes.getBBox();
@@ -593,7 +596,7 @@ G6.registerNode("functionBlock", {
       attrs: {
         width: realWidth,
         height: htmlHeight,
-        html: '<div><input id="input-'+cfg.id+'" type="text" style="text-align: center;border:0;width:'+realWidth+'px" value="'+cfg.title+'"/></div>'
+        html: '<div><input id="input_'+cfg.id+'" type="text" style="text-align: center;border:0;width:'+realWidth+'px" value="'+cfg.title+'"/></div>'
       },
       name: "dom-input-title",
     });
@@ -667,7 +670,7 @@ G6.registerNode("functionBlock", {
         y:htmlHeight+realEvtHeight+initCenterLack[1]+realVarHeight+initLabelHeight,
         width: realWidth,
         height: htmlHeight,
-        html: '<div><select id="select-'+cfg.id+'" style="text-align: center;width:'+realWidth+'px;appearance:none;border:0;">'+getSelectOption(cfg.resOption)+'</select></div>'
+        html: '<div><select id="select_'+cfg.id+'" style="text-align:center;width:'+realWidth+'px;appearance:none;border:0;">'+getSelectOption(cfg.resOption)+'</select></div>'
       },
       name: "dom-select-res",
     });
@@ -743,11 +746,11 @@ G6.registerNode("functionBlock", {
     for (let i = 0; i < cfg.inputVar.length; i++) {
       anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
       let obj = cfg.inputVar[i]
-      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",order:i})
+      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",order:i,val:''})
     }
     for (let i = 0; i < cfg.outputVar.length; i++) {
       anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      let obj = cfg.inputVar[i]
+      let obj = cfg.outputVar[i]
       cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"out",evtVar:"var",order:i})
     }
     // console.log('anchorPointsArr',anchorPointsArr)
@@ -1096,9 +1099,10 @@ const initGraph = () => {
   graph.on('wheelzoom',(e) => {
     // console.log('wheelzoom',e)
     // e.stopPropagation();
-    if (tooltip.value.style.display === 'block') tooltip.value.style.transform = `scale(${graph.getZoom()})`;
+    // if (tooltip.value.style.display === 'block') tooltip.value.style.transform = `scale(${graph.getZoom()})`;
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
+      listener(el.get('id'),false,true)
     });
   })
   graph.on("node:mousedown", (evt) => {
@@ -1143,26 +1147,7 @@ const initGraph = () => {
   });
   graph.on('node:mouseenter',e => {
     // console.log('node:mouseenter',e)
-    const target = e.target;
-    if (target.get('name') === 'anchor-point') {
-      let index = target.get("anchorPointIdx");
-      let model = e.item.get('model')
-      let anchor = model.anchorsInfo[index]
-      if (anchor.evtVar === 'var') {
-        // tooltip
-        // let tooltipBox = document.getElementsByClassName('g6-tooltip');
-        tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
-        let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-        // console.log(tooltip)
-        tooltip.value.style.left = point.x + 'px';
-        tooltip.value.style.top = (point.y+20) + 'px';
-        tooltip.value.style.display = "block";
-      }
-    } else {
-      // console.log('mouseenter:none')
-      // let tooltipBox = document.getElementsByClassName('g6-tooltip')
-      tooltip.value.style.display = 'none'
-    }
+    showTooltip(e)
     let id = e.item.get('id')
     if (id === 'line1' || id === 'line2' || id === 'line3') {
       graph.update(id, {
@@ -1176,7 +1161,7 @@ const initGraph = () => {
   graph.on('node:mouseout',e => {
     // console.log('node:mouseout')
     // let tooltipBox = document.getElementsByClassName('g6-tooltip')
-    // tooltip.value.style.display = 'none'
+    tooltip.value.style.display = 'none'
     let id = e.item.get('id')
     if (id === 'line1' || id === 'line2' || id === 'line3') {
       graph.update(id, {
@@ -1189,58 +1174,19 @@ const initGraph = () => {
   })
   graph.on('node:mousemove',e => {
     // console.log('node:mouseenter',e)
-    const target = e.target;
-    if (target.get('name') === 'anchor-point') {
-      let index = target.get("anchorPointIdx");
-      let model = e.item.get('model')
-      let anchor = model.anchorsInfo[index]
-      if (anchor.evtVar === 'var') {
-        // tooltip
-        tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
-        let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-        // console.log(tooltip)
-        tooltip.value.style.left = point.x + 'px';
-        tooltip.value.style.top = (point.y+20) + 'px';
-        tooltip.value.style.display = "block";
-      }
-    } else {
-      // console.log('mouseenter:none')
-      tooltip.value.style.display = 'none'
-    }
+    showTooltip(e)
   })
   graph.on('anchor-point:dblclick',e=>{
     let model = e.item.get('model')
     let tar = e.target
     let index = tar.get('anchorPointIdx')
-    const newInput = {
-      lineSize:[24,1],
-      inputSize:[24,12]
-    }
-    // console.log(tar)
-    let anchor = model.anchorsInfo[index]
-    if (anchor.inOut === 'in' && anchor.evtVar === 'var') {
-      // console.log('anchor-point:dblclick')
-      let group = e.item.get('group')
-      group.addShape('rect',{
-        attrs: {
-          x: tar.attrs.x - newInput.lineSize[0],
-          y: tar.attrs.y + anchorAttr.size[1]/2,
-          width: newInput.lineSize[0],
-          height: newInput.lineSize[1],
-          fill: "#000"
-        },
-        name: model.id+'_'+index,
-        draggable: false
-      })
-      group.addShape("dom", {
-        attrs: {
-          size: newInput.inputSize,
-          html: '<div><input id="input-'+model.id+'_'+index+'" type="text" style="text-align: center;border:0;width:'+newInput.inputSize+'px" value="'+model.title+'"/></div>'
-        },
-        name: model.id+'_'+index,
-        draggable: false
-      });
-    }
+  // console.log(tar)
+  let anchor = model.anchorsInfo[index]
+  if (anchor.inOut === 'in' && anchor.evtVar === 'var') {
+    // console.log('anchor-point:dblclick')
+    let group = e.item.get('group')
+    drawInputForAnchor(group,tar,model,index,anchor.val)
+  }
   })
   graph.on('edge:click',(e) => {
     // console.log(e.item)
@@ -1258,13 +1204,85 @@ const initGraph = () => {
     // console.log('canvas:dragend')
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
+      listener(el.get('id'),false,true)
     });
   })
   graph.on("canvas:click", (evt) => {
     removeEdgeNode()
+    tooltip.value.style.display = 'none'
     // console.log(graph.getNodes())
   });
   graph.on('node:dblclick', nodeDbClick);
+}
+const initDrawInputForAnchor = () => {
+  graph.getNodes().forEach(node=>{
+    let group = node.get('group')
+    let tars = group.findAll(ele => ele.get('name') === 'anchor-point')
+    let model = node.get('model')
+    model.anchorsInfo.forEach((anchor,i)=>{
+      if (model.isShowForInputVar || anchor.val!=='') drawInputForAnchor(group,tars[i],model,i,anchor.val)
+    })
+  })
+}
+const drawInputForAnchor = (group,tar,model,index,val) => {
+  group.addShape('rect',{
+      attrs: {
+        x: tar.attrs.x - newInput.lineSize[0],
+        y: tar.attrs.y + anchorAttr.size[1]/2,
+        width: newInput.lineSize[0],
+        height: newInput.lineSize[1],
+        fill: "#000"
+      },
+      name: model.id+'_'+index,
+      draggable: false
+    })
+    group.addShape('rect',{
+      attrs: {
+        x: tar.attrs.x - newInput.lineSize[0]-newInput.inputSize[0],
+        y: tar.attrs.y - (newInput.inputSize[1]-anchorAttr.size[1])/2,
+        width: newInput.inputSize[0],
+        height: newInput.inputSize[1],
+        // fill: "#fff",
+        stroke: '#000',
+        lineWidth:1
+      },
+      name: 'anchor_'+model.id+'_'+index,
+      draggable: false
+    })
+    group.addShape("dom", {
+      attrs: {
+        x:tar.attrs.x - newInput.lineSize[0]-newInput.inputSize[0],
+        y:tar.attrs.y-newInput.inputSize[1]/2+1,
+        width: newInput.inputSize[0],
+        height: newInput.inputSize[1]+newInput.inputSize[1]/2,
+        html: '<div><input id="input_'+model.id+'_'+index+'" type="text" style="text-align:center;border:0;font-size:10px;width:'+(newInput.inputSize[0]-1)+'px" value="'+val+'"/></div>'
+      },
+      name: 'anchor_'+model.id+'_'+index,
+      draggable: false
+    });
+    let input = document.getElementById('input_'+model.id+'_'+index);
+    listenerInput(input,false,true)
+}
+const showTooltip = (e) => {
+  const target = e.target;
+  if (target.get('name') === 'anchor-point') {
+    let index = target.get("anchorPointIdx");
+    let model = e.item.get('model')
+    let anchor = model.anchorsInfo[index]
+    // let zoom = graph.getZoom()
+    if (anchor.evtVar === 'var') {
+      // tooltip
+      tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
+      let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
+      // console.log(tooltip)
+      tooltip.value.style.left = (point.x) + 'px';
+      tooltip.value.style.top = (point.y+20) + 'px';
+      tooltip.value.style.display = "block";
+    }
+  } else {
+    // console.log('mouseenter:none')
+    tooltip.value.style.display = 'none'
+  }
 }
 const pathToControlPoints = (path) => {
   let ret = []
@@ -1315,9 +1333,23 @@ const addEdgeNode = (edge,i) => {
   graph.addItem('node',node);
   // console.log(node)
 }
-const listener = (nodeId,isFocus = false) => {
-  let input = document.getElementById('input-'+nodeId);
-  input.addEventListener('keydown',inputKeyDown);
+const listener = (nodeId,isFocus = false,isForAnchor=false) => {
+  let input = document.getElementById('input_'+nodeId);
+  if (isForAnchor) {
+    let anchorsInfo = graph.findById(nodeId).get('model').anchorsInfo
+    anchorsInfo.forEach((el,i)=>{
+      input = document.getElementById('input_'+nodeId+'_'+i);
+      if (input) listenerInput(input,isFocus,isForAnchor)
+    })
+  } else {
+    listenerInput(input,isFocus,isForAnchor)
+    let select = document.getElementById('select_'+nodeId);
+    select.addEventListener('change',selectChange);
+  }
+}
+const listenerInput = (input,isFocus,isForAnchor) => {
+  if (isForAnchor) input.addEventListener('keydown',inputAdaptLengthForAnchor);
+  else input.addEventListener('keydown',inputKeyDown);
   input.addEventListener('input',inputAdaptLength);
   if (isFocus) {
     input.addEventListener('focus',(e) => {
@@ -1328,8 +1360,16 @@ const listener = (nodeId,isFocus = false) => {
     input.focus()
     input.setSelectionRange(preInputCursorPos,preInputCursorPos)
   }
-  let select = document.getElementById('select-'+nodeId);
-  select.addEventListener('change',selectChange);
+}
+const inputAdaptLengthForAnchor = (e) => {
+  let input = e.target;
+  let arr = input.id.split('_')
+  let node = graph.findById(arr[1]);
+  let model = node.get('model');
+  model.anchorsInfo[arr[2]] = input.value;
+  model.isFocus = true
+  preInputCursorPos = input.selectionStart
+  graph.refreshItem(node)
 }
 const inputAdaptLength = (e) => {
     let input = e.target;
@@ -1343,9 +1383,9 @@ const inputAdaptLength = (e) => {
 const inputKeyDown = (e) => {
   if (e.key === 'Enter') {
     let input = e.target;
-    let node = graph.findById(input.id.slice(6));
+    let node = graph.findById(input.id.split('_')[1]);
     let model = node.get('model');
-    model.isFocus = true
+    model.isFocus = false
     graph.refreshItem(node)
   }
 }
@@ -1368,7 +1408,7 @@ const selectChange = (e) => {
 }
 const addNode = () => {
   let data = addNodeBefore.value.data
-  console.log(data)
+  // console.log(data)
   let {selectedRes,embResOptions} = getEmbResAll(data)
   let node = {
     id: uuidv4(),//uuidv4()
@@ -1384,6 +1424,8 @@ const addNode = () => {
     label: data.name,
     controlPoints: [],
     fbType:data.type,
+    anchorsInfo:[],
+    isShowForInputVar:false,//资源模块时，默认输出变量都显示常量,即使是空值也要显示
     projectParentId:data.parentId,
     projectId:data.id
   };
