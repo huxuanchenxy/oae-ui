@@ -1,61 +1,26 @@
 <template>
     <div style="background-color: #def4fd">
       <div style="padding: 10px; display: inline">
+        <el-button text size="large" disabled>校验</el-button>
         <el-dropdown>
           <el-button class="el-dropdown-link" text size="large" disabled>
-            校验
+            隐藏连接
             <el-icon class="el-icon--right">
               <arrow-down />
             </el-icon>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>全部</el-dropdown-item>
-              <el-dropdown-item>应用1</el-dropdown-item>
-              <el-dropdown-item>应用2</el-dropdown-item>
+              <el-dropdown-item>全部显示</el-dropdown-item>
+              <el-dropdown-item>隐藏事件</el-dropdown-item>
+              <el-dropdown-item>隐藏变量</el-dropdown-item>
+              <el-dropdown-item>全部隐藏</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-dropdown>
-          <el-button class="el-dropdown-link" text size="large" disabled>
-            部署
-            <el-icon class="el-icon--right">
-              <arrow-down />
-            </el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>全部</el-dropdown-item>
-              <el-dropdown-item>应用1</el-dropdown-item>
-              <el-dropdown-item>应用2</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-button text size="large" disabled>编译</el-button>
-        <span style="margin-left: 10px; margin-right: 30px">|</span>
-        <el-button-group>
-          <el-tooltip effect="light" content="开始" placement="bottom">
-            <el-button icon="VideoPlay" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="暂停" placement="bottom">
-            <el-button icon="VideoPause" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="终止" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="刷新" placement="bottom">
-            <el-button icon="RefreshRight" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="清缓存" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="部署状态" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="在线设备" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-        </el-button-group>
+        <el-button text size="large" disabled>快速连线</el-button>
+        <el-button text size="large" disabled>映射资源</el-button>
+        <el-button text size="large" disabled>变量资源</el-button>
         <span style="margin-left: 30px; margin-right: 30px">|</span>
         <el-button-group>
           <el-tooltip effect="light" content="保存" placement="bottom">
@@ -350,7 +315,7 @@
     BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
   import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
   import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
-import { debug } from "console";
+import { debug, group } from "console";
 
   let cacheKey = 'functionBlock';
   let cacheKey_deployment = 'deployment'
@@ -437,7 +402,7 @@ const tooltip = ref()
 // 输入变量拉出来的常量（一横一方框）
 const newInput = {
   lineSize:[24,1],
-  inputSize:[40,16]
+  inputSize:[40,14]
 }
 const anchorAttr = {
   toTopAndBottom: 5,
@@ -455,7 +420,7 @@ const initCenterLack = [20,20];
 const initLabelHeight = 40;
 const htmlHeight = 20;
 const lineWidthOut = 2;
-const lineWidthIn = 1;
+const lineWidthIn = 2;
 // 强制连边时，从锚点x位置先偏移edgeOffX画折线，之后自动
 const edgeOffX = 10;
 
@@ -468,7 +433,9 @@ let addNodeBefore = ref({
   y: 0,
   data: {}
 });
-let sourceAnchor,targetAnchor,lastPos,curGraphItemBegin,anchorDes;
+let sourceAnchor,targetAnchor,lastPos,curGraphItemBegin;
+// node中正在输入的input
+let curInput
 // node刷新前input输入框的位置
 let preInputCursorPos = 0
 // 为了利用内置的undo和redo
@@ -559,7 +526,7 @@ G6.registerNode("functionBlock", {
     let tmpShape1 = cfg.outputEvt.length > cfg.inputEvt.length ? addTmpShape(cfg.outputEvt,cfg.inputEvt,group):addTmpShape(cfg.inputEvt,cfg.outputEvt,group)
     let tmpShape2 = cfg.outputVar.length > cfg.inputVar.length ? addTmpShape(cfg.outputVar,cfg.inputVar,group):addTmpShape(cfg.inputVar,cfg.outputVar,group)
     let tmpShape = tmpShape1.concat(tmpShape2)
-    group.addShape('text', {
+    tmpShape1 = group.addShape('text', {
       attrs: {
         y:htmlHeight,
         textAlign:'left',
@@ -571,7 +538,8 @@ G6.registerNode("functionBlock", {
       },
       name: 'text-title'
     })
-    group.addShape("text", {
+    tmpShape.push(tmpShape1)
+    tmpShape1 = group.addShape("text", {
       attrs: {
         y:htmlHeight,
         textAlign:'left',
@@ -587,6 +555,7 @@ G6.registerNode("functionBlock", {
     // let bboxTitle = textTitle.getBBox();
     // let bboxRes = textRes.getBBox();
     // let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
+    tmpShape.push(tmpShape1)
     let w = group.getBBox().width
     // console.log('width',w)
     tmpShape.forEach(el=>{group.removeChild(el)})
@@ -676,14 +645,15 @@ G6.registerNode("functionBlock", {
     });
     group.addShape('rect', {
       attrs: {
-        x:-lineWidthOut*2,
-        y:-lineWidthOut*2,
-        width: realWidth+lineWidthOut*4,
-        height: realAnchorsHeight + lineWidthOut*4,
+        x:-lineWidthOut,
+        y:-lineWidthOut,
+        width: realWidth+lineWidthOut*2,
+        height: realAnchorsHeight + lineWidthOut*2,
         // fill: '#FFF',
         stroke: '#1E90FF',
-        lineWidth:lineWidthOut
+        lineWidth:0
       },
+      id: 'rect-out',
       name: 'rect-out',
       draggable: true
     });
@@ -693,9 +663,10 @@ G6.registerNode("functionBlock", {
       realWidth:realWidth
     }
     const anchorPoints = this.getAnchorPoints(cfg);
-      anchorPoints.forEach((anchorPos, i) => {
+    anchorPoints.forEach((anchorPos, i) => {
       let y = realAnchorsHeight*anchorPos[1] - anchorAttr.size[1]/2
-      let isLeft = cfg.anchorsInfo[i].inOut === 'in'
+      let anchor = cfg.anchorsInfo[i]
+      let isLeft = anchor.inOut === 'in'
       let leftSpacing = lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing
       group.addShape("rect", {
         attrs: {
@@ -727,6 +698,17 @@ G6.registerNode("functionBlock", {
         name: "rect-label-anchor-"+i,
       });
     });
+    const tars = group.findAll(el=>{return el.get('name') === 'anchor-point'})
+    // console.log(tars)
+    tars.forEach((el,i)=>{
+      let anchor = cfg.anchorsInfo[i]
+      if (anchor.inOut === 'in' && anchor.evtVar === 'var' && (cfg.isShowForInputVar || anchor.isShow || anchor.val !== '')) {
+        // console.log('drawInputForAnchor')
+        // 避免重复画input
+        let child = group.findById('anchor_'+cfg.id+'_'+i)
+        if (!child) drawInputForAnchor(group,el,cfg,i,anchor.val)
+      }
+    })
     return keyShape;
   },
   getAnchorPoints(cfg) {
@@ -734,24 +716,25 @@ G6.registerNode("functionBlock", {
     let realWidth = cfg.anchorParam.realWidth;
     let varStartHeight = cfg.anchorParam.varStartHeight;
     let allHeight = cfg.anchorParam.allHeight;
-    cfg.anchorsInfo = [];
+    let isAdd = cfg.anchorsInfo.length === 0;
     for (let i = 0; i < cfg.inputEvt.length; i++) {
       anchorPointsArr.push([lineWidthIn / 2 / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.inputEvt[i].name,inOut:"in",evtVar:"evt",order:i})
+      // 目前不考虑局部变量、事件更新情况，仅适用于更新后重新addnode情况
+      if (isAdd) cfg.anchorsInfo.push({name:cfg.inputEvt[i].name,inOut:"in",evtVar:"evt",isShow:false})
     }
     for (let i = 0; i < cfg.outputEvt.length; i++) {
       anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.outputEvt[i].name,inOut:"out",evtVar:"evt",order:i})
+      if (isAdd) cfg.anchorsInfo.push({name:cfg.outputEvt[i].name,inOut:"out",evtVar:"evt",isShow:false})
     }
     for (let i = 0; i < cfg.inputVar.length; i++) {
       anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
       let obj = cfg.inputVar[i]
-      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",order:i,val:''})
+      if (isAdd) cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",isShow:false,val:''})
     }
     for (let i = 0; i < cfg.outputVar.length; i++) {
       anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
       let obj = cfg.outputVar[i]
-      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"out",evtVar:"var",order:i})
+      if (isAdd) cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"out",evtVar:"var",isShow:false})
     }
     // console.log('anchorPointsArr',anchorPointsArr)
     return anchorPointsArr;
@@ -761,30 +744,26 @@ G6.registerNode("functionBlock", {
   },
   setState(name, value, item) {
     // console.log(name, value, item)
-    // item.get('model').anchorDes = value
-    // const group = item.getContainer();
-    // const shapes = group.get("children");
-    // const shape = shapes[0];
-    // if (name === "selected" || name === "highlight") {
-    //   if (value) {
-    //     // 选中样式
-    //     shape.attr({ stroke: "#1E90FF", lineWidth: clickWidth });
-    //   } else {
-    //     shape.attr({ stroke: "#808080", lineWidth: 1 });
-    //   }
-    // } else if (name === "dark") {
-    //   // 为了挡住中心线，外围框不透明
-    //   if (value) {
-    //     // 选中样式
-    //     shapes[1].attr({ opacity: 0.2 });
-    //     shapes[2].attr({ opacity: 0.2 });
-    //     // shapes.forEach((el) => {el.attr({'opacity': 0.2})})
-    //   } else {
-    //     // shapes.forEach((el) => {el.attr({'opacity': 1})})
-    //     shapes[1].attr({ opacity: 1 });
-    //     shapes[2].attr({ opacity: 1 });
-    //   }
-    // }
+    const group = item.getContainer();
+    // const shape = group.find(el=>{return el.get('name')==='rect-out'});
+    let arr =name.split('.')
+    let realId = 'rect-out'
+    let realName = name
+    if (arr.length>1) {
+      realId=arr[0]
+      realName=arr[1]
+    }
+    const shape = group.findById(realId)
+    if (realName === "selected" || realName === "highlight") {
+      if (value === true) {
+        // 选中样式
+        if (realId === 'rect-out') shape.attr({ lineWidth: lineWidthOut });//stroke: "#1E90FF", 
+        else shape.attr({ stroke: "#1E90FF" })
+      } else {
+        if (realId === 'rect-out') shape.attr({ lineWidth: 0 });
+        else shape.attr({ stroke: "#000" });
+      }
+    }
   },
 });
 const addTmpShape = (arr1,arr2,group) => {
@@ -1094,7 +1073,7 @@ const initGraph = () => {
   graph.on('afteritemrefresh',(e) => {
     // console.log('afteritemrefresh',e)
     let model = e.item.get('model')
-    listener(model.id,model.isFocus)
+    listener(model.id)
   })
   graph.on('wheelzoom',(e) => {
     // console.log('wheelzoom',e)
@@ -1102,7 +1081,6 @@ const initGraph = () => {
     // if (tooltip.value.style.display === 'block') tooltip.value.style.transform = `scale(${graph.getZoom()})`;
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
-      listener(el.get('id'),false,true)
     });
   })
   graph.on("node:mousedown", (evt) => {
@@ -1134,7 +1112,7 @@ const initGraph = () => {
     // console.log(e)
     let model = e.item.get('model')
     if (lastPos && (model.id === 'line1' || model.id === 'line2' || model.id === 'line3')) {
-      e.item.updatePosition(lastPos)
+      e.item.updatePosition(lastPos,false)
     }
   })
   graph.on("node:mouseup", (evt) => {
@@ -1176,17 +1154,27 @@ const initGraph = () => {
     // console.log('node:mouseenter',e)
     showTooltip(e)
   })
+  graph.on('node:click',e => {
+    // console.log(e.target)
+    let tarId = e.target.get('id')
+    if (tarId && tarId.split('_')[0] === 'anchor') {
+      graph.setItemState(e.item,tarId+'.selected',true)
+      graph.setItemState(e.item,'selected',false)
+    }
+  })
   graph.on('anchor-point:dblclick',e=>{
     let model = e.item.get('model')
     let tar = e.target
     let index = tar.get('anchorPointIdx')
-  // console.log(tar)
-  let anchor = model.anchorsInfo[index]
-  if (anchor.inOut === 'in' && anchor.evtVar === 'var') {
-    // console.log('anchor-point:dblclick')
-    let group = e.item.get('group')
-    drawInputForAnchor(group,tar,model,index,anchor.val)
-  }
+    // console.log(tar)
+    let anchor = model.anchorsInfo[index]
+    if (anchor.inOut === 'in' && anchor.evtVar === 'var') {
+      // console.log('anchor-point:dblclick')
+      anchor.isShow = true
+      model.curInput = 'input_'+model.id+'_'+index
+      graph.refreshItem(e.item)
+      // console.log(e.item)
+    }
   })
   graph.on('edge:click',(e) => {
     // console.log(e.item)
@@ -1204,27 +1192,40 @@ const initGraph = () => {
     // console.log('canvas:dragend')
     graph.getNodes().forEach(el => {
       listener(el.get('id'))
-      listener(el.get('id'),false,true)
     });
   })
   graph.on("canvas:click", (evt) => {
     removeEdgeNode()
     tooltip.value.style.display = 'none'
+    console.log(window.getSelection())
+    // graph.getNodes().forEach(node=>{
+    //   let children = node.get('group').findAll(el=>{return el.get('name')==='select-input-anchor'})
+    //   children.forEach(child => {
+    //     graph.setItemState(node,child.get('id')+'.selected',false)
+    //   });
+    //   graph.setItemState(node,'selected',false)
+    // })
     // console.log(graph.getNodes())
   });
   graph.on('node:dblclick', nodeDbClick);
 }
-const initDrawInputForAnchor = () => {
-  graph.getNodes().forEach(node=>{
-    let group = node.get('group')
-    let tars = group.findAll(ele => ele.get('name') === 'anchor-point')
-    let model = node.get('model')
-    model.anchorsInfo.forEach((anchor,i)=>{
-      if (model.isShowForInputVar || anchor.val!=='') drawInputForAnchor(group,tars[i],model,i,anchor.val)
-    })
-  })
-}
 const drawInputForAnchor = (group,tar,model,index,val) => {
+  let tmpShape = group.addShape("text", {
+    attrs: {
+      y:htmlHeight,
+      // textAlign:'center',
+      // textBaseline:'top',
+      fontSize: 10,
+      // fontFamily: 'Arial',
+      text: val,
+      fill: '#fff'
+    },
+    draggable: false,
+    name: "rect-label"
+  });
+  let bbox = tmpShape.getBBox()
+  group.removeChild(tmpShape)
+  let realWidth = bbox.width>newInput.inputSize[0]?bbox.width:newInput.inputSize[0]
   group.addShape('rect',{
       attrs: {
         x: tar.attrs.x - newInput.lineSize[0],
@@ -1233,35 +1234,34 @@ const drawInputForAnchor = (group,tar,model,index,val) => {
         height: newInput.lineSize[1],
         fill: "#000"
       },
-      name: model.id+'_'+index,
+      name: 'remove-input-anchor-'+index,
       draggable: false
     })
     group.addShape('rect',{
       attrs: {
-        x: tar.attrs.x - newInput.lineSize[0]-newInput.inputSize[0],
+        x: tar.attrs.x - newInput.lineSize[0]-realWidth,
         y: tar.attrs.y - (newInput.inputSize[1]-anchorAttr.size[1])/2,
-        width: newInput.inputSize[0],
+        width: realWidth,
         height: newInput.inputSize[1],
         // fill: "#fff",
         stroke: '#000',
         lineWidth:1
       },
-      name: 'anchor_'+model.id+'_'+index,
+      id: 'anchor_'+model.id+'_'+index,
+      name: 'select-input-anchor',
       draggable: false
     })
     group.addShape("dom", {
       attrs: {
-        x:tar.attrs.x - newInput.lineSize[0]-newInput.inputSize[0],
-        y:tar.attrs.y-newInput.inputSize[1]/2+1,
-        width: newInput.inputSize[0],
+        x:tar.attrs.x - newInput.lineSize[0]-realWidth+1,
+        y:tar.attrs.y-newInput.inputSize[1]/2,
+        width: realWidth,
         height: newInput.inputSize[1]+newInput.inputSize[1]/2,
-        html: '<div><input id="input_'+model.id+'_'+index+'" type="text" style="text-align:center;border:0;font-size:10px;width:'+(newInput.inputSize[0]-1)+'px" value="'+val+'"/></div>'
+        html: '<div><input id="input_'+model.id+'_'+index+'" type="text" style="text-align:center;border:0;font-size:10px;width:'+(realWidth-2)+'px" value="'+val+'"/></div>'
       },
-      name: 'anchor_'+model.id+'_'+index,
+      name: 'remove-input-anchor-'+index,
       draggable: false
     });
-    let input = document.getElementById('input_'+model.id+'_'+index);
-    listenerInput(input,false,true)
 }
 const showTooltip = (e) => {
   const target = e.target;
@@ -1330,62 +1330,60 @@ const addEdgeNode = (edge,i) => {
     },
     mapEdge: edge.get('id')
   }
-  graph.addItem('node',node);
+  graph.addItem('node',node,false);
   // console.log(node)
 }
-const listener = (nodeId,isFocus = false,isForAnchor=false) => {
+const listener = (nodeId) => {
+  let model = graph.findById(nodeId).get('model')
   let input = document.getElementById('input_'+nodeId);
-  if (isForAnchor) {
-    let anchorsInfo = graph.findById(nodeId).get('model').anchorsInfo
-    anchorsInfo.forEach((el,i)=>{
-      input = document.getElementById('input_'+nodeId+'_'+i);
-      if (input) listenerInput(input,isFocus,isForAnchor)
-    })
-  } else {
-    listenerInput(input,isFocus,isForAnchor)
-    let select = document.getElementById('select_'+nodeId);
-    select.addEventListener('change',selectChange);
-  }
-}
-const listenerInput = (input,isFocus,isForAnchor) => {
-  if (isForAnchor) input.addEventListener('keydown',inputAdaptLengthForAnchor);
-  else input.addEventListener('keydown',inputKeyDown);
   input.addEventListener('input',inputAdaptLength);
-  if (isFocus) {
-    input.addEventListener('focus',(e) => {
-      let input = e.target;
-      let val = input.value
-      input.value = val
-    });
-    input.focus()
-    input.setSelectionRange(preInputCursorPos,preInputCursorPos)
-  }
+  input.addEventListener('keydown',inputKeyDown);
+  if (model.curInput === input.id) inputFocus(input)
+  let anchorsInfo = graph.findById(nodeId).get('model').anchorsInfo
+  anchorsInfo.forEach((el,i)=>{
+    input = document.getElementById('input_'+nodeId+'_'+i);
+    if (input) {
+      input.addEventListener('input',inputAdaptLengthForAnchor);
+      input.addEventListener('keydown',inputKeyDown);
+      if (model.curInput === input.id) inputFocus(input)
+    }
+  })
+  let select = document.getElementById('select_'+nodeId);
+  select.addEventListener('change',selectChange);
+}
+const inputFocus = (input) => {
+  input.addEventListener('focus',(e) => {
+    let tmp = e.target;
+    let val = tmp.value
+    tmp.value = val
+  });
+  input.focus()
+  input.setSelectionRange(preInputCursorPos,preInputCursorPos)
 }
 const inputAdaptLengthForAnchor = (e) => {
   let input = e.target;
   let arr = input.id.split('_')
   let node = graph.findById(arr[1]);
   let model = node.get('model');
-  model.anchorsInfo[arr[2]] = input.value;
-  model.isFocus = true
+  model.anchorsInfo[arr[2]].val = input.value;
   preInputCursorPos = input.selectionStart
+  model.curInput = input.id
   graph.refreshItem(node)
 }
 const inputAdaptLength = (e) => {
-    let input = e.target;
-    let node = graph.findById(input.id.slice(6));
-    let model = node.get('model');
-    model.title = input.value;
-    model.isFocus = true
-    preInputCursorPos = input.selectionStart
-    graph.refreshItem(node)
+  let input = e.target;
+  let node = graph.findById(input.id.slice(6));
+  let model = node.get('model');
+  model.title = input.value;
+  preInputCursorPos = input.selectionStart
+  model.curInput = input.id
+  graph.refreshItem(node)
 }
 const inputKeyDown = (e) => {
   if (e.key === 'Enter') {
     let input = e.target;
     let node = graph.findById(input.id.split('_')[1]);
-    let model = node.get('model');
-    model.isFocus = false
+    node.get('model').curInput = undefined
     graph.refreshItem(node)
   }
 }
@@ -1399,7 +1397,6 @@ const selectChange = (e) => {
     el.selected = false
   })
   model.resOption[select.selectedIndex].selected = true;
-  model.isFocus = false
   graph.refreshItem(node)
   // graph.data(graph.save())
   // graph.render()
@@ -1417,7 +1414,6 @@ const addNode = () => {
     y: addNodeBefore.value.y,
     type: 'functionBlock',
     // backgroud:'#009688',
-    isFocus: false,
     selectedResource: selectedRes,
     resOption: embResOptions,
     info: toRaw(data.info),
@@ -1531,12 +1527,37 @@ const getAnchorsNameForSeg = (arr) => {
     //   console.log('handleKeyDown')
     //   isKeyDown = false
     // }
-    if (e.ctrlKey && e.key === "z" && !isLeaveCanvas) toolbar.undo();
-    if (e.ctrlKey && e.key === "y" && !isLeaveCanvas) toolbar.redo();
+    if (e.ctrlKey && e.key === "z") toolbar.undo();
+    if (e.ctrlKey && e.key === "y") toolbar.redo();
   };
   const handleKeyUp = (e) => {
     if (e.key === "Delete") {
-      
+      let nodes = graph.getNodes()
+      if (nodes.length > 0 ) {
+        for (let i = nodes.length-1; i >= 0; i--) {
+          let states = nodes[i].get('states')
+          for (let j=states.length-1;j>=0;j--) {
+            if (states[j] === 'selected') {
+              graph.removeItem(nodes[i])
+              break
+            } else {
+              let arr = states[j].split('.')
+              if (arr.length>1 && arr[1]==='selected') {
+                let group = nodes[i].get('group')
+                let mainRect = group.findById(arr[0])
+                let delName = mainRect.get('name').replace('select','remove')+'-'+arr[0].split('_')[2]
+                let delChildren = group.findAll(el=>{return el.get('name')===delName})
+                for (let index = delChildren.length-1; index >= 0; index--) {
+                  group.removeChild(delChildren[index])
+                }
+                group.removeChild(mainRect)
+                states.splice(j,1)
+              }
+            }
+          }
+        }
+      }
+      // console.log(nodes)
     }
   };
   onMounted(() => {
@@ -1558,7 +1579,7 @@ const getAnchorsNameForSeg = (arr) => {
   onUnmounted(() => {
     // window.removeEventListener("keydown", handleKeyDown);
     // window.removeEventListener("keyup", handleKeyUp);
-    // saveAll();
+    saveAll();
   });
   const cancelAlgAndEventDialog = () => {
     dialogAlgAndEvent.visible = false;

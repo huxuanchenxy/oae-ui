@@ -1880,14 +1880,14 @@ const handleKeyUp = (e) => {
     let nodes = graph.findAllByState("node", "selected");
     // console.log(nodes)
     if (nodes.length > 0 && !isLeaveCanvas) {
-      for (let i = 0; i < nodes.length; i++) {
+      for (let i = nodes.length-1; i >= 0; i--) {
         graph.removeItem(nodes[i])
       }
       isCardShow.value = false;
       clearAllStats();
     }
     if (edges.length > 0 && !isLeaveCanvas) {
-      for (let i = 0; i < edges.length; i++) {
+      for (let i = edges.length-1; i >= 0; i--) {
         graph.removeItem(edges[i])
       }
       clearAllStats();
