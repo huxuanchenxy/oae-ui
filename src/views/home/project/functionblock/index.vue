@@ -1622,16 +1622,17 @@ const getAnchorsNameForSeg = (arr) => {
   const removeInputEvents = () => {
     const $table = inputEventTableRef.value
     if ($table) {
+      //得到选中的数据
+      let checkedKeys=$table.getCheckboxRecords().map(x=>x.key)
+      //删除对应输出事件
+      const $outputEventtable = outputEventTableRef.value
+      let outputEventListData =$outputEventtable.getTableData().fullData
+      outputEventListData=outputEventListData.filter(x=>!checkedKeys.includes(x.relateInputEventId))
+      $outputEventtable.reloadData(outputEventListData)
+      //完成一系列逻辑后最后再删除输入事件
       $table.removeCheckboxRow()
     }
   }
-  // //删除输出事件
-  // const removeOutputEvents = () => {
-  //   const $table = outputEventTableRef.value
-  //   if ($table) {
-  //     $table.removeCheckboxRow()
-  //   }
-  // }
   /**
    * 根据输入事件的改变去改变输出事件
    * @param row
