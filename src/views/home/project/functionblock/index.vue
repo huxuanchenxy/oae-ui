@@ -148,33 +148,17 @@
         </el-tab-pane>
         <el-tab-pane label="输出事件" name="outputEventTab">
           <div class="table_in">
-            <vxe-toolbar>
-              <template #buttons>
-                <vxe-button @click="insertOutputEvent()">新增</vxe-button>
-                <vxe-button @click="removeOutputEvents()">删除选中</vxe-button>
-              </template>
-            </vxe-toolbar>
             <vxe-table
                 border
                 ref="outputEventTableRef"
                 show-overflow
                 :data="outputEventList"
                 :column-config="{resizable: true}"
-                :edit-config="{trigger: 'click', mode: 'cell'}">
-              <vxe-column type="checkbox" field="key" width="60"></vxe-column>
-              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
-                <template #edit="{ row }">
-                  <vxe-input v-model="row.text" type="text"></vxe-input>
-                </template>
-              </vxe-column>
+                >
+              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}"></vxe-column>
               <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
                 <template #default="{ row }">
                   <span>{{ formatSystemOutputEvent(row.relatedEvent) }}</span>
-                </template>
-                <template #edit="{ row }">
-                  <vxe-select v-model="row.relatedEvent" transfer>
-                    <vxe-option v-for="item in systemOutputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                  </vxe-select>
                 </template>
               </vxe-column>
             </vxe-table>
@@ -1635,31 +1619,31 @@ const getAnchorsNameForSeg = (arr) => {
       $table.removeCheckboxRow()
     }
   }
+  // const formatSystemOutputEvent = (value: string) => {
+  //   return systemOutputEvents.value.find(x=>x.key==value)?.text;
+  // }
+  // //新增输出事件
+  // const insertOutputEvent=(async (row?: BlockOutputEventForm | number)=>{
+  //   const $table = outputEventTableRef.value
+  //   if ($table) {
+  //     const record = {
+  //       key: uuidv4(),
+  //       blockId:currentBlockId,
+  //     }
+  //     const { row: newRow } = await $table.insertAt(record, row)
+  //     await $table.setEditCell(newRow, 'text')
+  //   }
+  // })
+  // //删除输出事件
+  // const removeOutputEvents = () => {
+  //   const $table = outputEventTableRef.value
+  //   if ($table) {
+  //     $table.removeCheckboxRow()
+  //   }
+  // }
+
+
   //-------输入事件结束
-  //-------输出事件开始
-  const formatSystemOutputEvent = (value: string) => {
-    return systemOutputEvents.value.find(x=>x.key==value)?.text;
-  }
-  //新增输出事件
-  const insertOutputEvent=(async (row?: BlockOutputEventForm | number)=>{
-    const $table = outputEventTableRef.value
-    if ($table) {
-      const record = {
-        key: uuidv4(),
-        blockId:currentBlockId,
-      }
-      const { row: newRow } = await $table.insertAt(record, row)
-      await $table.setEditCell(newRow, 'text')
-    }
-  })
-  //删除输出事件
-  const removeOutputEvents = () => {
-    const $table = outputEventTableRef.value
-    if ($table) {
-      $table.removeCheckboxRow()
-    }
-  }
-  //-------输出事件结束
   //-------输入变量开始
   //格式化变量类型
   const formatVariType = (value: string) => {
