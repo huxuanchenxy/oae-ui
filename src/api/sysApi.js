@@ -77,8 +77,8 @@ const getResourceNodes=(resParentNode)=>{
         if (funcs.length<=0){
             return resParentNode;
         }
-        let funcList=funcs.filter(x=>x.type=="BATCH_RES")?.list;
-        if (funcs.length<=0){
+        let funcList=funcs.filter(x=>x.type=="BATCH_RES")?.map(x=>x.list);
+        if (!funcs||funcs.length<=0){
             return resParentNode;
         }
         resources.forEach((res)=>{

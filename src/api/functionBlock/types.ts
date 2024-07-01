@@ -54,7 +54,8 @@ export interface BlockOutputEventForm {
     key:string,
     text:string,
     relatedEvent:SystemEventInput,
-    graphId:string
+    graphId:string,
+    relateInputEventId:string
 }
 
 export interface BlockOutputEventVO  {

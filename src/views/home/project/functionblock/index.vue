@@ -151,7 +151,7 @@
           <div class="table_in">
             <vxe-toolbar>
               <template #buttons>
-                <vxe-button @click="insertInputEvent()">新增</vxe-button>
+                <vxe-button @click="insertInputEvent(-1)">新增</vxe-button>
                 <vxe-button @click="removeInputEvents()">删除选中</vxe-button>
               </template>
             </vxe-toolbar>
@@ -173,7 +173,7 @@
                   <span>{{ formatSystemInputEvent(row.relatedEvent) }}</span>
                 </template>
                 <template #edit="{ row }">
-                  <vxe-select v-model="row.relatedEvent" transfer>
+                  <vxe-select v-model="row.relatedEvent" transfer :on-change="changeOutputEvents(row)">
                     <vxe-option v-for="item in systemInputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
                   </vxe-select>
                 </template>
@@ -190,12 +190,8 @@
                 :data="outputEventList"
                 :column-config="{resizable: true}"
                 >
-              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}"></vxe-column>
-              <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
-                <template #default="{ row }">
-                  <span>{{ formatSystemOutputEvent(row.relatedEvent) }}</span>
-                </template>
-              </vxe-column>
+              <vxe-column field="text" title="名称" ></vxe-column>
+              <vxe-column field="relatedEvent" title="映射事件"   ></vxe-column>
             </vxe-table>
           </div>
         </el-tab-pane>
@@ -203,7 +199,7 @@
           <div class="table_in">
             <vxe-toolbar>
               <template #buttons>
-                <vxe-button @click="insertInputVari()">新增</vxe-button>
+                <vxe-button @click="insertInputVari(-1)">新增</vxe-button>
                 <vxe-button @click="removeInputVaris()">删除选中</vxe-button>
               </template>
             </vxe-toolbar>
@@ -257,7 +253,7 @@
           <div class="table_in">
             <vxe-toolbar>
               <template #buttons>
-                <vxe-button @click="insertOutputVari()">新增</vxe-button>
+                <vxe-button @click="insertOutputVari(-1)">新增</vxe-button>
                 <vxe-button @click="removeOutputVaris()">删除选中</vxe-button>
               </template>
             </vxe-toolbar>
@@ -327,7 +323,7 @@
   import { toRaw } from "@vue/reactivity";
   import { ElMessage } from "element-plus";
   import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
-  import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
+  import {getSystemInputEvents} from "@/api/systeminter/systemevent";
   import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
   import { VXETable, VxeTableInstance } from 'vxe-table'
   import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
@@ -360,7 +356,6 @@ import { debug } from "console";
   let inputVariList = ref<BlockInputVariForm[]>([]);
   let outputVariList = ref<BlockOutputVariForm[]>([]);
   let systemInputEvents=ref<SystemEventInput[]>([]);
-  let systemOutputEvents=ref<SystemEventOutput[]>([]);
   let systemInputVaris=ref<SystemVariInput[]>([]);
   let systemOutputVaris=ref<SystemVariOutput[]>([]);
   const activeName = ref('inputEventTab')
@@ -1558,7 +1553,6 @@ const getAnchorsNameForSeg = (arr) => {
       // console.log(111,'/module/'+originNode.getModel().projectParentId+"/"+originNode.getModel().projectId)
     }
     systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
-    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().nodeId);
     systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().nodeId)
     systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().nodeId);
     let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
@@ -1581,15 +1575,27 @@ const getAnchorsNameForSeg = (arr) => {
   }
   //新增输入事件
   const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
-    const $table = inputEventTableRef.value
-    if ($table) {
+    //增加输入事件
+    const $inutEventtable = inputEventTableRef.value
+    let inputEventId=uuidv4();
+    if ($inutEventtable) {
       const record = {
-        key: uuidv4(),
+        key: inputEventId,
         blockId:currentBlockId,
       }
-      const { row: newRow } = await $table.insertAt(record, row)
-      await $table.setEditCell(newRow, 'text')
+      const { row: newRow } = await $inutEventtable.insertAt(record, row)
+      await $inutEventtable.setEditCell(newRow, 'text')
     }
+    //
+    const $outputEventtable = outputEventTableRef.value
+      if ($outputEventtable) {
+        const record = {
+          key: uuidv4(),
+          blockId:currentBlockId,
+          relateInputEventId:inputEventId
+        }
+        await $outputEventtable.insertAt(record, row)
+      }
   })
   //删除输入事件
   const removeInputEvents = () => {
@@ -1598,21 +1604,6 @@ const getAnchorsNameForSeg = (arr) => {
       $table.removeCheckboxRow()
     }
   }
-  // const formatSystemOutputEvent = (value: string) => {
-  //   return systemOutputEvents.value.find(x=>x.key==value)?.text;
-  // }
-  // //新增输出事件
-  // const insertOutputEvent=(async (row?: BlockOutputEventForm | number)=>{
-  //   const $table = outputEventTableRef.value
-  //   if ($table) {
-  //     const record = {
-  //       key: uuidv4(),
-  //       blockId:currentBlockId,
-  //     }
-  //     const { row: newRow } = await $table.insertAt(record, row)
-  //     await $table.setEditCell(newRow, 'text')
-  //   }
-  // })
   // //删除输出事件
   // const removeOutputEvents = () => {
   //   const $table = outputEventTableRef.value
@@ -1620,7 +1611,21 @@ const getAnchorsNameForSeg = (arr) => {
   //     $table.removeCheckboxRow()
   //   }
   // }
-
+  /**
+   * 根据输入事件的改变去改变输出事件
+   * @param row
+   */
+  const changeOutputEvents=(row)=>{
+    let inputEventName=row.relatedEvent;
+    const $outputEventtable = outputEventTableRef.value
+    let outputEventListData =$outputEventtable.getTableData().fullData
+    let outputEvent:SystemEventOutput=outputEventListData.find(x=>x.relateInputEventId==row.key);
+    let systemEventOutput=systemInputEvents.value.find(x=>x.key==inputEventName)?.relatedEventOutput;
+    if (systemEventOutput){
+      outputEvent.text=systemEventOutput.Name;
+      outputEvent.relatedEvent=systemEventOutput.Name
+    }
+  }
 
   //-------输入事件结束
   //-------输入变量开始
@@ -1736,7 +1741,9 @@ const getAnchorsNameForSeg = (arr) => {
     saveOrUpdateFunctionBlock(projectID,procedureID,functionBlockJsonData);
     dialogAlgAndEvent.visible = false;
     proxy?.$modal.msgSuccess("操作成功");
+    console.log("outputEventList:",outputEventList)
   });
+
   </script>
   
   <style lang="scss" scoped>
