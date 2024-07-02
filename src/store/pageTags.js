@@ -3,7 +3,9 @@
          TagArrs: [],
          TagModuleArrs: [],
          CurTag:{},
-         CallBacks:[]
+         TagsChanged:[],
+         TagsCleared:[],
+         CurTagChanged:[],
      }),
      getters: {
 
@@ -20,6 +22,7 @@
                  tag.selected =1;
                  this.TagArrs.push(tag);
                  this.CurTag = tag;
+                 this.CurTagChanged.forEach(c => {c()});
                 //  console.log(this.TagArrs);
              } else {
                 // console.log("enter click");
@@ -29,15 +32,35 @@
                      obj.effect = "dark";
                      obj.selected = 1;
                      this.CurTag = obj;
+                     this.CurTagChanged.forEach(c => {c()});
                  }
                 //  console.log(obj);
              }
-             this.CallBacks.forEach(e => {e()});
+             this.TagsChanged.forEach(e => {e()});
+             
          },
          SetTags(tags){
-            this.TagArrs = tags;
-            this.CallBacks.forEach(e => {e()});
+            if(tags.length >0)
+            {
+                this.TagArrs = tags;               
+                let obj = this.TagArrs.find(item => item.selected == 1);             
+                if (obj !== undefined) {    
+                    obj.effect = "dark";
+                    this.CurTag = obj;
+                    this.CurTagChanged.forEach(c => {c()});
+                }                
+                this.TagsChanged.forEach(e => {e()});
+            //    console.log("set tags"); 
+            //    console.log(this.TagArrs); 
+            }
+            else
+            {
+                this.TagArrs = [];
+                this.TagsCleared.forEach(e => {e()});
+                console.log("clear tags"); 
+            }          
          },
+
          //  GetTagModule(param) {
          //      //console.log("pageTags", param);
          //      let moduleList = [];

@@ -90,7 +90,10 @@ const handleClose = (tag) => {
     var tagPrev = dynamicTags.value[index - 1];
     var path = tagPrev.path;
     tagPrev.effect = "dark";
-    router.push({ path });
+    tagPrev.selected =1;
+    tagsStore.SetTags(dynamicTags.value);
+    // commonstore.changeCurTreeNode(tagPrev.id, "", "");
+    // router.push({ path });
   }
 };
 
@@ -108,18 +111,30 @@ const goToPath = (tag) => {
       }
     });
   }
-  cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
-  commonstore.changeCurTreeNode(tag.id, "", "");
-  router.push({ path: tag.path });
+  tagsStore.SetTags(dynamicTags.value);
+
 };
 
-const OnCallBack = () => {
+const OnTagsChanged = () => {
 
-//  console.log("trigger now");
-//  console.log(dynamicTags.value);
+
  dynamicTags.value = tagsStore.TagArrs;
- cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
+ console.log(dynamicTags.value );
+ cache.session.setJSON(cacheKey, JSON.stringify(tagsStore.TagArrs));
 
+};
+const OnTagsCleared = () => {
+  dynamicTags.value = tagsStore.TagArrs;
+  cache.session.setJSON(cacheKey, "");
+};
+
+const OnCurTagChanged = () => {
+
+  let path = "";
+  curTag.value = tagsStore.CurTag;
+  path =  curTag.value.path;
+  commonstore.changeCurTreeNode(curTag.value.id, "", "");
+  router.push({ path });
 };
 
 onMounted(() => {
@@ -132,17 +147,15 @@ onMounted(() => {
      if(tagCache !== undefined)
      {
         dynamicTags.value = JSON.parse(cache.session.getJSON(cacheKey));
-        //tagsStore.TagArrs = JSON.parse(cache.session.getJSON(cacheKey));
-        //dynamicTags = ref(tagsStore.TagArrs);
+
         tagsStore.TagArrs = dynamicTags.value;
         if(dynamicTags.value !== undefined)
         {
-          // console.log(tagsStore.TagArrs);
-          // console.log(dynamicTags.value);
+
           if(dynamicTags.value?.length >0)
           {
             let defaultIndex = Math.max(...dynamicTags.value.map((obj) => obj.index));
-            console.log(defaultIndex);
+            // console.log(defaultIndex);
             let curItem = dynamicTags.value.find(item => item.selected == 1);
             if(curItem !== undefined)
             {
@@ -157,14 +170,10 @@ onMounted(() => {
               
             }
           }    
-          // console.log(curTag.value);
         }
      }
 
-    //console.log(cache.local.getJSON(cacheKey));
-    // console.log("ttttttttttttttttttttttttttttt");
-    // console.log(curRouteObj.path);
-    //console.log(dynamicTags);
+
     if (curFuncList) {
       loadTagData(curFuncList);
     } 
@@ -177,17 +186,20 @@ onMounted(() => {
   }
   if(curTag !== undefined)
     {
+      // console.log(curTag.value);
       goToPath(curTag.value);
     }
 
-    tagsStore.CallBacks.push(OnCallBack); 
+    tagsStore.TagsChanged.push(OnTagsChanged); 
+    tagsStore.TagsCleared.push(OnTagsCleared); 
+    tagsStore.CurTagChanged.push(OnCurTagChanged); 
 });
 
 
-onUpdated(() => {
-  // console.log("enter again");
-
-    });
+// onUpdated(() => {
+//   // console.log("enter again");
+//   //commonstore.changeCurTreeNode(curTag.value.id, "", "");
+//     });
     
 onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -196,10 +208,10 @@ onUnmounted(() => {
 watch(dynamicTags.value, (newValue, oldValue) => {
   // if (newValue.length>0 && newValue.length !== oldValue.length) 
   {   
-    // console.log(newValue);
-    dynamicTags.value = newValue;
-    cache.session.setJSON(cacheKey, JSON.stringify(newValue));
-    // console.log("tags cache updated");
+     console.log("changed");
+
+    tagsStore.SetTags(newValue);
+
   }
 });
 
@@ -259,13 +271,12 @@ const loadTagData = (curFuncList) => {
 };
 const handleBeforeUnload = ($event) => {
 
-  cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
+  cache.session.setJSON(cacheKey, JSON.stringify(tagsStore.TagArrs));
 }
 const handleClickContextMenu = ($event,tag) => {
 
   const e = $event || window.event;
-  // console.log(e.target);
-  // console.log(tag);
+
   contextClickTag = tag;
   dyStyle.rightPop.left = e.x + 'px';
   dyStyle.rightPop.top = e.y  + 'px';
@@ -288,10 +299,10 @@ const closeOtherTags = () => {
   contextClickTag.index =1;
   contextClickTag.effect = "dark";
   var path = contextClickTag.path;
-  router.push({ path });
+  //router.push({ path });
   var index = dynamicTags.value.indexOf(contextClickTag);
-  dynamicTags.value = dynamicTags.value.splice(index, 1);
-
+  let items = dynamicTags.value.splice(index, 1);
+  tagsStore.SetTags(items);
   tagContextMenuVisible.value = false;
 }
 const closeAllTags = () => {
@@ -312,16 +323,8 @@ const closeAllTags = () => {
           name,
           effect: "dark",
         };
-        tagsStore.SetTags([]);
+        tagsStore.SetTags("");
         tagsStore.AddTag(model);
-        // console.log("hhhhhhhhhhhhhh");
-        // console.log(model);
-        commonstore.changeCurTreeNode(id, "", "");
-        // console.log(commonstore.curTreeNode);
-        router.push({ path });
-        //cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
-
-        router.push({ path: path });
     }
 
   tagContextMenuVisible.value = false;
