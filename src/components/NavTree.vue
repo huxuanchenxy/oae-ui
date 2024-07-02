@@ -298,10 +298,10 @@ const validateName = (rule, value, callback) => {
     callback(new Error("使用字母数字和下划线,首个字符必须是字母"));
   } else {
     let moduleJson = getCurrentObj(project, currentModule.value);
-    let tmp = moduleJson.algorithms.filter((item) => {
+    let tmp = moduleJson?.algorithms?.filter((item) => {
       return item.text === value;
     });
-    if (tmp.length === 0) callback();
+    if (!tmp || tmp.length === 0) callback();
     else callback(new Error("同一个模块中算法名称不可重复"));
   }
 };
@@ -507,6 +507,10 @@ const showContextMenu = (e, data, node, n) => {
   curData.value = data;
   curNode.value = node;
   //}
+  if (data.operationType?.includes("algorithm")) {
+    //console.log("getModuleDataIfCacleNoData", data, data.id);
+    getModuleDataIfCacleNoData(data.funcParentId);
+  }
 };
 const handleAllowDrop = (sNode, eNode, type) => {
   let sDate = sNode.data;
@@ -919,17 +923,18 @@ const loadData = (list) => {
 };
 
 onBeforeMount(() => {
-  var curFuncList = sessionStorage.getItem("curFuncLists");
-  if (!curFuncList) {
-    sysApi.getFuncList().then((res) => {
-      let list = res;
-      sessionStorage.setItem("curFuncLists", JSON.stringify(list));
-      loadData(list);
-    });
-  } else {
-    let list = JSON.parse(sessionStorage.getItem("curFuncLists"));
+  //var curFuncList = sessionStorage.getItem("curFuncLists");
+  // if (!curFuncList) {
+  sysApi.getFuncList().then((res) => {
+    let list = res;
+    sessionStorage.setItem("curFuncLists", JSON.stringify(list));
     loadData(list);
-  }
+  });
+  //}
+  // else {
+  //   let list = JSON.parse(sessionStorage.getItem("curFuncLists"));
+  //   loadData(list);
+  // }
   sysApi.getAllDevicesList().then(async (res) => {
     for (let dev of res) {
       if (dev.name === "网络段") {
@@ -977,6 +982,43 @@ const getModuleData = (id, path) => {
     });
   } else {
     router.push({ path });
+  }
+};
+
+const getModuleDataIfCacleNoData = async (id) => {
+  let jsonAll = cache.local.getJSON(cacheKey);
+  //如果连缓存都没有，直接[]值
+  if (!jsonAll) {
+    jsonAll = [];
+    cache.local.setJSON(cacheKey, jsonAll);
+  }
+  let rlt = jsonAll?.find((x) => x.project == project && x.id == id);
+  if (!rlt) {
+    let params = { id };
+    sysApi.getModule(params).then((res) => {
+      if (res) {
+        let newObj = {
+          project: project,
+          namespace: "",
+          folder: "",
+          type: "",
+          properties: {},
+          interface: {},
+          ecc: {},
+          algorithms: [],
+          id: "",
+        };
+        newObj.id = res.id;
+        newObj.namespace = res.namespace;
+        newObj.type = res.type;
+        newObj.interface = JSON.parse(res.interface);
+        newObj.properties = JSON.parse(res.properties);
+        newObj.ecc = JSON.parse(res.ecc);
+        newObj.algorithms = JSON.parse(res.algorithms);
+        jsonAll.push(newObj); //再把模块新JSON加进去
+        cache.local.setJSON(cacheKey, jsonAll);
+      }
+    });
   }
 };
 

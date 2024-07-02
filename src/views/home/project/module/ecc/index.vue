@@ -416,6 +416,7 @@ const initGraph=(data,graphWidth,graphHeight)=>{
     modes: {
       default: [
         'click-select',
+        "zoom-canvas",
         // 'drag-combo',
         // 'drag-node',
         // 'drag-node',

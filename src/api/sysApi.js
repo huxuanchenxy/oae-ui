@@ -21,6 +21,7 @@ const getSegNode=(segParentNode)=>{
         info.id=info.ID;
         info.name=info.Name;
         info.type='Seg';
+        info.cardInfo=node.cardInfo;
         rltNodes.push(info);
     })
     if (rltNodes.length==0){
@@ -47,6 +48,7 @@ const getResourceNodes=(resParentNode)=>{
         info.name=info.Name;
         info.id=info.ID;
         info.type='Dev';
+        info.cardInfo=node.cardInfo;
         let resources=node.resources;
         //资源列表
         let children=new Array();
@@ -69,8 +71,25 @@ const getResourceNodes=(resParentNode)=>{
     }else{
         resParentNode.children=rltNodes;
     }
+    //取资源=》RES=》功能列表
+    getResourceFuncByTypeGroup().then((funcs)=>{
+        let resources=resParentNode.children;
+        if (funcs.length<=0){
+            return resParentNode;
+        }
+        let funcList=funcs.filter(x=>x.type=="BATCH_RES")?.map(x=>x.list);
+        if (!funcs||funcs.length<=0){
+            return resParentNode;
+        }
+        resources.forEach((res)=>{
+            res.children=funcList.filter(func=>func.parentId==res.id);
+        })
+    });
     return resParentNode;
 }
+const getResourceFuncByTypeGroup= () => {
+    return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
+};
 export default {
     // saveSysUser: params => { 
     //     return axios.post(`${baseUrl}/SysUserAdd/SaveSysUser`,
@@ -103,9 +122,7 @@ export default {
         })
     },
 
-    getResourceFuncByTypeGroup: () => {
-        return axios.get(`${baseUrl}/Sys/GetResourceFuncByTypeGroup`).then(res => res.data)
-    },
+
     addSysFuncList: (params) => {
         return axios.post(`${baseUrl}/Sys/AddSysFuncList`, params).then(res => res.data)
     },

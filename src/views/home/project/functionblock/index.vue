@@ -1,157 +1,124 @@
 <template>
-    <div style="background-color: #def4fd">
-      <div style="padding: 10px; display: inline">
-        <el-dropdown>
-          <el-button class="el-dropdown-link" text size="large" disabled>
-            校验
-            <el-icon class="el-icon--right">
-              <arrow-down />
-            </el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>全部</el-dropdown-item>
-              <el-dropdown-item>应用1</el-dropdown-item>
-              <el-dropdown-item>应用2</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-dropdown>
-          <el-button class="el-dropdown-link" text size="large" disabled>
-            部署
-            <el-icon class="el-icon--right">
-              <arrow-down />
-            </el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>全部</el-dropdown-item>
-              <el-dropdown-item>应用1</el-dropdown-item>
-              <el-dropdown-item>应用2</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-button text size="large" disabled>编译</el-button>
-        <span style="margin-left: 10px; margin-right: 30px">|</span>
-        <el-button-group>
-          <el-tooltip effect="light" content="开始" placement="bottom">
-            <el-button icon="VideoPlay" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="暂停" placement="bottom">
-            <el-button icon="VideoPause" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="终止" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="刷新" placement="bottom">
-            <el-button icon="RefreshRight" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="清缓存" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="部署状态" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-          <el-tooltip effect="light" content="在线设备" placement="bottom">
-            <el-button icon="Failed" disabled />
-          </el-tooltip>
-        </el-button-group>
-        <span style="margin-left: 30px; margin-right: 30px">|</span>
-        <el-button-group>
-          <el-tooltip effect="light" content="保存" placement="bottom">
-            <el-button @click="saveAllClick"
-              ><span class="iconfont">&#xe6a2;</span></el-button
-            >
-          </el-tooltip>
-          <el-tooltip effect="light" content="刷新" placement="bottom">
-            <el-button icon="Refresh" @click="initData" />
-          </el-tooltip>
-          <el-tooltip effect="light" content="撤销" placement="bottom">
-            <el-button icon="Back" @click="toolbar.undo()" />
-          </el-tooltip>
-          <el-tooltip effect="light" content="回退" placement="bottom">
-            <el-button icon="Right" @click="toolbar.redo()" />
-          </el-tooltip>
-        </el-button-group>
-      </div>
-    </div>
-    <div class="wrapper">
-      <div
-        style="position: relative; height: 100%; flex-grow: 2; overflow: hidden"
-      >
-      <div class="g6-tooltip" ref ="tooltip"></div>
-      <div id="container" ref="container"></div>
-      </div>
-      <div :class="{ rightShow: drawer, rightHidden: !drawer }">
-        <el-button
-          type="primary"
-          :title="funcTitle"
-          size="small"
-          class="func"
-          @click="showOrHidden"
-        >
-          <el-icon v-show="drawer" style="font-size: 14px"
-            ><CaretRight
-          /></el-icon>
-          <el-icon v-show="!drawer" style="font-size: 14px"><CaretLeft /></el-icon
-          >设备库
+  <div style="background-color: #def4fd">
+    <div style="padding: 10px; display: inline">
+      <el-button text size="large" disabled>校验</el-button>
+      <el-dropdown>
+        <el-button class="el-dropdown-link" text size="large" disabled>
+          隐藏连接
+          <el-icon class="el-icon--right">
+            <arrow-down />
+          </el-icon>
         </el-button>
-        <!-- <div class="right"> -->
-        <el-card>
-          <el-input v-model="filterText" placeholder="Filter keyword" />
-          <el-tree
-            ref="treeRef"
-            style="max-height: 840px; overflow-y: auto"
-            accordion
-            draggable
-            :data="devices"
-            :props="defaultProps"
-            :filter-node-method="filterNode"
-            @node-drag-end="handleDragEnd"
-            :allow-drag="allowdrag"
-            :allow-drop="
-              () => {
-                return false;
-              }
-            "
-          >
-            <template #default="{ node, data }">
-              <img
-                v-if="data.images&&data.images !== '' && data.images.indexOf('.') > 0"
-                :src="iconPath + data.images"
-                class="icon-tree"
-              />
-              <span>{{ node.label }}</span>
-            </template>
-          </el-tree>
-        </el-card>
-      </div>
-    </div>
-    <div>
-      <el-dialog
-        v-model="dialogVisible_title"
-        width="300"
-        :show-close="false"
-      >
-      <div>名称</div>
-      <div><el-input v-model="addNodeBefore.title"></el-input></div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible_title = false">取消</el-button>
-          <el-button type="primary" @click="addNode"
-            >确认</el-button
-          >
-          </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item>全部显示</el-dropdown-item>
+            <el-dropdown-item>隐藏事件</el-dropdown-item>
+            <el-dropdown-item>隐藏变量</el-dropdown-item>
+            <el-dropdown-item>全部隐藏</el-dropdown-item>
+          </el-dropdown-menu>
         </template>
-      </el-dialog>
+      </el-dropdown>
+      <el-button text size="large" disabled>快速连线</el-button>
+      <el-button text size="large" disabled>映射资源</el-button>
+      <el-button text size="large" disabled>变量资源</el-button>
+      <span style="margin-left: 30px; margin-right: 30px">|</span>
+      <el-button-group>
+        <el-tooltip effect="light" content="保存" placement="bottom">
+          <el-button @click="saveAllClick"
+            ><span class="iconfont">&#xe6a2;</span></el-button
+          >
+        </el-tooltip>
+        <el-tooltip effect="light" content="刷新" placement="bottom">
+          <el-button icon="Refresh" @click="initData" />
+        </el-tooltip>
+        <el-tooltip effect="light" content="撤销" placement="bottom">
+          <el-button icon="Back" @click="toolbar.undo()" />
+        </el-tooltip>
+        <el-tooltip effect="light" content="回退" placement="bottom">
+          <el-button icon="Right" @click="toolbar.redo()" />
+        </el-tooltip>
+      </el-button-group>
     </div>
+  </div>
+  <div class="wrapper">
+    <div
+      style="position: relative; height: 100%; flex-grow: 2; overflow: hidden"
+    >
+    <div class="g6-tooltip" ref ="tooltip"></div>
+    <div><select id="floatingSelect" style="position:absolute;display:none;text-align:center;appearance: none;" @change="selectChange" @blur="selectBlur"></select></div>
+    <div><input type="text" id="floatingInput" autocomplete="off" style="border:1;position:absolute;display:none;" value="1234" @input="inputcChange" @blur="inputBlur"/></div>
+    <div id="container" ref="container"></div>
+    </div>
+    <div :class="{ rightShow: drawer, rightHidden: !drawer }">
+      <el-button
+        type="primary"
+        :title="funcTitle"
+        size="small"
+        class="func"
+        @click="showOrHidden"
+      >
+        <el-icon v-show="drawer" style="font-size: 14px"
+          ><CaretRight
+        /></el-icon>
+        <el-icon v-show="!drawer" style="font-size: 14px"><CaretLeft /></el-icon
+        >设备库
+      </el-button>
+      <!-- <div class="right"> -->
+      <el-card>
+        <el-input v-model="filterText" placeholder="Filter keyword" />
+        <el-tree
+          ref="treeRef"
+          style="max-height: 840px; overflow-y: auto"
+          accordion
+          draggable
+          :data="devices"
+          :props="defaultProps"
+          :filter-node-method="filterNode"
+          @node-drag-end="handleDragEnd"
+          :allow-drag="allowdrag"
+          :allow-drop="
+            () => {
+              return false;
+            }
+          "
+        >
+          <template #default="{ node, data }">
+            <img
+              v-if="data.images&&data.images !== '' && data.images.indexOf('.') > 0"
+              :src="iconPath + data.images"
+              class="icon-tree"
+            />
+            <span>{{ node.label }}</span>
+          </template>
+        </el-tree>
+      </el-card>
+    </div>
+  </div>
+  <div>
+    <el-dialog
+      v-model="dialogVisible_title"
+      width="300"
+      :show-close="false"
+    >
+    <div>名称</div>
+    <div><el-input v-model="addNodeBefore.title"></el-input></div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogVisible_title = false">取消</el-button>
+        <el-button type="primary" @click="addNode"
+          >确认</el-button
+        >
+        </span>
+      </template>
+    </el-dialog>
+  </div>
     <el-dialog :title="dialogAlgAndEvent.title" v-model="dialogAlgAndEvent.visible" width="500px" :modal-append-to-body="false">
       <el-tabs v-model="activeName" class="demo-tabs" >
         <el-tab-pane label="输入事件" name="inputEventTab">
           <div class="table_in">
             <vxe-toolbar>
               <template #buttons>
-                <vxe-button @click="insertInputEvent()">新增</vxe-button>
+                <vxe-button @click="insertInputEvent(-1)">新增</vxe-button>
                 <vxe-button @click="removeInputEvents()">删除选中</vxe-button>
               </template>
             </vxe-toolbar>
@@ -173,7 +140,7 @@
                   <span>{{ formatSystemInputEvent(row.relatedEvent) }}</span>
                 </template>
                 <template #edit="{ row }">
-                  <vxe-select v-model="row.relatedEvent" transfer>
+                  <vxe-select v-model="row.relatedEvent" transfer :on-change="changeOutputEvents(row)">
                     <vxe-option v-for="item in systemInputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
                   </vxe-select>
                 </template>
@@ -183,35 +150,15 @@
         </el-tab-pane>
         <el-tab-pane label="输出事件" name="outputEventTab">
           <div class="table_in">
-            <vxe-toolbar>
-              <template #buttons>
-                <vxe-button @click="insertOutputEvent()">新增</vxe-button>
-                <vxe-button @click="removeOutputEvents()">删除选中</vxe-button>
-              </template>
-            </vxe-toolbar>
             <vxe-table
                 border
                 ref="outputEventTableRef"
                 show-overflow
                 :data="outputEventList"
                 :column-config="{resizable: true}"
-                :edit-config="{trigger: 'click', mode: 'cell'}">
-              <vxe-column type="checkbox" field="key" width="60"></vxe-column>
-              <vxe-column field="text" title="名称" :edit-render="{autofocus: '.vxe-input--inner'}">
-                <template #edit="{ row }">
-                  <vxe-input v-model="row.text" type="text"></vxe-input>
-                </template>
-              </vxe-column>
-              <vxe-column field="relatedEvent" title="映射事件" :edit-render="{}"  >
-                <template #default="{ row }">
-                  <span>{{ formatSystemOutputEvent(row.relatedEvent) }}</span>
-                </template>
-                <template #edit="{ row }">
-                  <vxe-select v-model="row.relatedEvent" transfer>
-                    <vxe-option v-for="item in systemOutputEvents" :key="item.key" :value="item.key" :label="item.text"></vxe-option>
-                  </vxe-select>
-                </template>
-              </vxe-column>
+            >
+              <vxe-column field="text" title="名称" ></vxe-column>
+              <vxe-column field="relatedEvent" title="映射事件"   ></vxe-column>
             </vxe-table>
           </div>
         </el-tab-pane>
@@ -219,7 +166,7 @@
           <div class="table_in">
             <vxe-toolbar>
               <template #buttons>
-                <vxe-button @click="insertInputVari()">新增</vxe-button>
+                <vxe-button @click="insertInputVari(-1)">新增</vxe-button>
                 <vxe-button @click="removeInputVaris()">删除选中</vxe-button>
               </template>
             </vxe-toolbar>
@@ -273,7 +220,7 @@
           <div class="table_in">
             <vxe-toolbar>
               <template #buttons>
-                <vxe-button @click="insertOutputVari()">新增</vxe-button>
+                <vxe-button @click="insertOutputVari(-1)">新增</vxe-button>
                 <vxe-button @click="removeOutputVaris()">删除选中</vxe-button>
               </template>
             </vxe-toolbar>
@@ -333,110 +280,116 @@
     </el-dialog>
   </template>
   
-  <script setup lang="ts">
-  import cache from "@/plugins/cache.ts";
-  import sysApi from "@/api/sysApi";
-  import G6 from "@antv/g6";
-  import { v4 as uuidv4 } from "uuid";
-  import { baseUrl } from "@/api/baseUrl";
-  import { ref } from "vue";
-  import { toRaw } from "@vue/reactivity";
-  import { ElMessage } from "element-plus";
-  import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
-  import {getSystemInputEvents,getSystemOutputEvents} from "@/api/systeminter/systemevent";
-  import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
-  import { VXETable, VxeTableInstance } from 'vxe-table'
-  import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
-    BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
-  import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
-  import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
+<script setup lang="ts">
+import cache from "@/plugins/cache.ts";
+import sysApi from "@/api/sysApi";
+import G6 from "@antv/g6";
+import { v4 as uuidv4 } from "uuid";
+import { baseUrl } from "@/api/baseUrl";
+import { ref } from "vue";
+import { toRaw } from "@vue/reactivity";
+import { ElMessage } from "element-plus";
+import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
+import {getSystemInputEvents} from "@/api/systeminter/systemevent";
+import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
+import { VXETable, VxeTableInstance } from 'vxe-table'
+import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
+  BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
+import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
+import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
+import { debug, group } from "console";
 
-  let cacheKey = 'functionBlock';
-  let functionBlockJson = {};
-  
-  // 设备库变量
-  let devices = ref([]);
-  const projectID = useRoute().params.pid;
-  const procedureID = useRoute().params.id;
-  const iconPath = baseUrl + "/devimgs/";
-  // const iconPath = 'http://10.89.34.70:8081/devimgs/';
-  const drawer = ref(true);
-  let funcTitle = ref("隐藏设备库");
-  const filterText = ref("");
-  const treeRef = ref();
-  const dialogAlgAndEvent = reactive<DialogOption>({
-    visible: false,
-    title: ''
-  });
-  let currentBlockId="";
-  let inputEventList = ref<BlockInputEventForm[]>([]);
-  let outputEventList = ref<BlockOutputEventForm[]>([]);
-  let inputVariList = ref<BlockInputVariForm[]>([]);
-  let outputVariList = ref<BlockOutputVariForm[]>([]);
-  let systemInputEvents=ref<SystemEventInput[]>([]);
-  let systemOutputEvents=ref<SystemEventOutput[]>([]);
-  let systemInputVaris=ref<SystemVariInput[]>([]);
-  let systemOutputVaris=ref<SystemVariOutput[]>([]);
-  const activeName = ref('inputEventTab')
-  const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-  const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
-  const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
-  const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
-  const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
+let cacheKey = 'functionBlock';
+let cacheKey_deployment = 'deployment'
+let functionBlockJson = {};
 
+// 设备库变量
+let devices = ref([]);
+const projectID = useRoute().params.pid;
+const procedureID = useRoute().params.id;
+const iconPath = baseUrl + "/devimgs/";
+// const iconPath = 'http://10.89.34.70:8081/devimgs/';
+const drawer = ref(true);
+let funcTitle = ref("隐藏设备库");
+const filterText = ref("");
+const treeRef = ref();
+const dialogAlgAndEvent = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+let currentBlockId="";
+let inputEventList = ref<BlockInputEventForm[]>([]);
+let outputEventList = ref<BlockOutputEventForm[]>([]);
+let inputVariList = ref<BlockInputVariForm[]>([]);
+let outputVariList = ref<BlockOutputVariForm[]>([]);
+let systemInputEvents=ref<SystemEventInput[]>([]);
+let systemInputVaris=ref<SystemVariInput[]>([]);
+let systemOutputVaris=ref<SystemVariOutput[]>([]);
+const activeName = ref('inputEventTab')
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
+const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
+const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
+const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
+let $router=useRouter();
 
-  const defaultProps = {
-    children: "children",
-    label: (data, node) => {
-      // console.log(data)
-      if (data.jsonContent && data.jsonContent !== "") {
-        data.info = JSON.parse(data.jsonContent);
-        // console.log(data.info)
-        // return data.info.DisplayName;
-      }
-      return data.name;
-    },
-  };
-  // 设备库函数
-  const showOrHidden = () => {
-    //monacoEditor.layout();
-    drawer.value = !drawer.value;
-    funcTitle.value = drawer.value ? "隐藏设备库" : "显示设备库";
-  };
-  watch(filterText, (val) => {
-    treeRef.value.filter(val);
-  });
-  const filterNode = (value, data) => {
-    if (!value) return true;
-    // value = value.toUpperCase();
-    // return data.name.includes(value);
-    return data.label.includes(value);
-  };
-  const allowdrag = (node) => {
-    if (node.data.jsonContent === "") return false;
-    else return true;
-  };
-  const handleDragEnd = (draggingNode, dropNode, dropType, e) => {
-    // console.log('屏幕坐标',{x:e.x,y:e.y})
-    // console.log('屏幕坐标',{x:e.x - leftTreeWidth,y:e.y - topTitleWidth})
-    let viewPos = graph.getPointByClient(e.x, e.y);
-    // console.log('视口坐标',viewPos)
-    // let canvasPos = graph.getCanvasByPoint(viewPos.x,viewPos.y)
-    // console.log('画布坐标',canvasPos)
-    addNodeBefore.value.x=viewPos.x;
-    addNodeBefore.value.y=viewPos.y;
-    addNodeBefore.value.data=draggingNode.data;
-    // dialogVisible_title.value = true;
-    addNodeBefore.value.title = 'test'
-    addNode()
-  };
+const defaultProps = {
+  children: "children",
+  label: (data, node) => {
+    // console.log(data)
+    if (data.jsonContent && data.jsonContent !== "") {
+      data.info = JSON.parse(data.jsonContent);
+      // console.log(data.info)
+      // return data.info.DisplayName;
+    }
+    return data.name;
+  },
+};
+// 设备库函数
+const showOrHidden = () => {
+  //monacoEditor.layout();
+  drawer.value = !drawer.value;
+  funcTitle.value = drawer.value ? "隐藏设备库" : "显示设备库";
+};
+watch(filterText, (val) => {
+  treeRef.value.filter(val);
+});
+const filterNode = (value, data) => {
+  if (!value) return true;
+  // value = value.toUpperCase();
+  // return data.name.includes(value);
+  return data.label.includes(value);
+};
+const allowdrag = (node) => {
+  if (node.data.jsonContent === "") return false;
+  else return true;
+};
+const handleDragEnd = (draggingNode, dropNode, dropType, e) => {
+  // console.log('屏幕坐标',{x:e.x,y:e.y})
+  // console.log('屏幕坐标',{x:e.x - leftTreeWidth,y:e.y - topTitleWidth})
+  let viewPos = graph.getPointByClient(e.x, e.y);
+  // console.log('视口坐标',viewPos)
+  // let canvasPos = graph.getCanvasByPoint(viewPos.x,viewPos.y)
+  // console.log('画布坐标',canvasPos)
+  addNodeBefore.value.x=viewPos.x;
+  addNodeBefore.value.y=viewPos.y;
+  addNodeBefore.value.data=draggingNode.data;
+  // dialogVisible_title.value = true;
+  addNodeBefore.value.title = 'test'
+  addNode()
+};
 //   G6图形
 const tooltip = ref()
+// 输入变量拉出来的常量（一横一方框）
+const newInput = {
+lineSize:[24,1],
+inputSize:[40,14]
+}
 const anchorAttr = {
-    toTopAndBottom: 5,
-    size: [10,10],
-    spacing: 5, //间距，包括锚点之间和锚点与文字之间
-    textSpacing: 5  //并排时文字之间的最小间距
+toTopAndBottom: 5,
+size: [10,10],
+spacing: 5, //间距，包括锚点之间和锚点与文字之间
+textSpacing: 5  //并排时文字之间的最小间距
 }
 const moveEdgeIconSize = [10,10]
 // minSize为最小显示大小
@@ -448,7 +401,7 @@ const initCenterLack = [20,20];
 const initLabelHeight = 40;
 const htmlHeight = 20;
 const lineWidthOut = 2;
-const lineWidthIn = 1;
+const lineWidthIn = 2;
 // 强制连边时，从锚点x位置先偏移edgeOffX画折线，之后自动
 const edgeOffX = 10;
 
@@ -456,65 +409,59 @@ let graph;
 const container = ref();
 let dialogVisible_title = ref(false);
 let addNodeBefore = ref({
-  title: '',
-  x: 0,
-  y: 0,
-  data: {}
+title: '',
+x: 0,
+y: 0,
+data: {}
 });
-let sourceAnchor,targetAnchor,lastPos,curGraphItemBegin,anchorDes;
+let sourceAnchor,targetAnchor,lastPos,curGraphItemBegin;
+let anchorRectOriginPos = []
+let floatingInput,floatingSelect,curNode
+// node中正在输入的input
+// let curInput
 // node刷新前input输入框的位置
-let preInputCursorPos = 0
+// let preInputCursorPos = 0
 // 为了利用内置的undo和redo
 const toolbar = new G6.ToolBar({ className: "g6-toolbar-display" });
 G6.registerEdge('polyline-more',{
-  getControlPoints(cfg) {
-    // console.log(cfg)
-    if (cfg.controlPoints && cfg.controlPoints.length>0) return cfg.controlPoints
-    if (cfg.targetNode && cfg.targetAnchor !== undefined) {
-      let sNode = cfg.sourceNode;
-      let tNode = cfg.targetNode;
-      let sModel = sNode.get('model');
-      let tModel = tNode.get('model');
-      // console.log(sModel,cfg)
-      const startPoint = cfg.startPoint;
-      const endPoint = cfg.endPoint;
-      if (cfg.target !== cfg.source) {
-        // 左node右输出连接右node左输出
-        if ((sModel.x+sNode.get('group').getBBox().width)<=(tModel.x)) {
-          // 只有一条线段（两个控制点）可以拖拽移动
-          cfg.canMove = 1
-          return [
-            {x:endPoint.x / 2 + startPoint.x/2, y:startPoint.y},
-            {x:endPoint.x / 2 + startPoint.x/2,y:endPoint.y}
-          ]
-        } else {
-          // 三条线段（四个控制点）可以拖拽移动
-          cfg.canMove = 3
-          let sy = sModel.y+sNode.get('group').getBBox().height
-          let ty = tModel.y+tNode.get('group').getBBox().height
-          // 两个node接近（垂直方向），从上下绕
-          if ((sy+edgeOffX*2)>=tModel.y && (ty+edgeOffX*2)>=sModel.y) {
-            // 事件连事件，从上绕
-            if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'evt') {
-              let y = sModel.y < tModel.y ? sModel.y: tModel.y
-              return [
-                {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
-                {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y - edgeOffX},
-                {x:endPoint.x-edgeOffX,y:y-edgeOffX},
-                {x:endPoint.x-edgeOffX,y:endPoint.y}
-              ]
-            } else if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'var') {
-              let y = sy > ty ? sy: ty
-              return [
-                {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
-                {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
-                {x:endPoint.x-edgeOffX,y:y},
-                {x:endPoint.x-edgeOffX,y:endPoint.y}
-              ]
-            }
-          } else {// 两个node距离远（垂直方向），从中间穿过去
-            let y =sy + (tModel.y-sy-edgeOffX)/2
-            if (ty<sModel.y) y = ty+(sModel.y-ty)/2
+getControlPoints(cfg) {
+  // console.log(cfg)
+  if (cfg.controlPoints && cfg.controlPoints.length>0) return cfg.controlPoints
+  if (cfg.targetNode && cfg.targetAnchor !== undefined) {
+    let sNode = cfg.sourceNode;
+    let tNode = cfg.targetNode;
+    let sModel = sNode.get('model');
+    let tModel = tNode.get('model');
+    // console.log(sModel,cfg)
+    const startPoint = cfg.startPoint;
+    const endPoint = cfg.endPoint;
+    if (cfg.target !== cfg.source) {
+      // 左node右输出连接右node左输出
+      if ((sModel.x+sNode.get('group').getBBox().width)<=(tModel.x)) {
+        // 只有一条线段（两个控制点）可以拖拽移动
+        cfg.canMove = 1
+        return [
+          {x:endPoint.x / 2 + startPoint.x/2, y:startPoint.y},
+          {x:endPoint.x / 2 + startPoint.x/2,y:endPoint.y}
+        ]
+      } else {
+        // 三条线段（四个控制点）可以拖拽移动
+        cfg.canMove = 3
+        let sy = sModel.y+sNode.get('group').getBBox().height
+        let ty = tModel.y+tNode.get('group').getBBox().height
+        // 两个node接近（垂直方向），从上下绕
+        if ((sy+edgeOffX*2)>=tModel.y && (ty+edgeOffX*2)>=sModel.y) {
+          // 事件连事件，从上绕
+          if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'evt') {
+            let y = sModel.y < tModel.y ? sModel.y: tModel.y
+            return [
+              {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+              {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y - edgeOffX},
+              {x:endPoint.x-edgeOffX,y:y-edgeOffX},
+              {x:endPoint.x-edgeOffX,y:endPoint.y}
+            ]
+          } else if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'var') {
+            let y = sy > ty ? sy: ty
             return [
               {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
               {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
@@ -522,18 +469,9 @@ G6.registerEdge('polyline-more',{
               {x:endPoint.x-edgeOffX,y:endPoint.y}
             ]
           }
-        }
-      } else if (cfg.canMove === 2) {
-        // console.log('getControlPoints2',cfg)
-        if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'evt') {
-          return [
-            {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
-            {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:sModel.y - edgeOffX},
-            {x:endPoint.x-edgeOffX,y:sModel.y-edgeOffX},
-            {x:endPoint.x-edgeOffX,y:endPoint.y}
-          ]
-        } else if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'var') {
-          let y = sModel.y+sNode.get('group').getBBox().height
+        } else {// 两个node距离远（垂直方向），从中间穿过去
+          let y =sy + (tModel.y-sy-edgeOffX)/2
+          if (ty<sModel.y) y = ty+(sModel.y-ty)/2
           return [
             {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
             {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
@@ -542,901 +480,1122 @@ G6.registerEdge('polyline-more',{
           ]
         }
       }
+    } else if (cfg.canMove === 2) {
+      // console.log('getControlPoints2',cfg)
+      if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'evt') {
+        return [
+          {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+          {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:sModel.y - edgeOffX},
+          {x:endPoint.x-edgeOffX,y:sModel.y-edgeOffX},
+          {x:endPoint.x-edgeOffX,y:endPoint.y}
+        ]
+      } else if (sModel.anchorsInfo[cfg.sourceAnchor].evtVar === 'var') {
+        let y = sModel.y+sNode.get('group').getBBox().height
+        return [
+          {x:startPoint.x+anchorAttr.size[0]+edgeOffX,y:startPoint.y},
+          {x:startPoint.x+anchorAttr.size[0]+edgeOffX, y:y},
+          {x:endPoint.x-edgeOffX,y:y},
+          {x:endPoint.x-edgeOffX,y:endPoint.y}
+        ]
+      }
     }
   }
+}
 },
 'polyline')
 G6.registerNode("functionBlock", {
-  draw(cfg, group) {
-    // 为了根据title长度获取bbox
-    let tmpShape1 = cfg.outputEvt.length > cfg.inputEvt.length ? addTmpShape(cfg.outputEvt,cfg.inputEvt,group):addTmpShape(cfg.inputEvt,cfg.outputEvt,group)
-    let tmpShape2 = cfg.outputVar.length > cfg.inputVar.length ? addTmpShape(cfg.outputVar,cfg.inputVar,group):addTmpShape(cfg.inputVar,cfg.outputVar,group)
-    let tmpShape = tmpShape1.concat(tmpShape2)
-    tmpShape1 = group.addShape('text', {
-      attrs: {
-        y:htmlHeight,
-        textAlign:'left',
-        fontSize: 14,
-        fontFamily: 'Arial',
-        text: cfg.title,
-        // textBaseline: 'middle',
-        fill: '#000'
-      },
-      name: 'text-title'
-    })
-    tmpShape.push(tmpShape1)
-    tmpShape1 = group.addShape("text", {
-      attrs: {
-        y:htmlHeight,
-        textAlign:'left',
-        fontSize: 14,
-        fontFamily: 'Arial',
-        text: cfg.selectedResource?.label?cfg.selectedResource.label:'',
-        // textBaseline: 'middle',
-        fill: '#000'
-      },
-      name: "text-res",
-    });
-    tmpShape.push(tmpShape1)
-    // console.log(tmpShape[0].getBBox().width)
-    // let bboxTitle = textTitle.getBBox();
-    // let bboxRes = textRes.getBBox();
-    // let realWidth = Math.max(...[bboxTitle.width,bboxRes.width,minSize[0]]);
-    let w = group.getBBox().width
-    // console.log(w)
-    tmpShape.forEach(el=>{group.removeChild(el)})
-    let realWidth = w > minSize[0] ? w : minSize[0]
-    // console.log(realWidth,group.getBBox())
-    group.addShape("dom", {
-      attrs: {
-        width: realWidth,
-        height: htmlHeight,
-        html: '<div><input id="input-'+cfg.id+'" type="text" style="text-align: center;border:0;width:'+realWidth+'px" value="'+cfg.title+'"/></div>'
-      },
-      name: "dom-input-title",
-    });
-    let realEvtHeight = getHeight(cfg.inputEvt,cfg.outputEvt) - anchorAttr.spacing
-    let realVarHeight = getHeight(cfg.inputVar,cfg.outputVar)
-    const realAnchorsHeight = htmlHeight*2+realEvtHeight + realVarHeight+initCenterLack[1]+initLabelHeight
-    const keyShape = group.addShape("rect", {
-      attrs: {
-        width: realWidth,
-        height: realAnchorsHeight,
-        // stroke: '#1E90FF',
-        // lineWidth:lineWidthOut
-      },
-      // draggable: true,
-      name: "rect-forAnchors",
-    });
-    // console.log(realEvtHeight)
-    group.addShape('polygon', {
-      attrs: {
-        points: [
-          [0, htmlHeight],
-          [realWidth, htmlHeight],
-          [realWidth, realEvtHeight+htmlHeight],
-          [realWidth-initCenterLack[0], realEvtHeight+htmlHeight],
-          [realWidth-initCenterLack[0], initCenterLack[1]+realEvtHeight+htmlHeight],
-          [realWidth, initCenterLack[1]+realEvtHeight+htmlHeight],
-          [realWidth, initCenterLack[1]+realEvtHeight+htmlHeight+realVarHeight+initLabelHeight],
-          [0, initCenterLack[1]+realEvtHeight+htmlHeight+realVarHeight+initLabelHeight],
-          [0, initCenterLack[1]+realEvtHeight+htmlHeight],
-          [initCenterLack[0], initCenterLack[1]+realEvtHeight+htmlHeight],
-          [initCenterLack[0], realEvtHeight+htmlHeight],
-          [0, realEvtHeight+htmlHeight]
-        ],
-        fill: '#009688',
-        stroke: '#000',
-        lineWidth:lineWidthIn
-      },
-      draggable: true,
-      name: 'polygon-block',
-    });
+draw(cfg, group) {
+  // 为了根据title长度获取bbox
+  let tmpShape1 = cfg.outputEvt.length > cfg.inputEvt.length ? addTmpShape(cfg.outputEvt,cfg.inputEvt,group):addTmpShape(cfg.inputEvt,cfg.outputEvt,group)
+  let tmpShape2 = cfg.outputVar.length > cfg.inputVar.length ? addTmpShape(cfg.outputVar,cfg.inputVar,group):addTmpShape(cfg.inputVar,cfg.outputVar,group)
+  let tmpShape = tmpShape1.concat(tmpShape2)
+  tmpShape1 = group.addShape("text", {
+    attrs: {
+      y:htmlHeight,
+      textAlign:'left',
+      fontSize: 14,
+      text: cfg.title,
+      fill: '#000',
+    },
+    name: "rect-label",
+  });
+  tmpShape.push(tmpShape1)
+  // title最长时，留空左右各5
+  let w = group.getBBox().width + 10
+  tmpShape.forEach(el=>{group.removeChild(el)})
+  let realWidth = w > minSize[0] ? w : minSize[0]
+  tmpShape1 = group.addShape('text', {
+    attrs: {
+      x:realWidth/2,
+      y:htmlHeight,
+      textAlign:'center',
+      fontSize: 14,
+      // fontFamily: 'Arial',
+      text: cfg.label,
+      // textBaseline: 'top',
+      fill: '#000'
+    },
+    name: 'text-label'
+  })
+  let realEvtHeight = getHeight(cfg.inputEvt,cfg.outputEvt)
+  let realVarHeight = getHeight(cfg.inputVar,cfg.outputVar)
+  tmpShape2 = group.addShape("text", {
+    attrs: {
+      x:realWidth/2,
+      y:htmlHeight*2+ realEvtHeight+initCenterLack[1]+realVarHeight+initLabelHeight,
+      textAlign:'center',
+      fontSize: 14,
+      // fontFamily: 'Arial',
+      text: cfg.selectedResource?.label?cfg.selectedResource.label:'无资源',
+      // textBaseline: 'top',
+      fill: '#000'
+    },
+    name: "text-res",
+  });
+  // group.addShape("dom", {
+  //   attrs: {
+  //     width: realWidth,
+  //     height: htmlHeight,
+  //     html: '<div><input id="input_'+cfg.id+'" type="text" style="text-align: center;border:0;width:'+realWidth+'px" value="'+cfg.title+'"/></div>'
+  //   },
+  //   name: "dom-input-title",
+  // });
+  const realAnchorsHeight = htmlHeight*2+realEvtHeight + realVarHeight+initCenterLack[1]+initLabelHeight
+  const keyShape = group.addShape("rect", {
+    attrs: {
+      width: realWidth,
+      height: realAnchorsHeight,
+      // stroke: '#1E90FF',
+      // lineWidth:lineWidthOut
+    },
+    // draggable: true,
+    name: "rect-forAnchors",
+  });
+  // console.log(realEvtHeight)
+  group.addShape('polygon', {
+    attrs: {
+      points: [
+        [0, htmlHeight],
+        [realWidth, htmlHeight],
+        [realWidth, realEvtHeight+htmlHeight],
+        [realWidth-initCenterLack[0], realEvtHeight+htmlHeight],
+        [realWidth-initCenterLack[0], initCenterLack[1]+realEvtHeight+htmlHeight],
+        [realWidth, initCenterLack[1]+realEvtHeight+htmlHeight],
+        [realWidth, initCenterLack[1]+realEvtHeight+htmlHeight+realVarHeight+initLabelHeight],
+        [0, initCenterLack[1]+realEvtHeight+htmlHeight+realVarHeight+initLabelHeight],
+        [0, initCenterLack[1]+realEvtHeight+htmlHeight],
+        [initCenterLack[0], initCenterLack[1]+realEvtHeight+htmlHeight],
+        [initCenterLack[0], realEvtHeight+htmlHeight],
+        [0, realEvtHeight+htmlHeight]
+      ],
+      fill: '#009688',
+      stroke: '#000',
+      lineWidth:lineWidthIn
+    },
+    draggable: true,
+    name: 'polygon-block',
+  });
+  group.addShape("rect", {
+    attrs: {
+      x: lineWidthIn/2,
+      y: htmlHeight+realEvtHeight + lineWidthIn/2 +initCenterLack[1],
+      width: realWidth - lineWidthIn,
+      height: initLabelHeight,
+      fill: '#01579b',
+    },
+    draggable: true,
+    name: "rect-label",
+  });
+  // console.log(cfg.label)
+  group.addShape("text", {
+    attrs: {
+      x: (realWidth - lineWidthIn)/2,
+      y: htmlHeight*2+realEvtHeight+initCenterLack[1]*1.5,
+      width: realWidth - lineWidthIn,
+      height: initLabelHeight,
+      textAlign:'center',
+      // textBaseline:'top',
+      fontSize: 14,
+      // fontFamily: 'Arial',
+      text: cfg.title,
+      fill: '#000',
+    },
+    draggable: true,
+    name: "rect-label",
+  });
+  // group.addShape("dom", {
+  //   attrs: {
+  //     y:htmlHeight+realEvtHeight+initCenterLack[1]+realVarHeight+initLabelHeight,
+  //     width: realWidth,
+  //     height: htmlHeight,
+  //     html: '<div><select id="select_'+cfg.id+'" style="text-align:center;width:'+realWidth+'px;appearance:none;border:0;">'+getSelectOption(cfg.resOption)+'</select></div>'
+  //   },
+  //   name: "dom-select-res",
+  // });
+  // 文字超长时自适应选中框
+  let width = group.getBBox().width;
+  let selectedWidth = realWidth+lineWidthOut*2
+  if (width > selectedWidth) {
+    selectedWidth = width
+  }
+  group.addShape('rect', {
+    attrs: {
+      x:-lineWidthOut-(selectedWidth-realWidth-lineWidthOut*2)/2,
+      y:-lineWidthOut,
+      width: selectedWidth,
+      height: realAnchorsHeight + lineWidthOut*2,
+      // fill: '#FFF',
+      stroke: '#1E90FF',
+      lineWidth:0
+    },
+    id: 'rect-out',
+    name: 'rect-out',
+    draggable: true
+  });
+  cfg.anchorParam = {
+    allHeight:realAnchorsHeight,
+    varStartHeight: realAnchorsHeight - realVarHeight-htmlHeight-anchorAttr.spacing,
+    realWidth:realWidth
+  }
+  const anchorPoints = this.getAnchorPoints(cfg);
+  anchorPoints.forEach((anchorPos, i) => {
+    let y = realAnchorsHeight*anchorPos[1] - anchorAttr.size[1]/2
+    let anchor = cfg.anchorsInfo[i]
+    let isLeft = anchor.inOut === 'in'
+    let leftSpacing = lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing
     group.addShape("rect", {
       attrs: {
-        x: lineWidthIn/2,
-        y: htmlHeight+realEvtHeight + lineWidthIn/2 +initCenterLack[1],
-        width: realWidth - lineWidthIn,
-        height: initLabelHeight+lineWidthIn*4,
-        fill: '#01579b',
+        x: realWidth*anchorPos[0],
+        y: y,
+        width: anchorAttr.size[0],
+        height: anchorAttr.size[1],
+        fill: y < (htmlHeight + realEvtHeight) ? "#4caf50" : "#ff9800" //ff9800
       },
-      draggable: true,
-      name: "rect-label",
+      // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
+      name: `anchor-point`, // the name, for searching by group.find(ele => ele.get('name') === 'anchor-point')
+      anchorPointIdx: i, // flag the idx of the anchor-point circle
+      links: 0, // cache the number of edges connected to this shape
+      visible: true, // invisible by default, shows up when links > 1 or the node is in showAnchors state
+      draggable: true, // allow to catch the drag events on this shape
     });
-    // console.log(cfg.label)
     group.addShape("text", {
       attrs: {
-        x: (realWidth - lineWidthIn)/2,
-        y: htmlHeight+realEvtHeight+initCenterLack[1]*1.5,
-        width: realWidth - lineWidthIn,
-        height: initLabelHeight+lineWidthIn*4,
-        textAlign:'center',
-        textBaseline:'top',
-        fontSize: 14,
+        x: isLeft ? leftSpacing : realWidth - leftSpacing,
+        y: y,
+        textAlign: isLeft ? 'left' : 'right',
+        textBaseline: 'top',
+        // fontSize: 20,
         // fontFamily: 'Arial',
-        text: cfg.label,
+        text: cfg.anchorsInfo[i].name,
         fill: '#000',
       },
       draggable: true,
-      name: "rect-label",
+      name: "rect-label-anchor-"+i,
     });
-    group.addShape("dom", {
-      attrs: {
-        y:htmlHeight+realEvtHeight+initCenterLack[1]+realVarHeight+initLabelHeight,
-        width: realWidth,
-        height: htmlHeight,
-        html: '<div><select id="select-'+cfg.id+'" style="text-align: center;width:'+realWidth+'px;appearance:none;border:0;">'+getSelectOption(cfg.resOption)+'</select></div>'
-      },
-      name: "dom-select-res",
-    });
-    group.addShape('rect', {
-      attrs: {
-        x:-lineWidthOut*2,
-        y:-lineWidthOut*2,
-        width: realWidth+lineWidthOut*4,
-        height: realAnchorsHeight + lineWidthOut*4,
-        // fill: '#FFF',
-        stroke: '#1E90FF',
-        lineWidth:lineWidthOut
-      },
-      name: 'rect-out',
-      draggable: true
-    });
-    cfg.anchorParam = {
-      allHeight:realAnchorsHeight,
-      varStartHeight: realAnchorsHeight - realVarHeight-htmlHeight,
-      realWidth:realWidth
+  });
+  // const tars = group.findAll(el=>{return el.get('name') === 'anchor-point'})
+  // // console.log(tars)
+  // tars.forEach((el,i)=>{
+  //   let anchor = cfg.anchorsInfo[i]
+  //   if (anchor.inOut === 'in' && anchor.evtVar === 'var' && (cfg.isShowForInputVar || anchor.isShow || anchor.val !== '')) {
+  //     // console.log('drawInputForAnchor')
+  //     // 避免重复画input
+  //     let child = group.findById('anchor_'+cfg.id+'_'+i)
+  //     if (!child) drawInputForAnchor(group,el,cfg,i,anchor.val)
+  //   }
+  // })
+  return keyShape;
+},
+getAnchorPoints(cfg) {
+  let anchorPointsArr = [];
+  let realWidth = cfg.anchorParam.realWidth;
+  let varStartHeight = cfg.anchorParam.varStartHeight;
+  let allHeight = cfg.anchorParam.allHeight;
+  let isAdd = cfg.anchorsInfo.length === 0;
+  for (let i = 0; i < cfg.inputEvt.length; i++) {
+    anchorPointsArr.push([lineWidthIn / 2 / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+    // 目前不考虑局部变量、事件更新情况，仅适用于更新后重新addnode情况
+    if (isAdd) cfg.anchorsInfo.push({name:cfg.inputEvt[i].name,inOut:"in",evtVar:"evt",isShow:false})
+  }
+  for (let i = 0; i < cfg.outputEvt.length; i++) {
+    anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+    if (isAdd) cfg.anchorsInfo.push({name:cfg.outputEvt[i].name,inOut:"out",evtVar:"evt",isShow:false})
+  }
+  for (let i = 0; i < cfg.inputVar.length; i++) {
+    anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+    let obj = cfg.inputVar[i]
+    if (isAdd) cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",isShow:false,val:''})
+  }
+  for (let i = 0; i < cfg.outputVar.length; i++) {
+    anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
+    let obj = cfg.outputVar[i]
+    if (isAdd) cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"out",evtVar:"var",isShow:false})
+  }
+  // console.log('anchorPointsArr',anchorPointsArr)
+  return anchorPointsArr;
+},
+afterDraw: (cfg, group) => {
+  
+},
+setState(name, value, item) {
+  const group= item.getContainer()
+  // console.log(name, value, item)
+  const shape = group.findById('rect-out')
+  if (name === "selected" || name === "highlight") {
+    if (value === true) {
+      // 选中样式
+      shape.attr({ lineWidth: lineWidthOut });//stroke: "#1E90FF", 
+    } else {
+      shape.attr({ lineWidth: 0 })
     }
-    const anchorPoints = this.getAnchorPoints(cfg);
-      anchorPoints.forEach((anchorPos, i) => {
-      let y = realAnchorsHeight*anchorPos[1] - anchorAttr.size[1]/2
-      let isLeft = cfg.anchorsInfo[i].inOut === 'in'
-      let leftSpacing = lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing
-      group.addShape("rect", {
-        attrs: {
-          x: realWidth*anchorPos[0],
-          y: y,
-          width: anchorAttr.size[0],
-          height: anchorAttr.size[1],
-          fill: y < (htmlHeight + realEvtHeight) ? "#4caf50" : "#ff9800" //ff9800
-        },
-        // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
-        name: `anchor-point`, // the name, for searching by group.find(ele => ele.get('name') === 'anchor-point')
-        anchorPointIdx: i, // flag the idx of the anchor-point circle
-        links: 0, // cache the number of edges connected to this shape
-        visible: true, // invisible by default, shows up when links > 1 or the node is in showAnchors state
-        draggable: true, // allow to catch the drag events on this shape
-      });
-      group.addShape("text", {
-        attrs: {
-          x: isLeft ? leftSpacing : realWidth - leftSpacing,
-          y: y - anchorAttr.size[1]/3,
-          textAlign: isLeft ? 'left' : 'right',
-          textBaseline: 'top',
-          // fontSize: 20,
-          // fontFamily: 'Arial',
-          text: cfg.anchorsInfo[i].name,
-          fill: '#000',
-        },
-        draggable: true,
-        name: "rect-label-anchor-"+i,
-      });
-    });
-    return keyShape;
-  },
-  getAnchorPoints(cfg) {
-    let anchorPointsArr = [];
-    let realWidth = cfg.anchorParam.realWidth;
-    let varStartHeight = cfg.anchorParam.varStartHeight;
-    let allHeight = cfg.anchorParam.allHeight;
-    cfg.anchorsInfo = [];
-    for (let i = 0; i < cfg.inputEvt.length; i++) {
-      anchorPointsArr.push([lineWidthIn / 2 / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.inputEvt[i].name,inOut:"in",evtVar:"evt",order:i})
-    }
-    for (let i = 0; i < cfg.outputEvt.length; i++) {
-      anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (htmlHeight + anchorAttr.toTopAndBottom+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      cfg.anchorsInfo.push({name:cfg.outputEvt[i].name,inOut:"out",evtVar:"evt",order:i})
-    }
-    for (let i = 0; i < cfg.inputVar.length; i++) {
-      anchorPointsArr.push([lineWidthIn / 2 / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      let obj = cfg.inputVar[i]
-      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"in",evtVar:"var",order:i})
-    }
-    for (let i = 0; i < cfg.outputVar.length; i++) {
-      anchorPointsArr.push([(realWidth - anchorAttr.size[0] - lineWidthIn / 2) / realWidth, (varStartHeight + anchorAttr.toTopAndBottom*2+i*(anchorAttr.size[1]+anchorAttr.spacing) + anchorAttr.size[1]/2) / allHeight]);
-      let obj = cfg.inputVar[i]
-      cfg.anchorsInfo.push({name:obj.name,type:obj.type,arrSize:obj.arrSize,inOut:"out",evtVar:"var",order:i})
-    }
-    // console.log('anchorPointsArr',anchorPointsArr)
-    return anchorPointsArr;
-  },
-  afterDraw(cfg, group) {
-    
-  },
-  setState(name, value, item) {
-    // console.log(name, value, item)
-    // item.get('model').anchorDes = value
-    // const group = item.getContainer();
-    // const shapes = group.get("children");
-    // const shape = shapes[0];
-    // if (name === "selected" || name === "highlight") {
-    //   if (value) {
-    //     // 选中样式
-    //     shape.attr({ stroke: "#1E90FF", lineWidth: clickWidth });
-    //   } else {
-    //     shape.attr({ stroke: "#808080", lineWidth: 1 });
-    //   }
-    // } else if (name === "dark") {
-    //   // 为了挡住中心线，外围框不透明
-    //   if (value) {
-    //     // 选中样式
-    //     shapes[1].attr({ opacity: 0.2 });
-    //     shapes[2].attr({ opacity: 0.2 });
-    //     // shapes.forEach((el) => {el.attr({'opacity': 0.2})})
-    //   } else {
-    //     // shapes.forEach((el) => {el.attr({'opacity': 1})})
-    //     shapes[1].attr({ opacity: 1 });
-    //     shapes[2].attr({ opacity: 1 });
-    //   }
-    // }
-  },
+  }
+},
 });
 const addTmpShape = (arr1,arr2,group) => {
-  let ret = []
-  arr1.forEach((el,i)=>{
-    let shape = group.addShape('text',{
+let ret = []
+arr1.forEach((el,i)=>{
+  let shape = group.addShape('text',{
+    attrs: {
+      y:htmlHeight,
+      textAlign:'left',
+      // fontSize: 14,
+      // fontFamily: 'Arial',
+      text: el.name,
+      // textBaseline: 'middle',
+      fill: '#000'
+    },
+    name: 'text-tmp'
+  })
+  ret.push(shape)
+  if (i<arr2.length) {
+    shape = group.addShape('text',{
       attrs: {
+        x:(lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing)*2+anchorAttr.textSpacing + shape.getBBox().width,
         y:htmlHeight,
         textAlign:'left',
         // fontSize: 14,
         // fontFamily: 'Arial',
-        text: el,
+        text: arr2[i].name,
         // textBaseline: 'middle',
         fill: '#000'
       },
       name: 'text-tmp'
     })
     ret.push(shape)
-    if (i<arr2.length) {
-      shape = group.addShape('text',{
-        attrs: {
-          x:(lineWidthIn+anchorAttr.size[0]+anchorAttr.spacing)*2+anchorAttr.textSpacing + shape.getBBox().width,
-          y:htmlHeight,
-          textAlign:'left',
-          // fontSize: 14,
-          // fontFamily: 'Arial',
-          text: arr2[i],
-          // textBaseline: 'middle',
-          fill: '#000'
-        },
-        name: 'text-tmp'
-      })
-      ret.push(shape)
-    }
-  })
-  return ret
+  }
+})
+return ret
 }
 const getHeight = (input,output) => {
-  let initHeight = 0;
-  let realHeight = minSize[1];
-  let inputLen = input ? input.length : 0; //输入数量
-  let outputLen = output ? output.length : 0; //输出数量
-  let len = inputLen > outputLen ? inputLen : outputLen; //数量取最大值，用于计算需要把整个框撑起多大
-  if (len > 0) initHeight = anchorAttr.toTopAndBottom * 2+len*(anchorAttr.size[1]+anchorAttr.spacing)
-  if (initHeight > minSize[1]) realHeight = initHeight
-  return realHeight;
-}
-const getSelectOption = (arr) => {
-  let html = ''
-  arr.forEach(el => {
-    html = html + '<option label="'+el.label+'" '
-    if (el.selected) html = html + 'selected '
-    html = html + 'value="'+el.id+'"/>'
-  })
-  return html
+let initHeight = 0;
+let realHeight = minSize[1];
+let inputLen = input ? input.length : 0; //输入数量
+let outputLen = output ? output.length : 0; //输出数量
+let len = inputLen > outputLen ? inputLen : outputLen; //数量取最大值，用于计算需要把整个框撑起多大
+if (len > 0) initHeight = anchorAttr.toTopAndBottom * 2+len*(anchorAttr.size[1]+anchorAttr.spacing) - anchorAttr.spacing
+if (initHeight > minSize[1]) realHeight = initHeight
+return realHeight;
 }
 const initGraph = () => {
-  let graphWidth = container.value.offsetWidth;
-  let graphHeight = window.innerHeight;
-  graph = new G6.Graph({
-    // linkCenter: true,
-    renderer: 'svg',//渲染html
-    container: "container",
-    width: graphWidth,
-    height: graphHeight,
-    plugins: [toolbar],
-    enabledStack: true,
-    modes: {
-      default: [
-        "zoom-canvas",
-        "drag-canvas",
-        // "drag-node",
-        {
-          type: "drag-node",
-          // enableDelegate: true,
-          // enableDragOnItem: false, // 禁止在节点/边上拖拽
-          // enableDebounce: true, // 启用拖拽缓冲
-          // debounceStep: 10, // 拖拽缓冲步长
-          // direction: 'horizontal', // 设置拖拽方向为水平方向
-          shouldUpdate: (e) => {
-            let y1,y2
-            let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-            let newX = point.x
-            let newY = point.y
-            let model = e.item.get('model')
-            if (model.id === 'line1' || model.id === 'line2' || model.id === 'line3') {
-              // console.log('before',model.id)
-              let edge = graph.findById(model.mapEdge)
-              let eModel = edge.get('model')
-              // let edgeShape = edge.get('keyShape')
-              let path = edge.get('keyShape').attrs.path;
-              let i = parseInt(model.id.slice(4))
-              // x1 = path[i][1]
-              y1 = path[i][2]
-              // x2 = path[i+1][1]
-              y2 = path[i+1][2]
-              let edgeStartX = eModel.startPoint.x + (anchorAttr.size[0]+edgeOffX)
-              let edgeEndX = eModel.endPoint.x - edgeOffX
-              if (eModel.canMove === 1) {
-                if (edgeStartX > newX) newX = edgeStartX
-                else if (edgeEndX < newX) newX = edgeEndX
-                path[i][1] = newX
-                path[i+1][1] = newX
-                lastPos = {x:newX,y:y1+(y2-y1)/2}
-                // 能更新边位置，但是无法撤销,graph.save()拿不到keyShape数据，必须舍弃
-                // edgeShape.attr('path',path)
-                // 原本为了撤销，转为controlPoints,再更新，但是结果无效
-                // 不过解决了graph.save()的问题
-                // 其实好像graph.save()的问题很好解决，把需要的数据存入model，重新渲染时，拿出来再赋值即可
-                graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
-                // console.log(graph.save())
-                // graph.data(graph.save())
-                // graph.render()
-                // e.updatePosition({x:newX,y:(y1+(y2-y1)/2)})
-                // console.log('pos',model.x,model.y,(y1+(y2-y1)/2))
-                // graph.pushStack('update',graph.save())
-              } else if (eModel.canMove === 3 || eModel.canMove === 2) {
-                switch (i) {
-                  case 1:
-                    if (edgeStartX > newX) newX = edgeStartX
-                    path[i][1] = newX
-                    path[i+1][1] = newX
-                    graph.findById('line2').updatePosition({x:path[3][1]+(newX-path[3][1])/2})
-                    lastPos = {x:newX,y:y1+(y2-y1)/2}
-                    graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
-                    break
-                  case 3:
-                    if (edgeEndX < newX) newX = edgeEndX
-                    path[i][1] = newX
-                    path[i+1][1] = newX
-                    graph.findById('line2').updatePosition({x:newX+(path[2][1]-newX)/2})
-                    lastPos = {x:newX,y:y1+(y2-y1)/2}
-                    graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
-                    break;
-                  case 2:
-                    // if (edgeEndX < newX) newX = edgeEndX
-                    path[i][2] = newY
-                    path[i+1][2] = newY
-                    graph.findById('line1').updatePosition({y:path[1][2]+(newY-path[1][2])/2})
-                    graph.findById('line3').updatePosition({y:path[4][2]+(newY-path[4][2])/2})
-                    lastPos = {x:path[3][1]+(path[2][1]-path[3][1])/2,y:newY}
-                    graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
-                    break;
-                  default:
-                    break;
-                }
+let graphWidth = container.value.offsetWidth;
+let graphHeight = window.innerHeight;
+let minimap = new G6.Minimap({
+  size: [graphWidth / 8, graphHeight / 8],
+});
+graph = new G6.Graph({
+  // linkCenter: true,
+  // renderer: 'svg',//渲染html
+  container: "container",
+  width: graphWidth,
+  height: graphHeight,
+  plugins: [minimap,toolbar],
+  enabledStack: true,
+  modes: {
+    default: [
+      "zoom-canvas",
+      "drag-canvas",
+      // "drag-node",
+      {
+        type: "drag-node",
+        // enableDelegate: true,
+        // enableDragOnItem: false, // 禁止在节点/边上拖拽
+        // enableDebounce: true, // 启用拖拽缓冲
+        // debounceStep: 10, // 拖拽缓冲步长
+        // direction: 'horizontal', // 设置拖拽方向为水平方向
+        shouldBegin: (e) => {
+          let model = e.item.get('model')
+          if (model.id.slice(0,6)==='anchor') return false
+          else if (model.id !== 'line1' || model.id !== 'line2' || model.id !== 'line3') {
+            let anchorArr = getAnchorRect(model.id)
+            anchorRectOriginPos = []
+            anchorArr.forEach(el=>{
+              let m=el.get('model')
+              anchorRectOriginPos.push({x:m.x,y:m.y})
+            })
+          }
+          return true
+        },
+        shouldUpdate: (e) => {
+          let y1,y2
+          let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
+          let newX = point.x
+          let newY = point.y
+          let model = e.item.get('model')
+          if (model.id === 'line1' || model.id === 'line2' || model.id === 'line3') {
+            // console.log('before',model.id)
+            let edge = graph.findById(model.mapEdge)
+            let eModel = edge.get('model')
+            // let edgeShape = edge.get('keyShape')
+            let path = edge.get('keyShape').attrs.path;
+            let i = parseInt(model.id.slice(4))
+            // x1 = path[i][1]
+            y1 = path[i][2]
+            // x2 = path[i+1][1]
+            y2 = path[i+1][2]
+            let edgeStartX = eModel.startPoint.x + (anchorAttr.size[0]+edgeOffX)
+            let edgeEndX = eModel.endPoint.x - edgeOffX
+            if (eModel.canMove === 1) {
+              if (edgeStartX > newX) newX = edgeStartX
+              else if (edgeEndX < newX) newX = edgeEndX
+              path[i][1] = newX
+              path[i+1][1] = newX
+              lastPos = {x:newX,y:y1+(y2-y1)/2}
+              // 能更新边位置，但是无法撤销,graph.save()拿不到keyShape数据，必须舍弃
+              // edgeShape.attr('path',path)
+              // 原本为了撤销，转为controlPoints,再更新，但是结果无效
+              // 不过解决了graph.save()的问题
+              // 其实好像graph.save()的问题很好解决，把需要的数据存入model，重新渲染时，拿出来再赋值即可
+              graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+              // console.log(graph.save())
+              // graph.data(graph.save())
+              // graph.render()
+              // e.updatePosition({x:newX,y:(y1+(y2-y1)/2)})
+              // console.log('pos',model.x,model.y,(y1+(y2-y1)/2))
+              // graph.pushStack('update',graph.save())
+            } else if (eModel.canMove === 3 || eModel.canMove === 2) {
+              switch (i) {
+                case 1:
+                  if (edgeStartX > newX) newX = edgeStartX
+                  path[i][1] = newX
+                  path[i+1][1] = newX
+                  graph.findById('line2').updatePosition({x:path[3][1]+(newX-path[3][1])/2})
+                  lastPos = {x:newX,y:y1+(y2-y1)/2}
+                  graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                  break
+                case 3:
+                  if (edgeEndX < newX) newX = edgeEndX
+                  path[i][1] = newX
+                  path[i+1][1] = newX
+                  graph.findById('line2').updatePosition({x:newX+(path[2][1]-newX)/2})
+                  lastPos = {x:newX,y:y1+(y2-y1)/2}
+                  graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                  break;
+                case 2:
+                  // if (edgeEndX < newX) newX = edgeEndX
+                  path[i][2] = newY
+                  path[i+1][2] = newY
+                  graph.findById('line1').updatePosition({y:path[1][2]+(newY-path[1][2])/2})
+                  graph.findById('line3').updatePosition({y:path[4][2]+(newY-path[4][2])/2})
+                  lastPos = {x:path[3][1]+(path[2][1]-path[3][1])/2,y:newY}
+                  graph.updateItem(edge,{controlPoints:pathToControlPoints(path)},true)
+                  break;
+                default:
+                  break;
               }
-              // console.log(newX,path)
-              // graph.update(e.item,{x:newX,y:y1+(y2-y1)/2})
-              // const { x, y } = model;
-              // // console.log(e.dx)
-              // // 只能水平拖拽
-              // if (x && !y) return e.x !== 0;
-              // // 只能垂直拖拽
-              // // if (y && !x) return e.dy !== 0;
-              // e.canvasY = graph.getCanvasByPoint(lastPos.x, lastPos.y).y
-              // e.canvasX = graph.getCanvasByPoint(lastPos.x, lastPos.y).x
-              // console.log('after',newX,model.x,e)
-              // return false
+            }
+            // console.log(newX,path)
+            // graph.update(e.item,{x:newX,y:y1+(y2-y1)/2})
+            // const { x, y } = model;
+            // // console.log(e.dx)
+            // // 只能水平拖拽
+            // if (x && !y) return e.x !== 0;
+            // // 只能垂直拖拽
+            // // if (y && !x) return e.dy !== 0;
+            // e.canvasY = graph.getCanvasByPoint(lastPos.x, lastPos.y).y
+            // e.canvasX = graph.getCanvasByPoint(lastPos.x, lastPos.y).x
+            // console.log('after',newX,model.x,e)
+            // return false
+          } else if (model.id.slice(0,6)!=='anchor') {
+            let anchorArr = getAnchorRect(model.id)
+            anchorArr.forEach((el,i)=>{
+              let offx=e.x-e.origin.x
+              let offy=e.y-e.origin.y
+              // console.log(el)
+              el.updatePosition({x:anchorRectOriginPos[i].x+offx,y:anchorRectOriginPos[i].y+offy})
+            })
+          }
+          return true
+        }
+      },
+      // formatText无法动态获取数据
+      // {
+      //   type: 'tooltip',
+      //   formatText(model) {
+      //       // console.log('formatText',model.anchorDes)
+      //       // return '<div>'+anchorDes+'</div>';
+      //     return model.anchorDes
+      //   },
+      //   offset: 10,
+      //   shouldBegin: (e) => {
+      //     let tooltip = document.getElementsByClassName('g6-tooltip')
+      //     const target = e.target;
+      //     if (target.get('name') === 'anchor-point') {
+      //       let index = e.target.get("anchorPointIdx");
+      //       let model = e.item.get('model')
+      //       let anchor = model.anchorsInfo[index]
+      //       if (anchor.evtVar === 'var') {
+      //         anchorDes = anchor.type+'_'+anchor.arrSize
+      //         graph.setItemState(e.item,'anchorDes',true)
+      //         graph.setItemState(e.item,'anchorDes',anchorDes)
+      //         // e.item.set('anchorDes',anchorDes)
+      //         // graph.setItemState(e.item, 'anchorDes', anchorDes)
+      //         // tooltip[0].hidden=false
+      //         // tooltip.style={display:'block'}
+      //         console.log('shouldBegin',e.item)
+      //         return true;
+      //       }
+      //     }
+      //     tooltip[0].hidden=true
+      //     return false;
+      //   }
+      // },
+      {
+          type: "brush-select",
+          trigger: "shift",
+        },
+      {
+        type: "click-select",
+        trigger: "shift",
+      },
+      {
+        type: "create-edge",
+        key: "shift",
+        trigger: "drag", // 'click' by default. options: 'drag', 'click'
+        shouldBegin: (e) => {
+          if (e.target && e.target.get("name") === "anchor-point") {
+            let model=e.item.get('model')
+            curGraphItemBegin = {
+              model:model,
+              target:e.target
+            }
+            sourceAnchor = e.target.get("anchorPointIdx");
+            // 改变边颜色
+            if (model.anchorsInfo[sourceAnchor].evtVar === 'var') {
+              graph.edge(()=>{return {style:{stroke:'#ff9800'}}})
+            } else {
+              graph.edge(()=>{return {style:{stroke:'#4CAF50'}}})
             }
             return true
           }
+          return false;
         },
-        // formatText无法动态获取数据
-        // {
-        //   type: 'tooltip',
-        //   formatText(model) {
-        //       // console.log('formatText',model.anchorDes)
-        //       // return '<div>'+anchorDes+'</div>';
-        //     return model.anchorDes
-        //   },
-        //   offset: 10,
-        //   shouldBegin: (e) => {
-        //     let tooltip = document.getElementsByClassName('g6-tooltip')
-        //     const target = e.target;
-        //     if (target.get('name') === 'anchor-point') {
-        //       let index = e.target.get("anchorPointIdx");
-        //       let model = e.item.get('model')
-        //       let anchor = model.anchorsInfo[index]
-        //       if (anchor.evtVar === 'var') {
-        //         anchorDes = anchor.type+'_'+anchor.arrSize
-        //         graph.setItemState(e.item,'anchorDes',true)
-        //         graph.setItemState(e.item,'anchorDes',anchorDes)
-        //         // e.item.set('anchorDes',anchorDes)
-        //         // graph.setItemState(e.item, 'anchorDes', anchorDes)
-        //         // tooltip[0].hidden=false
-        //         // tooltip.style={display:'block'}
-        //         console.log('shouldBegin',e.item)
-        //         return true;
-        //       }
-        //     }
-        //     tooltip[0].hidden=true
-        //     return false;
-        //   }
-        // },
-        {
-          type: "click-select",
-          trigger: "shift",
-        },
-        {
-          type: "create-edge",
-          key: "shift",
-          trigger: "drag", // 'click' by default. options: 'drag', 'click'
-          shouldBegin: (e) => {
-            if (e.target && e.target.get("name") === "anchor-point") {
-              let model=e.item.get('model')
-              curGraphItemBegin = {
-                model:model,
-                target:e.target
-              }
-              sourceAnchor = e.target.get("anchorPointIdx");
-              // 改变边颜色
-              if (model.anchorsInfo[sourceAnchor].evtVar === 'var') {
-                graph.edge(()=>{return {style:{stroke:'#ff9800'}}})
-              } else {
-                graph.edge(()=>{return {style:{stroke:'#4CAF50'}}})
-              }
-              return true
+        shouldEnd: (e) => {
+          if (e.target && e.target.get("name") === "anchor-point") {
+            targetAnchor = e.target.get("anchorPointIdx");
+            let sModel = curGraphItemBegin.model
+            let tModel=e.item.get('model')
+            let sTarget = curGraphItemBegin.target
+            let tTarget = e.target
+            let sAnchor = sModel.anchorsInfo[sourceAnchor]
+            let tAnchor = tModel.anchorsInfo[targetAnchor]
+            // 自己不能连自己
+            if (sModel.id === tModel.id && sourceAnchor === targetAnchor) return false
+            // 输入不能连输入，输出不能连输出
+            if (sAnchor.inOut === tAnchor.inOut) return false
+            // 变量和事件不能互连
+            if (sAnchor.evtVar !== tAnchor.evtVar) return false
+            // 类型、长度一致的输入输出变量才能互连，且输出和输入是一对多关系
+            // 事件多对多，无限制
+            if (sAnchor.evtVar === 'var') {
+              if (sAnchor.type !== tAnchor.type || sAnchor.arrSize !== tAnchor.arrSize) return false
+              if (sAnchor.inOut === 'in' && sTarget.get("links") === 1 || tAnchor.inOut === 'in' && tTarget.get("links") === 1) return false
             }
-            return false;
-          },
-          shouldEnd: (e) => {
-            if (e.target && e.target.get("name") === "anchor-point") {
-              targetAnchor = e.target.get("anchorPointIdx");
-              let sModel = curGraphItemBegin.model
-              let tModel=e.item.get('model')
-              let sTarget = curGraphItemBegin.target
-              let tTarget = e.target
-              let sAnchor = sModel.anchorsInfo[sourceAnchor]
-              let tAnchor = sModel.anchorsInfo[targetAnchor]
-              // 自己不能连自己
-              if (sModel.id === tModel.id && sourceAnchor === targetAnchor) return false
-              // 输入不能连输入，输出不能连输出
-              if (sAnchor.inOut === tAnchor.inOut) return false
-              // 变量和事件不能互连
-              if (sAnchor.evtVar !== tAnchor.evtVar) return false
-              // 类型、长度一致的输入输出变量才能互连，且输出和输入是一对多关系
-              // 事件多对多，无限制
-              // if (sAnchor)
-              sTarget.set("links", tTarget.get("links") + 1)
-              tTarget.set("links", tTarget.get("links") + 1);
-              // console.log(e)
-              return true
-            }
-            return false;
-          },
+            sTarget.set("links", sTarget.get("links") + 1)
+            tTarget.set("links", tTarget.get("links") + 1);
+            // console.log(e)
+            return true
+          }
+          return false;
         },
-      ],
-    },
-    defaultEdge: {
-      type: "polyline-more",//polyline，quadratic
-      style: {
-        stroke: "#4CAF50",
-        lineWidth: 2,
-        lineAppendWidth: 10
-        // endArrow: true,
-      }
-    },
-    edgeStateStyles: {
-      selected: {
-        stroke: "#1E90FF",
-        shadowBlur: 0,
       },
-      highlight: {
-        stroke: "#1E90FF",
-        shadowBlur: 0,
-      },
-      dark: {
-        opacity: 0.2,
-      },
+    ],
+  },
+  defaultEdge: {
+    type: "polyline-more",//polyline，quadratic
+    style: {
+      stroke: "#4CAF50",
+      lineWidth: 2,
+      lineAppendWidth: 10
+      // endArrow: true,
+    }
+  },
+  nodeStateStyles:{
+    selected: {
+      stroke: "#1E90FF",
+      shadowBlur: 0,
+      lineWidth:1
     },
-  });
-  
-  graph.on("aftercreateedge", (e) => {
-    // update the sourceAnchor and targetAnchor for the newly added edge
-    let edge = e.edge;
-    // edge.toFront()
-    let sModel = edge.get('sourceNode').get('model');
-    let model = edge.get('model');
-    let newModel = {
-      sourceAnchor: sourceAnchor,
-      targetAnchor: targetAnchor
+  },
+  edgeStateStyles: {
+    selected: {
+      stroke: "#1E90FF",
+      shadowBlur: 0,
+    },
+    highlight: {
+      stroke: "#1E90FF",
+      shadowBlur: 0,
+    },
+    dark: {
+      opacity: 0.2,
+    },
+  },
+});
+
+graph.on("aftercreateedge", (e) => {
+  // update the sourceAnchor and targetAnchor for the newly added edge
+  let edge = e.edge;
+  // edge.toFront()
+  let sModel = edge.get('sourceNode').get('model');
+  let model = edge.get('model');
+  let newModel = {
+    sourceAnchor: sourceAnchor,
+    targetAnchor: targetAnchor
+  }
+  // 方向必须是输出到输入，否则纠正
+  if (sModel.anchorsInfo[sourceAnchor].inOut === 'in') {
+    newModel = {
+      sourceAnchor: targetAnchor,
+      targetAnchor: sourceAnchor,
+      source: model.target,
+      target: model.source
     }
-    // 方向必须是输出到输入，否则纠正
-    if (sModel.anchorsInfo[sourceAnchor].inOut === 'in') {
-      newModel = {
-        sourceAnchor: targetAnchor,
-        targetAnchor: sourceAnchor,
-        source: model.target,
-        target: model.source
-      }
-    }
-    // 自循环
-    if (model.type === 'loop') {
-      newModel.type = 'polyline-more'
-      newModel.canMove = 2
-    }
-    graph.updateItem(edge, newModel);
-    // console.log(edge);
-  });
-  graph.on('afteritemrefresh',(e) => {
-    // console.log('afteritemrefresh',e)
-    let model = e.item.get('model')
-    listener(model.id,model.isFocus)
-  })
-  graph.on('wheelzoom',(e) => {
-    // console.log('wheelzoom',e)
-    // e.stopPropagation();
-    if (tooltip.value.style.display === 'block') tooltip.value.style.transform = `scale(${graph.getZoom()})`;
-    graph.getNodes().forEach(el => {
-      listener(el.get('id'))
-    });
-  })
-  graph.on("node:mousedown", (evt) => {
-    let id = evt.item.get('id');
-    if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
-    if (evt.originalEvent.shiftKey) {
-      evt.originalEvent.preventDefault()
-      // console.log('node:mousedown')
-      evt.item?.lock();
-    }
-    // isLeaveCanvas = false;
-  });
-  graph.on("node:dragstart", (evt) => {
-    let id = evt.item.get('id');
-    // console.log('dragStart',evt)
-    if (id !== 'line1' && id !== 'line2' && id !== 'line3') {
-      evt.item.get('edges').forEach(el=>{
-        el.update({controlPoints:[]})
-        // console.log('dragStart')
+  }
+  // 自循环
+  if (model.type === 'loop') {
+    newModel.type = 'polyline-more'
+    newModel.canMove = 2
+  }
+  graph.updateItem(edge, newModel);
+  // console.log(edge);
+});
+graph.on('afteritemrefresh',(e) => {
+  // console.log('afteritemrefresh',e)
+  let model = e.item.get('model')
+  if (model.id.slice(0,6)==='anchor') {
+    let bbox = e.item.get('group').get('children')[1].getBBox()
+    let realWidth = bbox.width>newInput.inputSize[0] ? bbox.width: newInput.inputSize[0]
+    if (realWidth!==model.size[0]) {
+      e.item.update({
+        x:model.x + (model.size[0]-realWidth)/2,
+        size:[realWidth,newInput.inputSize[1]]
       })
     }
-  });
-  graph.on('node:drag',(e) => {
-    e.stopPropagation();
-    e.originalEvent.preventDefault()
-  })
-  graph.on('node:dragend',(e) => {
-    e.originalEvent.preventDefault()
-    // console.log(e)
-    let model = e.item.get('model')
-    if (lastPos && (model.id === 'line1' || model.id === 'line2' || model.id === 'line3')) {
-      e.item.updatePosition(lastPos)
-    }
-  })
-  graph.on("node:mouseup", (evt) => {
-    if (evt.originalEvent.shiftKey) {
-      evt.originalEvent.preventDefault()
-      evt.item?.unlock();
-    }
-
-    // isLeaveCanvas = false;
-  });
-  graph.on('node:mouseenter',e => {
-    // console.log('node:mouseenter',e)
-    const target = e.target;
-    if (target.get('name') === 'anchor-point') {
-      let index = target.get("anchorPointIdx");
-      let model = e.item.get('model')
-      let anchor = model.anchorsInfo[index]
-      if (anchor.evtVar === 'var') {
-        // tooltip
-        // let tooltipBox = document.getElementsByClassName('g6-tooltip');
-        tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
-        let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-        console.log(tooltip)
-        tooltip.value.style.left = point.x + 'px';
-        tooltip.value.style.top = (point.y+20) + 'px';
-        tooltip.value.style.display = "block";
-      }
-    } else {
-      console.log('mouseenter:none')
-      // let tooltipBox = document.getElementsByClassName('g6-tooltip')
-      tooltip.value.style.display = 'none'
-    }
-    let id = e.item.get('id')
-    if (id === 'line1' || id === 'line2' || id === 'line3') {
-      graph.update(id, {
-        // 节点的样式
-        style: {
-          cursor: id === 'line2' ? 'n-resize' : 'w-resize'
-        },
-      });
-    }
-  })
-  graph.on('node:mouseout',e => {
-    // console.log('node:mouseout')
-    // let tooltipBox = document.getElementsByClassName('g6-tooltip')
-    // tooltip.value.style.display = 'none'
-    let id = e.item.get('id')
-    if (id === 'line1' || id === 'line2' || id === 'line3') {
-      graph.update(id, {
-        // 节点的样式
-        style: {
-          cursor: 'default'
-        },
-      });
-    }
-  })
-  
-  graph.on('node:mousemove',e => {
-    // console.log('node:mouseenter',e)
-    const target = e.target;
-    if (target.get('name') === 'anchor-point') {
-      let index = target.get("anchorPointIdx");
-      let model = e.item.get('model')
-      let anchor = model.anchorsInfo[index]
-      if (anchor.evtVar === 'var') {
-        // tooltip
-        tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
-        let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-        // console.log(tooltip)
-        tooltip.value.style.left = point.x + 'px';
-        tooltip.value.style.top = (point.y+20) + 'px';
-        tooltip.value.style.display = "block";
-      }
-    } else {
-      // console.log('mouseenter:none')
-      tooltip.value.style.display = 'none'
-    }
-  })
-  
-  graph.on('edge:click',(e) => {
-    // console.log(e.item)
-    let model = e.item.get('model')
-    removeEdgeNode()
-    if (model.canMove === 1) {
-      addEdgeNode(e.item,1)
-    } else if (model.canMove === 3 || model.canMove === 2) {
-      addEdgeNode(e.item,1)
-      addEdgeNode(e.item,2)
-      addEdgeNode(e.item,3)
-    }
-  })
-  graph.on('canvas:dragend',() => {
-    // console.log('canvas:dragend')
-    graph.getNodes().forEach(el => {
-      listener(el.get('id'))
-    });
-  })
-  graph.on("canvas:click", (evt) => {
-    removeEdgeNode()
-    // console.log(graph.getNodes())
-  });
-  graph.on('node:dblclick', nodeDbClick);
-}
-const pathToControlPoints = (path) => {
-  let ret = []
-  path.pop()
-  path.shift()
-  path.forEach(el => {
-    ret.push({x:el[1],y:el[2]})
-  })
-  // console.log(ret)
-  return ret
-}
-const removeEdgeNode = () => {
-  if (graph.findById('line1')) graph.removeItem('line1')
-  if (graph.findById('line2')) graph.removeItem('line2')
-  if (graph.findById('line3')) graph.removeItem('line3')
-}
-const addEdgeNode = (edge,i) => {
-  let path = edge.get('keyShape').attrs.path;
-  let x,y,cursor
-  switch (i) {
-    case 1:
-    case 3:
-      x = path[i][1]
-      y = path[i][2]+ (path[i+1][2]-path[i][2]) / 2
-      cursor = 'w-resize'
-      break;
-    case 2:
-      x = path[i][1]+ (path[i+1][1]-path[i][1]) / 2
-      y = path[i][2]
-      cursor = 'n-resize'
-      break;
-    default:
-      break;
   }
-  let node = {
-    id:'line'+i,
-    x:x,
-    y:y,
-    size: moveEdgeIconSize,
-    type: 'rect',
-    style: {
-      fill:'#1E90FF',
-      lineWidth:0,
-      cursor: cursor
-    },
-    mapEdge: edge.get('id')
+})
+graph.on("afterremoveitem", (e) => {
+  console.log('afterremoveitem',e)
+  // 删除anchor节点时，link清零
+  let id=e.item.id
+  if (id.slice(0,6)==='anchor') {
+    let arr = id.split('_')
+    let group = graph.findById(arr[1]).get('group')
+    let target = group.find(el=>{return el.get('name')==='anchor-point' && el.get('anchorPointIdx')===arr[2]})
+    console.log(target)
   }
-  graph.addItem('node',node);
-  // console.log(node)
-}
-const listener = (nodeId,isFocus = false) => {
-  let input = document.getElementById('input-'+nodeId);
-  input.addEventListener('keydown',inputKeyDown);
-  input.addEventListener('input',inputAdaptLength);
-  if (isFocus) {
-    input.addEventListener('focus',(e) => {
-      let input = e.target;
-      let val = input.value
-      input.value = val
-    });
-    input.focus()
-    input.setSelectionRange(preInputCursorPos,preInputCursorPos)
+  // 删除变量边时，link清零
+})
+graph.on('wheelzoom',(e) => {
+  floatingInput.blur()
+  floatingSelect.blur()
+})
+graph.on("node:mousedown", (evt) => {
+  let id = evt.item.get('id');
+  if (id !== 'line1' && id !== 'line2' && id !== 'line3') removeEdgeNode()
+  if (evt.originalEvent.shiftKey) {
+    evt.originalEvent.preventDefault()
+    // console.log('node:mousedown')
+    evt.item?.lock();
   }
-  let select = document.getElementById('select-'+nodeId);
-  select.addEventListener('change',selectChange);
-}
-const inputAdaptLength = (e) => {
-    let input = e.target;
-    let node = graph.findById(input.id.slice(6));
-    let model = node.get('model');
-    model.title = input.value;
-    model.isFocus = true
-    preInputCursorPos = input.selectionStart
-    graph.refreshItem(node)
-}
-const inputKeyDown = (e) => {
-  if (e.key === 'Enter') {
-    let input = e.target;
-    let node = graph.findById(input.id.slice(6));
-    let model = node.get('model');
-    model.isFocus = true
-    graph.refreshItem(node)
-  }
-}
-const selectChange = (e) => {
-  let select = e.target;
-  let node = graph.findById(select.id.slice(7));
-  let model = node.get('model');
-  let selectedObj = select.options[select.selectedIndex];
-  model.selectedResource = {label:selectedObj.label,id:selectedObj.value};
-  model.resOption.forEach(el => {
-    el.selected = false
-  })
-  model.resOption[select.selectedIndex].selected = true;
-  model.isFocus = false
-  graph.refreshItem(node)
-  // graph.data(graph.save())
-  // graph.render()
-  // console.log(node)
-  // select.blur();
-}
-const addNode = () => {
-  let data = addNodeBefore.value.data
-  // console.log(data)
-  let node = {
-    id: uuidv4(),//uuidv4()
-    title: addNodeBefore.value.title,
-    x: addNodeBefore.value.x,
-    y: addNodeBefore.value.y,
-    type: 'functionBlock',
-    // backgroud:'#009688',
-    isFocus: false,
-    selectedResource: {id:2,label:'res2',selected:false},
-    resOption: [{id:1,label:'res111111111111111111111111111111111111111111111111112',selected:false},{id:2,label:'res2',selected:true}],
-    info: data.info,
-    label: data.name,
-    controlPoints: [],
-    anchorDes:''
-  };
-  switch (data.type) {
-    case 'project':
-      node.inputEvt = getAnchorsName(data.info['input_events'],'text')
-      node.outputEvt = getAnchorsName(data.info['output_events'],'text')
-      node.inputVar = getAnchorsName(data.info.inputs,'text','type','arrayLength')
-      node.outputVar = getAnchorsName(data.info.outputs,'text','type','arrayLength')
-      break;
-    case 'generic':
-      node.inputEvt = getAnchorsName(data.info.InterfaceList.EventInputs?.Event,'Name')
-      node.outputEvt = getAnchorsName(data.info.InterfaceList.EventOutputs?.Event,'Name')
-      node.inputVar = getAnchorsName(data.info.InterfaceList.InputVars?.VarDeclaration,'Name','Type','ArraySize')
-      node.outputVar = getAnchorsName(data.info.InterfaceList.OutputVars?.VarDeclaration,'Name','Type','ArraySize')
-      break;
-    default:
-      break;
-  }
-  // console.log(node)
-  graph.addItem("node", node);
-  listener(node.id)
-  dialogVisible_title.value = false;
-}
-const getAnchorsName = (arr,attr1,attr2,attr3) => {
-  let ret = []
-  if (arr != '' && arr != undefined) {
-    arr.forEach(el => {
-      let obj = {name:el[attr1]}
-      if (attr2) {
-        obj.type = el[attr2]
-        obj.arrSize = el[attr3]
-      }
-      ret.push(obj)
+  // isLeaveCanvas = false;
+});
+graph.on("node:dragstart", (evt) => {
+  let id = evt.item.get('id');
+  // console.log('dragStart',evt)
+  if (id !== 'line1' && id !== 'line2' && id !== 'line3') {
+    evt.item.get('edges').forEach(el=>{
+      el.update({controlPoints:[]})
+      // console.log('dragStart')
     })
   }
-  return ret
-}
-  const saveAll = () => {
-    functionBlockJson = graph.save();
-    cache.local.setJSON(cacheKey, functionBlockJson);
-  };
-  const saveAllClick = () => {
-    saveAll();
-    ElMessage({
-      message: "保存成功",
-      type: "success",
+});
+graph.on('node:drag',(e) => {
+  e.stopPropagation();
+  e.originalEvent.preventDefault()
+})
+graph.on('node:dragend',(e) => {
+  e.originalEvent.preventDefault()
+  // console.log(e)
+  let model = e.item.get('model')
+  if (lastPos && (model.id === 'line1' || model.id === 'line2' || model.id === 'line3')) {
+    e.item.updatePosition(lastPos,false)
+  }
+})
+graph.on("node:mouseup", (evt) => {
+  if (evt.originalEvent.shiftKey) {
+    evt.originalEvent.preventDefault()
+    evt.item?.unlock();
+  }
+
+  // isLeaveCanvas = false;
+});
+graph.on('node:mouseenter',e => {
+  // console.log('node:mouseenter',e)
+  showTooltip(e)
+  let id = e.item.get('id')
+  if (id === 'line1' || id === 'line2' || id === 'line3') {
+    graph.update(id, {
+      // 节点的样式
+      style: {
+        cursor: id === 'line2' ? 'n-resize' : 'w-resize'
+      },
     });
-  };
-  // let isKeyDown = true;
-  const handleKeyDown = (e) => {
-    // if (e.key === 'Shift' && isKeyDown) {
-    //   graph.setMode('createEdge')
-    //   console.log('handleKeyDown')
-    //   isKeyDown = false
-    // }
-    if (e.ctrlKey && e.key === "z" && !isLeaveCanvas) toolbar.undo();
-    if (e.ctrlKey && e.key === "y" && !isLeaveCanvas) toolbar.redo();
-  };
-  const handleKeyUp = (e) => {
-    if (e.key === "Delete") {
-      
+  }
+})
+graph.on('node:mouseout',e => {
+  // console.log('node:mouseout')
+  // let tooltipBox = document.getElementsByClassName('g6-tooltip')
+  tooltip.value.style.display = 'none'
+  let id = e.item.get('id')
+  if (id === 'line1' || id === 'line2' || id === 'line3') {
+    graph.update(id, {
+      // 节点的样式
+      style: {
+        cursor: 'default'
+      },
+    });
+  }
+})
+graph.on('node:mousemove',e => {
+  // console.log('node:mouseenter',e)
+  showTooltip(e)
+})
+graph.on('node:click',e=>{
+  let model = e.item.get('model')
+  if (model.id.slice(0,6)==='anchor' && curNode.get('id') === model.id) {
+    showInput(e.item,10)
+  }
+  curNode = e.item
+})
+graph.on('anchor-point:dblclick',e=>{
+  let model = e.item.get('model')
+  let tar = e.target
+  let index = tar.get('anchorPointIdx')
+  // console.log(tar)
+  let anchor = model.anchorsInfo[index]
+  if (anchor.inOut === 'in' && anchor.evtVar === 'var' && tar.get("links") === 0) {
+    createAnchorRect(model,index,tar)
+    tar.set("links", 1)
+    // console.log(e.item)
+  }
+})
+graph.on('text-label:click',e=>{
+  // console.log(e)
+  if (e.item.hasState('selected')) {
+    showInput(e.item)
+  }
+})
+graph.on('text-res:click',e=>{
+  // console.log(e)
+  if (e.item.hasState('selected')) {
+    let model = e.item.get('model')
+    let group = e.item.get('group')
+    // let point = graph.getClientByPoint(model.x, model.y)
+    // console.log('group',group.getBBox(),group.get('children'))
+    floatingSelect.style.left = model.x+'px'
+    floatingSelect.style.top = (model.y+group.getBBox().height-htmlHeight-4)+'px'
+    // let children = e.item.get('group').get('children')
+    // console.log(children[0].getBBox().width)
+    floatingSelect.style.width = (group.getBBox().width-10)+'px'
+    let val = e.item.get('model').selectedResource.id
+    floatingSelect.value = val
+    floatingSelect.style.display = 'block'
+    floatingSelect.focus()
+  }
+})
+graph.on('edge:click',(e) => {
+  // console.log(e.item)
+  e.item.setState("selected", true);
+  let model = e.item.get('model')
+  removeEdgeNode()
+  if (model.canMove === 1) {
+    addEdgeNode(e.item,1)
+  } else if (model.canMove === 3 || model.canMove === 2) {
+    addEdgeNode(e.item,1)
+    addEdgeNode(e.item,2)
+    addEdgeNode(e.item,3)
+  }
+})
+graph.on('canvas:dragend',() => {
+  // console.log('canvas:dragend')
+  // graph.getNodes().forEach(el => {
+  //   listener(el.get('id'))
+  // });
+})
+graph.on("canvas:click", (evt) => {
+  removeEdgeNode()
+  // floatingSelect.blur()
+  tooltip.value.style.display = 'none'
+  // console.log(window.getSelection())
+  // graph.getNodes().forEach(node=>{
+  //   let children = node.get('group').findAll(el=>{return el.get('name')==='select-input-anchor'})
+  //   children.forEach(child => {
+  //     graph.setItemState(node,child.get('id')+'.selected',false)
+  //   });
+  //   graph.setItemState(node,'selected',false)
+  // })
+  // console.log(graph.getNodes())
+});
+graph.on('node:dblclick', nodeDbClick);
+}
+const getAnchorRect = (nodeId) => {
+return graph.getNodes().filter(el=>{
+  let arr = el.get('id').split('_')
+  return arr.length === 3 && arr[0] === 'anchor' && arr[1] === nodeId
+})
+}
+const showInput = (node,offy=0) => {
+let model = node.get('model')
+let group = node.get('group')
+// let point = graph.getClientByPoint(model.x, model.y)
+// console.log('group',group.getBBox(),group.get('children'))
+floatingInput.style.left = model.x+group.getBBox().x+(group.getBBox().width-group.get('children')[0].getBBox().width)/2+'px'
+floatingInput.style.top = (model.y-offy)+'px'
+let val = model.label
+floatingInput.size = val.length
+floatingInput.value = val
+floatingInput.style.display = 'block'
+floatingInput.focus()
+}
+const createAnchorRect = (model,index,tar) => {
+let nodeId = model.id
+let node = {
+  id: 'anchor_'+nodeId+'_'+index,
+  x: model.x+tar.attrs.x - newInput.lineSize[0]-newInput.inputSize[0],
+  y: model.y+tar.attrs.y + (anchorAttr.size[1])/2,
+  size: newInput.inputSize,
+  label:'rect',
+  type:'rect',
+  style:{
+    fill:'#fff',
+    stroke:'#000',
+    lineWidth:1
+  }
+}
+graph.add('node',node)
+let edge = {
+  id: 'edge_'+nodeId+'_'+index,
+  source: nodeId,
+  target:node.id,
+  sourceAnchor: index,
+  type:'polyline',
+  style:{stroke:'#000',lineWidth:1}
+}
+graph.add('edge',edge)
+// graph.createCombo('combo_'+nodeId,[nodeId,node.id,edge.id],false)
+}
+const inputcChange = () => {
+// console.log('inputcChange')
+floatingInput.size = floatingInput.value.length+1
+}
+const inputBlur = () => {
+floatingInput.style.display = 'none'
+if (curNode.get('model').label !== floatingInput.value) {
+  curNode.get('model').label = floatingInput.value
+  // curNode.refresh()
+  graph.refreshItem(curNode)
+}
+}
+const selectBlur = () => {
+floatingSelect.style.display = 'none'
+// curNode.refresh()
+}
+const selectChange = () => {
+  let model =curNode.get('model')
+  let index = floatingSelect.selectedIndex
+  model.selectedResource.id = floatingSelect.options[index].value
+  model.selectedResource.label = floatingSelect.options[index].text
+  curNode.refresh()
+}
+const showTooltip = (e) => {
+const target = e.target;
+if (target.get('name') === 'anchor-point') {
+  let index = target.get("anchorPointIdx");
+  let model = e.item.get('model')
+  let anchor = model.anchorsInfo[index]
+  // let zoom = graph.getZoom()
+  if (anchor.evtVar === 'var') {
+    // tooltip
+    tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
+    // let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
+    // let point = 
+    // console.log(tooltip)
+    tooltip.value.style.left = (e.canvasX) + 'px';
+    tooltip.value.style.top = (e.canvasY+20) + 'px';
+    tooltip.value.style.display = "block";
+  }
+} else {
+  // console.log('mouseenter:none')
+  tooltip.value.style.display = 'none'
+}
+}
+const pathToControlPoints = (path) => {
+let ret = []
+path.pop()
+path.shift()
+path.forEach(el => {
+  ret.push({x:el[1],y:el[2]})
+})
+// console.log(ret)
+return ret
+}
+const removeEdgeNode = () => {
+if (graph.findById('line1')) graph.removeItem('line1')
+if (graph.findById('line2')) graph.removeItem('line2')
+if (graph.findById('line3')) graph.removeItem('line3')
+}
+const addEdgeNode = (edge,i) => {
+let path = edge.get('keyShape').attrs.path;
+let x,y,cursor
+switch (i) {
+  case 1:
+  case 3:
+    x = path[i][1]
+    y = path[i][2]+ (path[i+1][2]-path[i][2]) / 2
+    cursor = 'w-resize'
+    break;
+  case 2:
+    x = path[i][1]+ (path[i+1][1]-path[i][1]) / 2
+    y = path[i][2]
+    cursor = 'n-resize'
+    break;
+  default:
+    break;
+}
+let node = {
+  id:'line'+i,
+  x:x,
+  y:y,
+  size: moveEdgeIconSize,
+  type: 'rect',
+  style: {
+    fill:'#1E90FF',
+    lineWidth:0,
+    cursor: cursor
+  },
+  mapEdge: edge.get('id')
+}
+graph.addItem('node',node,false);
+// console.log(node)
+}
+const addNode = () => {
+let data = addNodeBefore.value.data
+// console.log(data)
+// let {selectedRes,embResOptions} = getEmbResAll(data)
+let node = {
+  id: uuidv4(),//uuidv4()
+  title: data.name,
+  x: addNodeBefore.value.x,
+  y: addNodeBefore.value.y,
+  type: 'functionBlock',
+  // backgroud:'#009688',
+  selectedResource: {id:'0',label:'无资源'},
+  // resOption: embResOptions,
+  info: toRaw(data.info),
+  label: addNodeBefore.value.title,
+  controlPoints: [],
+  fbType:data.type,
+  anchorsInfo:[],
+  isShowForInputVar:false,//资源模块时，默认输出变量都显示常量,即使是空值也要显示
+  projectParentId:data.parentId,
+  projectId:data.id
+};
+switch (data.type) {
+  case 'project':
+    node.inputEvt = getAnchorsName(data.info['input_events'],'text')
+    node.outputEvt = getAnchorsName(data.info['output_events'],'text')
+    node.inputVar = getAnchorsName(data.info.inputs,'text','type','arrayLength')
+    node.outputVar = getAnchorsName(data.info.outputs,'text','type','arrayLength')
+    break;
+  case 'generic':
+    node.inputEvt = getAnchorsName(data.info.InterfaceList.EventInputs?.Event,'Name')
+    node.outputEvt = getAnchorsName(data.info.InterfaceList.EventOutputs?.Event,'Name')
+    node.inputVar = getAnchorsName(data.info.InterfaceList.InputVars?.VarDeclaration,'Name','Type','ArraySize')
+    node.outputVar = getAnchorsName(data.info.InterfaceList.OutputVars?.VarDeclaration,'Name','Type','ArraySize')
+    break;
+  case 'Seg':
+    let {retIn,retOut} = getAnchorsNameForSeg(data.Event)
+    node.inputEvt = retIn
+    node.outputEvt = retOut
+    node.inputVar = []
+    node.outputVar = []
+    node.nodeId = data.nodeId
+    break;
+  default:
+    break;
+}
+// console.log(node)
+if (data.cardInfo?.resource) {
+  for (let i = 0; i < floatingSelect.options.length; i++) {
+    let obj = floatingSelect.options[i]
+    if (obj.value === data.cardInfo.resource) {
+        node.selectedResource = {id:obj.value,label:obj.text}
+        break
     }
-  };
+  }
+}
+graph.addItem("node", node);
+
+// listener(node.id)
+dialogVisible_title.value = false;
+}
+
+const getEmbResAll = () => {
+  // 清除下拉选项
+  while (floatingSelect.options.length > 0) {
+    floatingSelect.remove(0);
+  }
+  let option = document.createElement('option');
+  option.value = '0'; // 设置option的value
+  option.text = '无资源'; // 设置用户看到的文本
+  // 将新创建的option添加到select元素中
+  floatingSelect.appendChild(option);
+  floatingSelect.value='0'
+  let obj = cache.local.getJSON(cacheKey_deployment);
+  if (obj) {
+    obj.nodes.forEach(el=>{
+      if (el.info.Type === 'device' && el.resources.length>0) {
+        el.resources.forEach(res=>{
+          if (res.typeVal.name === 'EMB_RES') {
+            let option = document.createElement('option');
+            option.value = res.id; // 设置option的value
+            option.text = el.label + "." + res.nameVal; // 设置用户看到的文本
+            // 将新创建的option添加到select元素中
+            floatingSelect.appendChild(option);
+            // embResOptions.push({id:res.id,label:el.label + "." + res.nameVal,selected:false})
+          }
+        })
+      }
+    })
+  }
+}
+const getAnchorsName = (arr,attr1,attr2,attr3) => {
+let ret = []
+if (arr != '' && arr != undefined) {
+  arr.forEach(el => {
+    let obj = {name:el[attr1]}
+    if (attr2) {
+      obj.type = el[attr2]
+      obj.arrSize = el[attr3]
+    }
+    ret.push(obj)
+  })
+}
+return ret
+}
+const getAnchorsNameForSeg = (arr) => {
+let retIn = []
+let retOut = []
+if (arr != '' && arr != undefined) {
+  arr.forEach(el => {
+    if (el.Type === 'Input') retIn.push({name:el.Name})
+    else if (el.Type === 'Output') retOut.push({name:el.Name})
+  })
+}
+return {retIn,retOut}
+}
+const saveAll = () => {
+  functionBlockJson = graph.save();
+  cache.local.setJSON(cacheKey, functionBlockJson);
+};
+const saveAllClick = () => {
+  saveAll();
+  ElMessage({
+    message: "保存成功",
+    type: "success",
+  });
+};
+// let isKeyDown = true;
+const handleKeyDown = (e) => {
+  // if (e.key === 'Shift' && isKeyDown) {
+  //   graph.setMode('createEdge')
+  //   console.log('handleKeyDown')
+  //   isKeyDown = false
+  // }
+  if (e.ctrlKey && e.key === "z") toolbar.undo();
+  if (e.ctrlKey && e.key === "y") toolbar.redo();
+};
+const handleKeyUp = (e) => {
+  if (e.key === "Delete") {
+    removeEdgeNode()
+    let nodes = graph.findAllByState("node", "selected");
+    // console.log(nodes)
+    if (nodes.length > 0) {
+      for (let i = nodes.length-1; i >= 0; i--) {
+        let id = nodes[i].get('id')
+        if (id.slice(0,6) !== 'anchor') {
+          let anchorNodes = getAnchorRect(id)
+          for (let j = anchorNodes.length-1; j >=0; j--) {
+            graph.removeItem(anchorNodes[j])
+          }
+        }
+        graph.removeItem(nodes[i])
+      }
+    }
+    let edges = graph.findAllByState("edge", "selected");
+    if (edges.length > 0) {
+      for (let i = edges.length-1; i >= 0; i--) {
+        graph.removeItem(edges[i])
+      }
+  }
+}
+}
   onMounted(() => {
     // console.log(useRoute().params)
     initGraph();
-    // graph.getContainer().style.cursor='n-resize'
-    // graph.getContainer().style.setProperty('cursor','n-resize')
-    // graph.getContainer().setAttribute("style", "cursor: n-resize;")
+    floatingInput = document.getElementById('floatingInput')
+    floatingSelect = document.getElementById('floatingSelect')
+    getEmbResAll()
     // initData();
-    // window.addEventListener("keydown", handleKeyDown);
-    // window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
       devices.value = res;
       // console.log('设备库：',res);
-      
+
       // console.log(segMapDev);
     });
   });
   onUnmounted(() => {
-    // window.removeEventListener("keydown", handleKeyDown);
-    // window.removeEventListener("keyup", handleKeyUp);
-    // saveAll();
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+    saveAll();
   });
   const cancelAlgAndEventDialog = () => {
     dialogAlgAndEvent.visible = false;
   }
   const nodeDbClick=((evt)=>{
+    // 双击锚点时不执行
+    if (evt.target.get('name') === 'anchor-point') return
     //得到对应系统变量
     currentBlockId=evt.item.get("id");
     let originNode=graph.findById(currentBlockId);
-    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
-    systemOutputEvents.value=getSystemOutputEvents(projectID,procedureID,originNode.getModel().selectedResource.id);
-    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().selectedResource.id)
-    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().selectedResource.id);
+    if (originNode.getModel().fbType=="project"){
+      $router.push({path:'/module/'+originNode.getModel().parentId+"/"+originNode.getModel().id});
+      // console.log(111,'/module/'+originNode.getModel().projectParentId+"/"+originNode.getModel().projectId)
+    }
+    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
+    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().nodeId)
+    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().nodeId);
     let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
     if (block){
       inputEventList.value=block.input_events;
@@ -1449,7 +1608,6 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
       inputVariList.value = new Array();
       outputVariList.value = new Array();
     }
-    console.log(inputEventList.value)
     dialogAlgAndEvent.visible = true;
   });
   //-------输入事件开始
@@ -1458,48 +1616,60 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
   }
   //新增输入事件
   const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
-    const $table = inputEventTableRef.value
-    if ($table) {
+    //增加输入事件
+    const $inutEventtable = inputEventTableRef.value
+    let inputEventId=uuidv4();
+    if ($inutEventtable) {
+      const record = {
+        key: inputEventId,
+        blockId:currentBlockId,
+      }
+      const { row: newRow } = await $inutEventtable.insertAt(record, row)
+      await $inutEventtable.setEditCell(newRow, 'text')
+    }
+    //
+    const $outputEventtable = outputEventTableRef.value
+    if ($outputEventtable) {
       const record = {
         key: uuidv4(),
         blockId:currentBlockId,
+        relateInputEventId:inputEventId
       }
-      const { row: newRow } = await $table.insertAt(record, row)
-      await $table.setEditCell(newRow, 'text')
+      await $outputEventtable.insertAt(record, row)
     }
   })
   //删除输入事件
   const removeInputEvents = () => {
     const $table = inputEventTableRef.value
     if ($table) {
+      //得到选中的数据
+      let checkedKeys=$table.getCheckboxRecords().map(x=>x.key)
+      //删除对应输出事件
+      const $outputEventtable = outputEventTableRef.value
+      let outputEventListData =$outputEventtable.getTableData().fullData
+      outputEventListData=outputEventListData.filter(x=>!checkedKeys.includes(x.relateInputEventId))
+      $outputEventtable.reloadData(outputEventListData)
+      //完成一系列逻辑后最后再删除输入事件
       $table.removeCheckboxRow()
     }
   }
+  /**
+   * 根据输入事件的改变去改变输出事件
+   * @param row
+   */
+  const changeOutputEvents=(row)=>{
+    let inputEventName=row.relatedEvent;
+    const $outputEventtable = outputEventTableRef.value
+    let outputEventListData =$outputEventtable.getTableData().fullData
+    let outputEvent:SystemEventOutput=outputEventListData.find(x=>x.relateInputEventId==row.key);
+    let systemEventOutput=systemInputEvents.value.find(x=>x.key==inputEventName)?.relatedEventOutput;
+    if (systemEventOutput){
+      outputEvent.text=systemEventOutput.Name;
+      outputEvent.relatedEvent=systemEventOutput.Name
+    }
+  }
+
   //-------输入事件结束
-  //-------输出事件开始
-  const formatSystemOutputEvent = (value: string) => {
-    return systemOutputEvents.value.find(x=>x.key==value)?.text;
-  }
-  //新增输出事件
-  const insertOutputEvent=(async (row?: BlockOutputEventForm | number)=>{
-    const $table = outputEventTableRef.value
-    if ($table) {
-      const record = {
-        key: uuidv4(),
-        blockId:currentBlockId,
-      }
-      const { row: newRow } = await $table.insertAt(record, row)
-      await $table.setEditCell(newRow, 'text')
-    }
-  })
-  //删除输出事件
-  const removeOutputEvents = () => {
-    const $table = outputEventTableRef.value
-    if ($table) {
-      $table.removeCheckboxRow()
-    }
-  }
-  //-------输出事件结束
   //-------输入变量开始
   //格式化变量类型
   const formatVariType = (value: string) => {
@@ -1613,63 +1783,70 @@ const getAnchorsName = (arr,attr1,attr2,attr3) => {
     saveOrUpdateFunctionBlock(projectID,procedureID,functionBlockJsonData);
     dialogAlgAndEvent.visible = false;
     proxy?.$modal.msgSuccess("操作成功");
+    console.log("outputEventList:",outputEventList)
   });
+
   </script>
   
-  <style lang="scss" scoped>
-  .icon-tree {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-  }
-  .my-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  .wrapper {
-    height: calc(100vh - 110px);
-    margin-top: 10px;
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: row;
-  }
-  .func {
-    border-radius: 0;
-    position: absolute;
-    // margin-left: 0;
-    // margin-top: -66px;
-    right: 10px;
-    top: 73px;
-  }
-  .rightShow {
-    flex-basis: 280px;
-    height: 99%;
-    overflow-y: auto;
-    margin-right: 10px;
-  }
-  .rightHidden {
-    flex-basis: 0;
-    height: 99%;
-    overflow-y: auto;
-  }
-  .el-dropdown-link {
-    cursor: pointer;
-    // color: var(--el-color-primary);
-    color: #606266;
-    display: flex;
-    align-items: center;
-  }
-  .g6-tooltip {
-    border: 1px solid #e2e2e2;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #545454;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 10px 8px;
-    box-shadow: rgb(174, 174, 174) 0px 0px 10px;
-    position: absolute;
-    display: none
-  }
-  </style>
+
+
+<style lang="scss" scoped>
+.icon-tree {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+.my-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wrapper {
+  height: calc(100vh - 110px);
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+}
+.func {
+  border-radius: 0;
+  position: absolute;
+  // margin-left: 0;
+  // margin-top: -66px;
+  right: 10px;
+  top: 73px;
+}
+.rightShow {
+  flex-basis: 280px;
+  height: 99%;
+  overflow-y: auto;
+  margin-right: 10px;
+}
+.rightHidden {
+  flex-basis: 0;
+  height: 99%;
+  overflow-y: auto;
+}
+.el-dropdown-link {
+  cursor: pointer;
+  // color: var(--el-color-primary);
+  color: #606266;
+  display: flex;
+  align-items: center;
+}
+.g6-tooltip {
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #545454;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px 8px;
+  box-shadow: rgb(174, 174, 174) 0px 0px 10px;
+  position: absolute;
+  display: none
+}
+:deep(.el-input){
+  width:auto
+}
+</style>
