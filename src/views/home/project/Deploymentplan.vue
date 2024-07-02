@@ -842,12 +842,16 @@ G6.registerNode(
       });
       return keyShape;
     },
-    // afterDraw: (cfg, group) => {},
-
-    // // 更新逻辑
-    // update: (cfg, item) => {},
-    // afterUpdate: (cfg, item) => {},
-
+    afterDraw: (cfg, group) => {
+      // 文字超长时自适应边框
+      let width = group.getBBox().width;
+      if (width > deviceMaxSize[0]) {
+        const shapes = group.get("children");
+        shapes[0].attr("width", width);
+        shapes[1].attr("width", width);
+        shapes[2].attr("width", width);
+      }
+    },
     // // (交互)状态响应逻辑
     setState: (name, value, item) => {
       switchClickStyle(name, value, item);
@@ -2012,7 +2016,6 @@ const handleKeyUp = (e) => {
   //   // isKeyDown = true
   // } else
   if (e.key === "Delete") {
-    let edges = graph.findAllByState("edge", "selected");
     let nodes = graph.findAllByState("node", "selected");
     // console.log(nodes)
     if (nodes.length > 0 && !isLeaveCanvas) {
@@ -2022,6 +2025,7 @@ const handleKeyUp = (e) => {
       isCardShow.value = false;
       clearAllStats();
     }
+    let edges = graph.findAllByState("edge", "selected");
     if (edges.length > 0 && !isLeaveCanvas) {
       for (let i = edges.length-1; i >= 0; i--) {
         graph.removeItem(edges[i])}
