@@ -58,7 +58,7 @@ const handleClick = (tab, event) => {
 
 onMounted(() => {
   curValue.value = modelValue.returnValue;
-  console.log("onmounted modelValue", modelValue.returnValue);
+  //console.log("onmounted modelValue", modelValue.returnValue);
   getDataTable();
 });
 

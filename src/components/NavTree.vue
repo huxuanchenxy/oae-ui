@@ -214,7 +214,12 @@
     title=""
     width="500"
   >
-    <el-form :model="newModule" :rules="rulesModule" status-icon ref="ruleFormAppRef">
+    <el-form
+      :model="newModule"
+      :rules="rulesModule"
+      status-icon
+      ref="ruleFormAppRef"
+    >
       <el-form-item label="应用程序名称" prop="name">
         <el-input v-model="newModule.name" placeholder="请输入" />
       </el-form-item>
@@ -222,7 +227,9 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="dialogTreeVisible = false">取消</el-button>
-        <el-button type="primary" @click="addDiagTree(ruleFormAppRef)">确定</el-button>
+        <el-button type="primary" @click="addDiagTree(ruleFormAppRef)"
+          >确定</el-button
+        >
       </div>
     </template>
   </el-dialog>
@@ -360,7 +367,7 @@ const dyStyle = reactive({
 //const curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
 const curFuncList = ref([]);
 const listOneFuncList = ref([]);
-const project = route.params.pid //"project1";
+const project = 2; //"project1";
 const cacheKey = "json";
 let segmentsObj = ref({
   status: false,
@@ -449,11 +456,16 @@ const handleNodeClick = async (data) => {
       id = objFunc.id;
       name = objFunc.funcName;
     }
-    if (pathArrays.length > 4) {
-      id = pathArrays[3];
-      let cObj = curFuncList.find((l) => l.id == id);
-      path = cObj.funcUrl;
-      name = cObj.funcName;
+    if (pathArrays.length > 4) { 
+      if (data.operationType == "app") {
+        path = data.funcUrl;
+        name = data.funcName;
+      } else {
+        id = pathArrays[3];
+        let cObj = curFuncList.find((l) => l.id == id);
+        path = cObj.funcUrl;
+        name = cObj.funcName;
+      }
     }
     let model = {
       id,
@@ -780,6 +792,9 @@ const addDiagTree = async (
           return;
         }
       }
+      if (currentData.operationType == "apps") {
+        funcUrl = `/applications/${currentData.funcParentId}/${currentData.id}/${newModule.value.name}`;
+      }
       let addModule = {
         id: currentData.id + newModule.value.name,
         funcName: newModule.value.name,
@@ -787,7 +802,7 @@ const addDiagTree = async (
         funcLevelId: currentData.funcLevelId + 1,
         funcUrl,
         isEdit: false,
-        operationType,
+        operationType: "app",
         operation,
       };
       if (!currentData.child) currentData.child = [];
@@ -795,8 +810,11 @@ const addDiagTree = async (
       dialogTreeVisible.value = false;
       listOneFuncList.value = [...listOneFuncList.value];
 
+      let curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
+      curFuncList.push(addModule);
+      sessionStorage.setItem("curFuncLists", JSON.stringify(curFuncList));
     }
-  })
+  });
 };
 
 const delTree = () => {
@@ -975,7 +993,7 @@ const getModuleData = (id, path) => {
           algorithms: [],
           id: "",
           deployment: {},
-          applications: []
+          applications: [],
         };
         newObj.id = res.id;
         newObj.namespace = res.namespace;
