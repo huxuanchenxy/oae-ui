@@ -1,7 +1,11 @@
  export const pagetagsStore = defineStore("pagetagsStore", {
      state: () => ({
          TagArrs: [],
-         TagModuleArrs: []
+         TagModuleArrs: [],
+         CurTag:{},
+         TagsChanged:[],
+         TagsCleared:[],
+         CurTagChanged:[],
      }),
      getters: {
 
@@ -10,18 +14,53 @@
          //添加选项卡
          AddTag(tag) {
              if (this.TagArrs.length > 0) {
-                 this.TagArrs.forEach(e => e.effect = "plain");
+                 this.TagArrs.forEach(e => {e.effect = "plain";e.selected =0;});
              }
-             //if (this.TagArrs.filter(item => item.path.indexOf(tag.path) > -1).length == 0) {
+
              if (this.TagArrs.filter(item => item.path == (tag.path)).length == 0) {
+                 tag.index = this.TagArrs.length+1;
+                 tag.selected =1;
                  this.TagArrs.push(tag);
+                 this.CurTag = tag;
+                 this.CurTagChanged.forEach(c => {c()});
+                //  console.log(this.TagArrs);
              } else {
+                // console.log("enter click");
                  let obj = this.TagArrs.find(item => item.path == tag.path);
-                 if (obj) {
+                 
+                 if (obj !== undefined) {    
                      obj.effect = "dark";
+                     obj.selected = 1;
+                     this.CurTag = obj;
+                     this.CurTagChanged.forEach(c => {c()});
                  }
+                //  console.log(obj);
              }
+             this.TagsChanged.forEach(e => {e()});
+             
          },
+         SetTags(tags){
+            if(tags.length >0)
+            {
+                this.TagArrs = tags;               
+                let obj = this.TagArrs.find(item => item.selected == 1);             
+                if (obj !== undefined) {    
+                    obj.effect = "dark";
+                    this.CurTag = obj;
+                    this.CurTagChanged.forEach(c => {c()});
+                }                
+                this.TagsChanged.forEach(e => {e()});
+            //    console.log("set tags"); 
+            //    console.log(this.TagArrs); 
+            }
+            else
+            {
+                this.TagArrs = [];
+                this.TagsCleared.forEach(e => {e()});
+                console.log("clear tags"); 
+            }          
+         },
+
          //  GetTagModule(param) {
          //      //console.log("pageTags", param);
          //      let moduleList = [];
