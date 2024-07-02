@@ -156,7 +156,7 @@
                 show-overflow
                 :data="outputEventList"
                 :column-config="{resizable: true}"
-                >
+            >
               <vxe-column field="text" title="名称" ></vxe-column>
               <vxe-column field="relatedEvent" title="映射事件"   ></vxe-column>
             </vxe-table>
@@ -280,89 +280,58 @@
     </el-dialog>
   </template>
   
-  <script setup lang="ts">
-  import cache from "@/plugins/cache.ts";
-  import sysApi from "@/api/sysApi";
-  import G6 from "@antv/g6";
-  import { v4 as uuidv4 } from "uuid";
-  import { baseUrl } from "@/api/baseUrl";
-  import { ref } from "vue";
-  import { toRaw } from "@vue/reactivity";
-  import { ElMessage } from "element-plus";
-  import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
-  import {getSystemInputEvents} from "@/api/systeminter/systemevent";
-  import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
-  import { VXETable, VxeTableInstance } from 'vxe-table'
-  import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
-    BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
-  import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
-  import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
+<script setup lang="ts">
+import cache from "@/plugins/cache.ts";
+import sysApi from "@/api/sysApi";
+import G6 from "@antv/g6";
+import { v4 as uuidv4 } from "uuid";
+import { baseUrl } from "@/api/baseUrl";
+import { ref } from "vue";
+import { toRaw } from "@vue/reactivity";
+import { ElMessage } from "element-plus";
+import {getOneFunctionBlock,saveOrUpdateFunctionBlock} from "@/api/functionBlock";
+import {getSystemInputEvents} from "@/api/systeminter/systemevent";
+import {getSystemInputVaris,getSystemOutputVaris} from "@/api/systeminter/systemvari";
+import { VXETable, VxeTableInstance } from 'vxe-table'
+import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEventVO,
+  BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
+import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
+import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
 import { debug, group } from "console";
 
-  let cacheKey = 'functionBlock';
-  let cacheKey_deployment = 'deployment'
-  let functionBlockJson = {};
-  
-  // 设备库变量
-  let devices = ref([]);
-  const projectID = useRoute().params.pid;
-  const procedureID = useRoute().params.id;
-  const iconPath = baseUrl + "/devimgs/";
-  // const iconPath = 'http://10.89.34.70:8081/devimgs/';
-  const drawer = ref(true);
-  let funcTitle = ref("隐藏设备库");
-  const filterText = ref("");
-  const treeRef = ref();
-  const dialogAlgAndEvent = reactive<DialogOption>({
-    visible: false,
-    title: ''
-  });
-  let currentBlockId="";
-  let inputEventList = ref<BlockInputEventForm[]>([]);
-  let outputEventList = ref<BlockOutputEventForm[]>([]);
-  let inputVariList = ref<BlockInputVariForm[]>([]);
-  let outputVariList = ref<BlockOutputVariForm[]>([]);
-  let systemInputEvents=ref<SystemEventInput[]>([]);
-  let systemInputVaris=ref<SystemVariInput[]>([]);
-  let systemOutputVaris=ref<SystemVariOutput[]>([]);
-  const activeName = ref('inputEventTab')
-  const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-  const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
-  const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
-  const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
-  const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
-  let $router=useRouter();
+let cacheKey = 'functionBlock';
+let cacheKey_deployment = 'deployment'
+let functionBlockJson = {};
 
 // 设备库变量
-// let devices = ref([]);
-// const projectID = useRoute().params.pid;
-// const procedureID = useRoute().params.id;
-// const iconPath = baseUrl + "/devimgs/";
-// // const iconPath = 'http://10.89.34.70:8081/devimgs/';
-// const drawer = ref(true);
-// let funcTitle = ref("隐藏设备库");
-// const filterText = ref("");
-// const treeRef = ref();
-// const dialogAlgAndEvent = reactive<DialogOption>({
-//   visible: false,
-//   title: ''
-// });
-// let currentBlockId="";
-// let inputEventList = ref<BlockInputEventForm[]>([]);
-// let outputEventList = ref<BlockOutputEventForm[]>([]);
-// let inputVariList = ref<BlockInputVariForm[]>([]);
-// let outputVariList = ref<BlockOutputVariForm[]>([]);
-// let systemInputEvents=ref<SystemEventInput[]>([]);
-// let systemOutputEvents=ref<SystemEventOutput[]>([]);
-// let systemInputVaris=ref<SystemVariInput[]>([]);
-// let systemOutputVaris=ref<SystemVariOutput[]>([]);
-// const activeName = ref('inputEventTab')
-// const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-// const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
-// const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
-// const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
-// const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
-// let $router=useRouter();
+let devices = ref([]);
+const projectID = useRoute().params.pid;
+const procedureID = useRoute().params.id;
+const iconPath = baseUrl + "/devimgs/";
+// const iconPath = 'http://10.89.34.70:8081/devimgs/';
+const drawer = ref(true);
+let funcTitle = ref("隐藏设备库");
+const filterText = ref("");
+const treeRef = ref();
+const dialogAlgAndEvent = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
+let currentBlockId="";
+let inputEventList = ref<BlockInputEventForm[]>([]);
+let outputEventList = ref<BlockOutputEventForm[]>([]);
+let inputVariList = ref<BlockInputVariForm[]>([]);
+let outputVariList = ref<BlockOutputVariForm[]>([]);
+let systemInputEvents=ref<SystemEventInput[]>([]);
+let systemInputVaris=ref<SystemVariInput[]>([]);
+let systemOutputVaris=ref<SystemVariOutput[]>([]);
+const activeName = ref('inputEventTab')
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const inputEventTableRef = ref<VxeTableInstance<BlockInputEventForm>>()
+const outputEventTableRef = ref<VxeTableInstance<BlockOutputEventForm>>()
+const inputVariTableRef = ref<VxeTableInstance<BlockInputVariForm>>()
+const outputVariTableRef = ref<VxeTableInstance<BlockOutputVariForm>>()
+let $router=useRouter();
 
 const defaultProps = {
   children: "children",
@@ -1590,27 +1559,100 @@ const handleKeyUp = (e) => {
   }
 }
 }
-onMounted(() => {
-  // console.log(useRoute().params)
-  initGraph();
-  floatingInput = document.getElementById('floatingInput')
-  floatingSelect = document.getElementById('floatingSelect')
-  getEmbResAll()
-  // initData();
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
-  sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
-    devices.value = res;
-    // console.log('设备库：',res);
-    
-    // console.log(segMapDev);
+  onMounted(() => {
+    // console.log(useRoute().params)
+    initGraph();
+    floatingInput = document.getElementById('floatingInput')
+    floatingSelect = document.getElementById('floatingSelect')
+    getEmbResAll()
+    // initData();
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
+      devices.value = res;
+      // console.log('设备库：',res);
+
+      // console.log(segMapDev);
+    });
   });
-});
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
-  window.removeEventListener("keyup", handleKeyUp);
-  saveAll();
-});
+  onUnmounted(() => {
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+    saveAll();
+  });
+  const cancelAlgAndEventDialog = () => {
+    dialogAlgAndEvent.visible = false;
+  }
+  const nodeDbClick=((evt)=>{
+    // 双击锚点时不执行
+    if (evt.target.get('name') === 'anchor-point') return
+    //得到对应系统变量
+    currentBlockId=evt.item.get("id");
+    let originNode=graph.findById(currentBlockId);
+    if (originNode.getModel().fbType=="project"){
+      $router.push({path:'/module/'+originNode.getModel().parentId+"/"+originNode.getModel().id});
+      // console.log(111,'/module/'+originNode.getModel().projectParentId+"/"+originNode.getModel().projectId)
+    }
+    systemInputEvents.value=getSystemInputEvents(projectID,procedureID,originNode.getModel().nodeId);
+    systemInputVaris.value=getSystemInputVaris(projectID,procedureID,originNode.getModel().nodeId)
+    systemOutputVaris.value=getSystemOutputVaris(projectID,procedureID,originNode.getModel().nodeId);
+    let block=getOneFunctionBlock(projectID,procedureID,currentBlockId);
+    if (block){
+      inputEventList.value=block.input_events;
+      outputEventList.value = block.output_events;
+      inputVariList.value = block.inputs
+      outputVariList.value = block.outputs;
+    }else{
+      inputEventList.value=new Array();
+      outputEventList.value = new Array();
+      inputVariList.value = new Array();
+      outputVariList.value = new Array();
+    }
+    dialogAlgAndEvent.visible = true;
+  });
+  //-------输入事件开始
+  const formatSystemInputEvent = (value: string) => {
+    return systemInputEvents.value.find(x=>x.key==value)?.text;
+  }
+  //新增输入事件
+  const insertInputEvent=(async (row?: BlockInputEventForm | number)=>{
+    //增加输入事件
+    const $inutEventtable = inputEventTableRef.value
+    let inputEventId=uuidv4();
+    if ($inutEventtable) {
+      const record = {
+        key: inputEventId,
+        blockId:currentBlockId,
+      }
+      const { row: newRow } = await $inutEventtable.insertAt(record, row)
+      await $inutEventtable.setEditCell(newRow, 'text')
+    }
+    //
+    const $outputEventtable = outputEventTableRef.value
+    if ($outputEventtable) {
+      const record = {
+        key: uuidv4(),
+        blockId:currentBlockId,
+        relateInputEventId:inputEventId
+      }
+      await $outputEventtable.insertAt(record, row)
+    }
+  })
+  //删除输入事件
+  const removeInputEvents = () => {
+    const $table = inputEventTableRef.value
+    if ($table) {
+      //得到选中的数据
+      let checkedKeys=$table.getCheckboxRecords().map(x=>x.key)
+      //删除对应输出事件
+      const $outputEventtable = outputEventTableRef.value
+      let outputEventListData =$outputEventtable.getTableData().fullData
+      outputEventListData=outputEventListData.filter(x=>!checkedKeys.includes(x.relateInputEventId))
+      $outputEventtable.reloadData(outputEventListData)
+      //完成一系列逻辑后最后再删除输入事件
+      $table.removeCheckboxRow()
+    }
+  }
   /**
    * 根据输入事件的改变去改变输出事件
    * @param row
