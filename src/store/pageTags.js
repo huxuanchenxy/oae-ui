@@ -20,9 +20,9 @@
                  tag.selected =1;
                  this.TagArrs.push(tag);
                  this.CurTag = tag;
-                 console.log(this.TagArrs);
+                //  console.log(this.TagArrs);
              } else {
-                console.log("enter click");
+                // console.log("enter click");
                  let obj = this.TagArrs.find(item => item.path == tag.path);
                  
                  if (obj !== undefined) {    
@@ -30,7 +30,7 @@
                      obj.selected = 1;
                      this.CurTag = obj;
                  }
-                 console.log(obj);
+                //  console.log(obj);
              }
              this.CallBacks.forEach(e => {e()});
          },

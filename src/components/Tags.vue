@@ -115,8 +115,8 @@ const goToPath = (tag) => {
 
 const OnCallBack = () => {
 
- console.log("trigger now");
- console.log(dynamicTags.value);
+//  console.log("trigger now");
+//  console.log(dynamicTags.value);
  dynamicTags.value = tagsStore.TagArrs;
  cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
 
@@ -137,8 +137,8 @@ onMounted(() => {
         tagsStore.TagArrs = dynamicTags.value;
         if(dynamicTags.value !== undefined)
         {
-          console.log(tagsStore.TagArrs);
-          console.log(dynamicTags.value);
+          // console.log(tagsStore.TagArrs);
+          // console.log(dynamicTags.value);
           if(dynamicTags.value?.length >0)
           {
             let defaultIndex = Math.max(...dynamicTags.value.map((obj) => obj.index));
@@ -157,7 +157,7 @@ onMounted(() => {
               
             }
           }    
-          console.log(curTag.value);
+          // console.log(curTag.value);
         }
      }
 
@@ -185,7 +185,7 @@ onMounted(() => {
 
 
 onUpdated(() => {
-  console.log("enter again");
+  // console.log("enter again");
 
     });
     
@@ -199,7 +199,7 @@ watch(dynamicTags.value, (newValue, oldValue) => {
     // console.log(newValue);
     dynamicTags.value = newValue;
     cache.session.setJSON(cacheKey, JSON.stringify(newValue));
-    console.log("tags cache updated");
+    // console.log("tags cache updated");
   }
 });
 
@@ -264,8 +264,8 @@ const handleBeforeUnload = ($event) => {
 const handleClickContextMenu = ($event,tag) => {
 
   const e = $event || window.event;
-  console.log(e.target);
-  console.log(tag);
+  // console.log(e.target);
+  // console.log(tag);
   contextClickTag = tag;
   dyStyle.rightPop.left = e.x + 'px';
   dyStyle.rightPop.top = e.y  + 'px';
