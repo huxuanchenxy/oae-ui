@@ -297,7 +297,6 @@ import type { FunctionBlock,FunctionBlockTree,BlockInputEventForm,BlockInputEven
   BlockOutputEventForm,BlockOutputEventVO,BlockInputVariForm,BlockInputVariVO,BlockOutputVariForm,BlockOutputVariVO} from '@/api/functionBlock/type';
 import type { SystemEventInput,SystemEventOutput} from '@/api/systeminter/systemevent/type';
 import type { SystemVariInput,SystemVariOutput} from '@/api/systeminter/systemvari/type';
-import { debug, group } from "console";
 
 let cacheKey = 'functionBlock';
 let cacheKey_deployment = 'deployment'
@@ -361,7 +360,9 @@ const filterNode = (value, data) => {
   return data.label.includes(value);
 };
 const allowdrag = (node) => {
+  // console.log(node)
   if (node.data.jsonContent === "") return false;
+  else if (node.data.name === "E_RESTART") return false
   else return true;
 };
 const handleDragEnd = (draggingNode, dropNode, dropType, e) => {
@@ -981,9 +982,9 @@ graph = new G6.Graph({
             sourceAnchor = e.target.get("anchorPointIdx");
             // 改变边颜色
             if (model.anchorsInfo[sourceAnchor].evtVar === 'var') {
-              graph.edge(()=>{return {style:{stroke:'#ff9800'}}})
+              graph.edge(()=>{return {type:'polyline-more',style:{stroke:'#ff9800'}}})
             } else {
-              graph.edge(()=>{return {style:{stroke:'#4CAF50'}}})
+              graph.edge(()=>{return {type:'polyline-more',style:{stroke:'#4CAF50'}}})
             }
             return true
           }
@@ -1023,7 +1024,7 @@ graph = new G6.Graph({
   defaultEdge: {
     type: "polyline-more",//polyline，quadratic
     style: {
-      stroke: "#4CAF50",
+      // stroke: "#4CAF50",
       lineWidth: 2,
       lineAppendWidth: 10
       // endArrow: true,
@@ -1096,13 +1097,23 @@ graph.on("afterremoveitem", (e) => {
   console.log('afterremoveitem',e)
   // 删除anchor节点时，link清零
   let id=e.item.id
+  let index,nodeId
   if (id.slice(0,6)==='anchor') {
     let arr = id.split('_')
-    let group = graph.findById(arr[1]).get('group')
-    let target = group.find(el=>{return el.get('name')==='anchor-point' && el.get('anchorPointIdx')===arr[2]})
-    console.log(target)
+    nodeId = arr[1]
+    index = arr[2]
   }
   // 删除变量边时，link清零
+  if (e.type==='edge' && e.item.targetNode) {
+    console.log(e.item)
+    nodeId = e.item.target
+    index = e.item.targetAnchor
+  }
+  if (nodeId) {
+    let group = graph.findById(nodeId).get('group')
+    let target = group.find(el=>{return el.get('name')==='anchor-point' && el.get('anchorPointIdx')+''===index})
+    target.set('links',0)
+  }
 })
 graph.on('wheelzoom',(e) => {
   floatingInput.blur()
@@ -1297,9 +1308,11 @@ let edge = {
   source: nodeId,
   target:node.id,
   sourceAnchor: index,
-  type:'polyline',
+  type:'line',
   style:{stroke:'#000',lineWidth:1}
 }
+// 画线时改变全局颜色，这里只能再全局改回来
+graph.edge(()=>{return {style:{stroke:'#000'}}})
 graph.add('edge',edge)
 // graph.createCombo('combo_'+nodeId,[nodeId,node.id,edge.id],false)
 }
@@ -1337,7 +1350,6 @@ if (target.get('name') === 'anchor-point') {
     // tooltip
     tooltip.value.innerHTML = anchor.type+'_'+anchor.arrSize
     // let point = graph.getPointByCanvas(e.canvasX, e.canvasY)
-    // let point = 
     // console.log(tooltip)
     tooltip.value.style.left = (e.canvasX) + 'px';
     tooltip.value.style.top = (e.canvasY+20) + 'px';
@@ -1513,6 +1525,38 @@ if (arr != '' && arr != undefined) {
 }
 return {retIn,retOut}
 }
+const initData = () => {
+  // curDevices.value.options = [];
+  let functionBlockJson = cache.local.getJSON(cacheKey);
+  if (functionBlockJson) {
+    graph.data(functionBlockJson);
+    graph.render();
+  } else {
+    // 目前默认从第一个元素中找
+    for (let i = 0; i < devices.value[0].children.length; i++) {
+      const element = devices.value[0].children[i];
+      if (element.name === "E_RESTART") {
+        if (element.jsonContent && element.jsonContent !== "") {
+          element.info = JSON.parse(element.jsonContent);
+        }
+        addNodeBefore.value.x = 400
+        addNodeBefore.value.y = 200
+        addNodeBefore.value.data=element;
+        addNodeBefore.value.title = 'START'
+        addNode()
+      } else if (element.name === "E_CYCLE") {
+        if (element.jsonContent && element.jsonContent !== "") {
+          element.info = JSON.parse(element.jsonContent);
+        }
+        addNodeBefore.value.x = 800
+        addNodeBefore.value.y = 200
+        addNodeBefore.value.data=element;
+        addNodeBefore.value.title = 'CYCLE'
+        addNode()
+      }
+    }
+  }
+};
 const saveAll = () => {
   functionBlockJson = graph.save();
   cache.local.setJSON(cacheKey, functionBlockJson);
@@ -1531,16 +1575,16 @@ const handleKeyDown = (e) => {
   //   console.log('handleKeyDown')
   //   isKeyDown = false
   // }
-  if (e.ctrlKey && e.key === "z") toolbar.undo();
+  if (e.ctrlKey && e.key === "z") {toolbar.undo();}
   if (e.ctrlKey && e.key === "y") toolbar.redo();
 };
 const handleKeyUp = (e) => {
   if (e.key === "Delete") {
     removeEdgeNode()
     let nodes = graph.findAllByState("node", "selected");
-    // console.log(nodes)
     if (nodes.length > 0) {
       for (let i = nodes.length-1; i >= 0; i--) {
+        if (nodes[i].get('model').title === "E_RESTART") continue
         let id = nodes[i].get('id')
         if (id.slice(0,6) !== 'anchor') {
           let anchorNodes = getAnchorRect(id)
@@ -1565,13 +1609,12 @@ const handleKeyUp = (e) => {
     floatingInput = document.getElementById('floatingInput')
     floatingSelect = document.getElementById('floatingSelect')
     getEmbResAll()
-    // initData();
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     sysApi.getTreeForAppList({pid:projectID}).then(async (res) => {
       devices.value = res;
+      initData();
       // console.log('设备库：',res);
-
       // console.log(segMapDev);
     });
   });
@@ -1584,10 +1627,13 @@ const handleKeyUp = (e) => {
     dialogAlgAndEvent.visible = false;
   }
   const nodeDbClick=((evt)=>{
-    // 双击锚点时不执行
-    if (evt.target.get('name') === 'anchor-point') return
+    // 双击锚点、弹出输入框/下拉框时不执行
+    let name = evt.target.get('name')
+    if (name === 'anchor-point' || name === 'text-label' || name === 'text-res') return
     //得到对应系统变量
     currentBlockId=evt.item.get("id");
+    // 双击输入变量常量节点时不执行
+    if (currentBlockId.slice(0,6)==='anchor') return
     let originNode=graph.findById(currentBlockId);
     if (originNode.getModel().fbType=="project"){
       $router.push({path:'/module/'+originNode.getModel().parentId+"/"+originNode.getModel().id});
