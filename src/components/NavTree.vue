@@ -211,18 +211,18 @@
   <el-dialog
     v-model="dialogTreeVisible"
     :close-on-click-modal="false"
-    title="新建"
+    title=""
     width="500"
   >
-    <el-form :model="newModule" :rules="rulesModule" status-icon>
-      <el-form-item label="名称" prop="name">
+    <el-form :model="newModule" :rules="rulesModule" status-icon ref="ruleFormAppRef">
+      <el-form-item label="应用程序名称" prop="name">
         <el-input v-model="newModule.name" placeholder="请输入" />
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="dialogTreeVisible = false">取消</el-button>
-        <el-button type="primary" @click="addDiagTree()">确定</el-button>
+        <el-button type="primary" @click="addDiagTree(ruleFormAppRef)">确定</el-button>
       </div>
     </template>
   </el-dialog>
@@ -288,6 +288,7 @@ let currentModule = ref(route.params.id);
 const reg = /^[A-Za-z]\w+$/;
 const ruleFormRef = ref();
 const ruleModuleFormRef = ref();
+const ruleFormAppRef = ref();
 const isAutoFocus = ref(null);
 const newModule = ref({
   id: 0,
@@ -338,7 +339,7 @@ const validateModuleName = (rule, value, callback) => {
 };
 const rulesModule = reactive({
   name: [
-    { required: true, message: "请输入模块名称", trigger: "blur" },
+    { required: true, message: "请输入应用程序名称", trigger: "blur" },
     { validator: validateModuleName, trigger: "blur" },
   ],
 });
@@ -359,7 +360,7 @@ const dyStyle = reactive({
 //const curFuncList = JSON.parse(sessionStorage.getItem("curFuncList"));
 const curFuncList = ref([]);
 const listOneFuncList = ref([]);
-const project = "project1";
+const project = route.params.pid //"project1";
 const cacheKey = "json";
 let segmentsObj = ref({
   status: false,
@@ -755,41 +756,47 @@ const getTreeObj = (list, id) => {
 
 //operation: "right,del,rename,open",
 //operationType: "module",
-const addDiagTree = (
+const addDiagTree = async (
+  formEl,
   operationType = "",
   operation = "right,del,rename,open",
   funcUrl = ""
 ) => {
   //console.log("currentData:::", currentData);
-  if (currentData.child) {
-    let existIndex = currentData.child.findIndex(
-      (x) => x.funcName == newModule.value.name
-    );
-    if (existIndex >= 0) {
-      ElNotification({
-        title: "提示信息",
-        message: newModule.value.name + "名称已存在",
-        position: "top-left",
-        type: "error",
-      });
-      return;
-    }
-  }
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      if (currentData.child) {
+        let existIndex = currentData.child.findIndex(
+          (x) => x.funcName == newModule.value.name
+        );
+        if (existIndex >= 0) {
+          ElNotification({
+            title: "提示信息",
+            message: newModule.value.name + "名称已存在",
+            position: "top-left",
+            type: "error",
+          });
+          return;
+        }
+      }
+      let addModule = {
+        id: currentData.id + newModule.value.name,
+        funcName: newModule.value.name,
+        funcParentId: currentData.id,
+        funcLevelId: currentData.funcLevelId + 1,
+        funcUrl,
+        isEdit: false,
+        operationType,
+        operation,
+      };
+      if (!currentData.child) currentData.child = [];
+      currentData.child.push(addModule);
+      dialogTreeVisible.value = false;
+      listOneFuncList.value = [...listOneFuncList.value];
 
-  let addModule = {
-    id: currentData.id + newModule.value.name,
-    funcName: newModule.value.name,
-    funcParentId: currentData.id,
-    funcLevelId: currentData.funcLevelId + 1,
-    funcUrl,
-    isEdit: false,
-    operationType,
-    operation,
-  };
-  if (!currentData.child) currentData.child = [];
-  currentData.child.push(addModule);
-  dialogTreeVisible.value = false;
-  listOneFuncList.value = [...listOneFuncList.value];
+    }
+  })
 };
 
 const delTree = () => {
@@ -967,6 +974,8 @@ const getModuleData = (id, path) => {
           ecc: {},
           algorithms: [],
           id: "",
+          deployment: {},
+          applications: []
         };
         newObj.id = res.id;
         newObj.namespace = res.namespace;
