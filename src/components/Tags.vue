@@ -69,7 +69,6 @@ let tagContextMenuVisible = ref(false);
  let curTag= ref(tagsStore.CurTag);
  let contextClickTag = ref({});
 
-
  const dyStyle = reactive({
   rightPop: {
     position: "absolute",
@@ -113,6 +112,16 @@ const goToPath = (tag) => {
   commonstore.changeCurTreeNode(tag.id, "", "");
   router.push({ path: tag.path });
 };
+
+const OnCallBack = () => {
+
+ console.log("trigger now");
+ console.log(dynamicTags.value);
+ dynamicTags.value = tagsStore.TagArrs;
+ cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
+
+};
+
 onMounted(() => {
 
   window.addEventListener('beforeunload', handleBeforeUnload);
@@ -147,18 +156,14 @@ onMounted(() => {
               }
               
             }
-          }
-
-          
+          }    
           console.log(curTag.value);
         }
      }
 
- 
-
     //console.log(cache.local.getJSON(cacheKey));
-    console.log("ttttttttttttttttttttttttttttt");
-    console.log(curRouteObj.path);
+    // console.log("ttttttttttttttttttttttttttttt");
+    // console.log(curRouteObj.path);
     //console.log(dynamicTags);
     if (curFuncList) {
       loadTagData(curFuncList);
@@ -175,6 +180,7 @@ onMounted(() => {
       goToPath(curTag.value);
     }
 
+    tagsStore.CallBacks.push(OnCallBack); 
 });
 
 
@@ -196,7 +202,6 @@ watch(dynamicTags.value, (newValue, oldValue) => {
     console.log("tags cache updated");
   }
 });
-
 
 
 const loadTagData = (curFuncList) => {
@@ -290,7 +295,35 @@ const closeOtherTags = () => {
   tagContextMenuVisible.value = false;
 }
 const closeAllTags = () => {
-  //dynamicTags.value = [];
+
+  let id = "";
+  let name = "";
+  let path = "";
+  let curFuncList = JSON.parse(sessionStorage.getItem("curFuncLists"));
+  if (curFuncList) {
+      var objFunc = curFuncList.find((obj) => obj.id == 1);
+        id = objFunc?.id;
+        name = objFunc?.funcName;
+        path = objFunc?.funcUrl;
+
+        let model = {
+          id,
+          path,
+          name,
+          effect: "dark",
+        };
+        tagsStore.SetTags([]);
+        tagsStore.AddTag(model);
+        // console.log("hhhhhhhhhhhhhh");
+        // console.log(model);
+        commonstore.changeCurTreeNode(id, "", "");
+        // console.log(commonstore.curTreeNode);
+        router.push({ path });
+        //cache.session.setJSON(cacheKey, JSON.stringify(dynamicTags.value));
+
+        router.push({ path: path });
+    }
+
   tagContextMenuVisible.value = false;
 }
 </script>

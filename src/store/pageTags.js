@@ -2,7 +2,8 @@
      state: () => ({
          TagArrs: [],
          TagModuleArrs: [],
-         CurTag:{}
+         CurTag:{},
+         CallBacks:[]
      }),
      getters: {
 
@@ -31,6 +32,11 @@
                  }
                  console.log(obj);
              }
+             this.CallBacks.forEach(e => {e()});
+         },
+         SetTags(tags){
+            this.TagArrs = tags;
+            this.CallBacks.forEach(e => {e()});
          },
          //  GetTagModule(param) {
          //      //console.log("pageTags", param);
