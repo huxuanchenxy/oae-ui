@@ -2176,6 +2176,9 @@ const getReadUpdateEvent = () => {
 };
 //保存NODE配置，把DML的都要在configlist里操作一遍，否则表格关闭数据丢失
 const saveConfig = async () => {
+  if(!selectedNodeId){
+    proxy?.$modal.msgError("selectedNodeId未传递");
+  }
   const $readtable = tableReadRef.value;
   const $writetable = tableReadRef.value;
   if ($readtable && $writetable) {
