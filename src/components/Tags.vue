@@ -91,10 +91,11 @@ const handleClose = (tag) => {
     var path = tagPrev.path;
     tagPrev.effect = "dark";
     tagPrev.selected =1;
-    tagsStore.SetTags(dynamicTags.value);
+    
     // commonstore.changeCurTreeNode(tagPrev.id, "", "");
     // router.push({ path });
   }
+  tagsStore.SetTags(dynamicTags.value);
 };
 
 const goToPath = (tag) => {
@@ -119,7 +120,7 @@ const OnTagsChanged = () => {
 
 
  dynamicTags.value = tagsStore.TagArrs;
- console.log(dynamicTags.value );
+//  console.log(dynamicTags.value );
  cache.session.setJSON(cacheKey, JSON.stringify(tagsStore.TagArrs));
 
 };
